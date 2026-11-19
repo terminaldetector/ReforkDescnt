@@ -54,23 +54,49 @@ public final class DescentHud {
 	private static final int ENV_H = 34;
 	private static final int PROJ_H = 34;
 	private static final int ORD_H = 58;
+	private static final int SIDE_MARGIN = 4;
+	private static final int TARGET_PANEL_WIDTH = 124;
+	private static final int INSTRUMENT_WIDTH = 60;
+	private static final int INSTRUMENT_GAP = 6;
 
-	private static final ArrayDeque<String> LOG = new ArrayDeque<>();
-	private static String lastTargetName = "";
-	private static int logCooldown;
+	private static final ArrayDeque<CombatNotice> LOG = new ArrayDeque<>();
+	private static net.minecraft.client.world.ClientWorld hudWorld;
+	private static net.minecraft.client.network.ClientPlayerEntity hudPlayer;
+	private static int lastTargetId = -1;
+	private static boolean shieldCritical;
+	private static boolean afterburnerEngaged;
+
+	private record CombatNotice(Text message, boolean critical) {}
 
 	private DescentHud() {}
 
 	public static void pushLog(String line) {
-		LOG.addFirst(line);
+		pushNotice(Text.literal(line), line.contains("critical") || line.contains("Direct hit"));
+	}
+
+	private static void pushNotice(Text message, boolean critical) {
+		var notice = new CombatNotice(message, critical);
+		if (notice.equals(LOG.peekFirst())) return;
+		LOG.addFirst(notice);
 		while (LOG.size() > 6) LOG.removeLast();
 	}
 
 	public static void render(DrawContext ctx, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
+		if (hudWorld != mc.world || hudPlayer != mc.player) {
+			hudWorld = mc.world;
+			hudPlayer = mc.player;
+			LOG.clear();
+			lastTargetId = -1;
+			shieldCritical = false;
+			afterburnerEngaged = false;
+			contactStamp = targetStamp = Long.MIN_VALUE;
+			contactCache = List.of();
+			targetCache = null;
+		}
 		if (mc.player == null || mc.world == null || mc.options.hudHidden || mc.currentScreen != null) return;
 
-		renderReactorSyncStrip(ctx, mc);
+		int top = renderReactorSyncStrip(ctx, mc) ? 22 : SIDE_MARGIN;
 
 		if (!DescentClientState.enabled) return;
 		// 2D canopy always when flying — 3D frame can fail under some pipelines; this never does.
@@ -84,14 +110,15 @@ public final class DescentHud {
 		int sh = mc.getWindow().getScaledHeight();
 		int cx = sw / 2;
 		int cy = sh / 2;
+		int centreWidth = Math.max(0, sw - 2 * (TARGET_PANEL_WIDTH + SIDE_MARGIN * 2));
 
 		maybeCombatLog();
 		List<Entity> contacts = scanContacts(mc);
 		TargetInfo target = resolveTarget(mc);
 
 		// ---- left column, stacked from the top -------------------------------------------------
-		int lx = 4;
-		int ly = 4;
+		int lx = SIDE_MARGIN;
+		int ly = top;
 		ly = drawFlightStatus(ctx, mc, lx, ly) + 4;
 		ly = drawCoords(ctx, mc, lx, ly) + 4;
 		int leftTop = drawTargetPanel(ctx, mc, lx, ly, target) + 4;
@@ -105,7 +132,7 @@ public final class DescentHud {
 			leftBottom = drawMinimap(ctx, mc, lx, leftBottom - MAP_H, contacts) - 4;
 		}
 		int logH = Math.min(66, leftBottom - leftTop);
-		if (logH >= 26) {
+		if (logH >= 26 && !LOG.isEmpty()) {
 			// Keep clear of the centre instrument cluster on narrow screens.
 			int logW = MathHelper.clamp(cx - 100 - lx, 96, 150);
 			drawCombatLog(ctx, mc, lx, leftBottom - logH, logW, logH);
@@ -114,7 +141,7 @@ public final class DescentHud {
 		// ---- right column ----------------------------------------------------------------------
 		int radarSize = sw < 520 ? 58 : 72;
 		int rx = sw - (radarSize + 8) - 4;
-		int rightTop = drawRadar(ctx, mc, rx, 4, radarSize, contacts) + 4;
+		int rightTop = drawRadar(ctx, mc, rx, top, radarSize, contacts) + 4;
 		int weaponsW = 108;
 		int wx = sw - weaponsW - 4;
 		rightTop = drawWeapons(ctx, mc, wx, rightTop, weaponsW) + 4;
@@ -129,10 +156,11 @@ public final class DescentHud {
 		}
 
 		// ---- centre ----------------------------------------------------------------------------
-		if (sw >= 320) drawTargetBar(ctx, mc, cx, 4, target);
-		if (sw >= 380 && sh >= 260) drawInstrumentCluster(ctx, mc, cx, sh - 86);
+		boolean showTargetBar = centreWidth >= 96 && target != null && target.hpMax > 0;
+		if (showTargetBar) drawTargetBar(ctx, mc, cx, top, Math.min(centreWidth, 182), target);
+		if (centreWidth >= INSTRUMENT_WIDTH * 3 + INSTRUMENT_GAP * 2 && sh >= 260) drawInstrumentCluster(ctx, mc, cx, sh - 86);
 		drawReticle(ctx, mc, cx, cy, target);
-		drawAttitudeLadder(ctx, cx, cy);
+		if (centreWidth >= 128) drawAttitudeLadder(ctx, cx, cy);
 
 		if (!mc.options.getPerspective().isFirstPerson()) {
 			ctx.drawCenteredTextWithShadow(mc.textRenderer, Text.literal("EXTERNAL · SHIP CAM"), cx, sh - 96, GREEN_DIM);
@@ -140,10 +168,13 @@ public final class DescentHud {
 		TerrainMap3d.render(ctx, mc);
 
 		if (DescentClientState.gravityFactor > 0.05f) {
-			String warn = DescentClientState.gravityFactor >= 1f
-					? "⚠ GRAVITY ACTIVE"
-					: String.format(Locale.ROOT, "⚠ GRAVITY RAMP %.0f%%", DescentClientState.gravityFactor * 100);
-			ctx.drawCenteredTextWithShadow(mc.textRenderer, Text.literal(warn), cx, 18, AMBER);
+			Text warning = DescentClientState.gravityFactor >= 1f
+					? Text.translatable("hud.drmd.gravity_active")
+					: Text.translatable("hud.drmd.gravity_ramp", Math.round(DescentClientState.gravityFactor * 100));
+			if (centreWidth < mc.textRenderer.getWidth(warning)) warning = Text.translatable("hud.drmd.gravity_short");
+			if (centreWidth >= mc.textRenderer.getWidth(warning)) {
+				ctx.drawCenteredTextWithShadow(mc.textRenderer, warning, cx, top + (showTargetBar ? 28 : 0), AMBER);
+			}
 		}
 	}
 
@@ -213,7 +244,7 @@ public final class DescentHud {
 	}
 
 	private static int drawTargetPanel(DrawContext ctx, MinecraftClient mc, int x, int y, TargetInfo t) {
-		int w = 124, h = 70;
+		int w = TARGET_PANEL_WIDTH, h = 70;
 		panel(ctx, x, y, w, h);
 		int tx = x + 4;
 		line(ctx, mc, tx, y + 3, "TARGET INFO", RED);
@@ -227,7 +258,7 @@ public final class DescentHud {
 		drawTargetThumb(ctx, thumbX + 17, thumbY + 13, t);
 		int nx = tx + 40;
 		line(ctx, mc, nx, y + 16, clip(mc, t.name.toUpperCase(Locale.ROOT), w - 46), RED);
-		line(ctx, mc, nx, y + 27, "TYPE: " + t.type, GREEN);
+		line(ctx, mc, nx, y + 27, clip(mc, "TYPE: " + t.type, w - 48), GREEN);
 		if (t.hpMax > 0) {
 			int hpColor = t.hp * 3 < t.hpMax ? RED : GREEN;
 			line(ctx, mc, tx, y + 42, String.format(Locale.ROOT, "HP: %d/%d", t.hp, t.hpMax), hpColor);
@@ -235,9 +266,10 @@ public final class DescentHud {
 		} else {
 			line(ctx, mc, tx, y + 42, "HP: —", GREEN_DIM);
 		}
-		line(ctx, mc, tx, y + 59, String.format(Locale.ROOT, "DIST: %dm", t.dist), GREEN);
 		String vel = String.format(Locale.ROOT, "VEL: %.1f", t.vel);
-		line(ctx, mc, x + w - 4 - mc.textRenderer.getWidth(vel), y + 59, vel, GREEN);
+		int velocityX = x + w - 4 - mc.textRenderer.getWidth(vel);
+		line(ctx, mc, tx, y + 59, clip(mc, String.format(Locale.ROOT, "DIST: %dm", t.dist), velocityX - tx - 4), GREEN);
+		line(ctx, mc, velocityX, y + 59, vel, GREEN);
 		return y + h;
 	}
 
@@ -270,15 +302,10 @@ public final class DescentHud {
 	private static void drawCombatLog(DrawContext ctx, MinecraftClient mc, int x, int y, int w, int h) {
 		panel(ctx, x, y, w, h);
 		int yy = y + 4;
-		if (LOG.isEmpty()) {
-			line(ctx, mc, x + 4, yy, "[SYS] Descent link online", GREEN);
-			return;
-		}
 		int rows = Math.max(1, (h - 6) / 10);
-		for (String s : LOG) {
+		for (var notice : LOG) {
 			if (rows-- <= 0) break;
-			boolean critical = s.contains("critical") || s.contains("Direct hit");
-			line(ctx, mc, x + 4, yy, clip(mc, s, w - 8), critical ? RED : GREEN);
+			line(ctx, mc, x + 4, yy, clip(mc, notice.message().getString(), w - 8), notice.critical() ? RED : GREEN);
 			yy += 10;
 		}
 	}
@@ -292,7 +319,7 @@ public final class DescentHud {
 		int minutes = (int) (dayTime % 1000L * 60L / 1000L);
 		boolean day = hours >= 6 && hours < 18;
 		boolean dusk = hours == 18 || hours == 5;
-		line(ctx, mc, tx, y + 3, "BIOME: " + biomeName(mc), GREEN);
+		line(ctx, mc, tx, y + 3, clip(mc, "BIOME: " + biomeName(mc), w - 8), GREEN);
 		line(ctx, mc, tx, y + 13, String.format(Locale.ROOT, "TIME: %02d:%02d", hours, minutes), GREEN);
 		line(ctx, mc, tx, y + 23, "LIGHT: " + (day ? "DAY" : dusk ? "DUSK" : "NIGHT"), day ? GREEN : AMBER);
 		return y;
@@ -642,9 +669,7 @@ public final class DescentHud {
 
 	// =============================================================== centre
 
-	private static void drawTargetBar(DrawContext ctx, MinecraftClient mc, int cx, int y, TargetInfo t) {
-		if (t == null || t.hpMax <= 0) return;
-		int w = 182;
+	private static void drawTargetBar(DrawContext ctx, MinecraftClient mc, int cx, int y, int w, TargetInfo t) {
 		int x = cx - w / 2;
 		panel(ctx, x, y, w, 24);
 		ctx.drawCenteredTextWithShadow(mc.textRenderer, Text.literal(clip(mc, t.name.toUpperCase(Locale.ROOT), w - 8)),
@@ -658,7 +683,7 @@ public final class DescentHud {
 	}
 
 	private static void drawInstrumentCluster(DrawContext ctx, MinecraftClient mc, int cx, int y) {
-		int w = 60, h = 44, gap = 6;
+		int w = INSTRUMENT_WIDTH, h = 44, gap = INSTRUMENT_GAP;
 		int x0 = cx - (w * 3 + gap * 2) / 2;
 
 		// Left plate — thrust + afterburner state.
@@ -688,7 +713,7 @@ public final class DescentHud {
 		int hx = (int) (Math.cos(rr) * 11);
 		int hy = (int) (Math.sin(rr) * 11);
 		lineTo(ctx, mcx - hx, mcy - hy, mcx + hx, mcy + hy, GREEN);
-		boolean lock = !lastTargetName.isEmpty();
+		boolean lock = lastTargetId != -1;
 		ctx.drawCenteredTextWithShadow(mc.textRenderer, Text.literal("LOCK"), mcx, y + h - 11,
 				lock ? RED : GREEN_DIM);
 
@@ -740,7 +765,7 @@ public final class DescentHud {
 	/** Radar + minimap share one sweep, refreshed on a tick budget rather than per frame. */
 	private static List<Entity> scanContacts(MinecraftClient mc) {
 		long now = mc.world.getTime();
-		if (contactStamp != Long.MIN_VALUE && now - contactStamp < 4) return contactCache;
+		if (contactStamp != Long.MIN_VALUE && now >= contactStamp && now - contactStamp < 4) return contactCache;
 		contactStamp = now;
 		List<Entity> out = new ArrayList<>();
 		var box = mc.player.getBoundingBox().expand(96);
@@ -780,9 +805,9 @@ public final class DescentHud {
 		EntityHitResult hit = rayEntity(mc, eye, end, Math.min(blockDist + 0.5, 160));
 		if (hit != null && hit.getEntity() instanceof LivingEntity living) {
 			String name = living.getName().getString();
-			if (!name.equals(lastTargetName)) {
-				lastTargetName = name;
-				pushLog("[SYS] Target lock: " + name);
+			if (living.getId() != lastTargetId) {
+				lastTargetId = living.getId();
+				pushNotice(Text.translatable("hud.drmd.target_locked", living.getName()), false);
 			}
 			targetCache = new TargetInfo(
 					name,
@@ -793,7 +818,7 @@ public final class DescentHud {
 					(float) living.getVelocity().length() * 20f);
 			return targetCache;
 		}
-		lastTargetName = "";
+		lastTargetId = -1;
 		if (blockHit.getType() == HitResult.Type.BLOCK) {
 			BlockPos pos = blockHit.getBlockPos();
 			var state = mc.world.getBlockState(pos);
@@ -834,17 +859,13 @@ public final class DescentHud {
 	}
 
 	private static void maybeCombatLog() {
-		if (logCooldown > 0) {
-			logCooldown--;
-			return;
-		}
-		if (DescentClientState.shield < 30 && DescentClientState.shield > 0) {
-			pushLog("[SYS] Shield critical");
-			logCooldown = 80;
-		} else if (DescentClientState.alwaysRun) {
-			pushLog("[SYS] Afterburner engaged");
-			logCooldown = 100;
-		}
+		float shield = DescentClientState.shield;
+		boolean critical = shield > 0 && shield < (shieldCritical ? 35 : 30);
+		boolean engaged = DescentClientState.alwaysRun;
+		if (critical && !shieldCritical) pushNotice(Text.translatable("hud.drmd.shield_critical"), true);
+		if (engaged && !afterburnerEngaged) pushNotice(Text.translatable("hud.drmd.afterburner_engaged"), false);
+		shieldCritical = critical;
+		afterburnerEngaged = engaged;
 	}
 
 	// =============================================================== ammo counting
@@ -890,12 +911,8 @@ public final class DescentHud {
 
 	private static String clip(MinecraftClient mc, String s, int maxWidth) {
 		if (mc.textRenderer.getWidth(s) <= maxWidth) return s;
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < s.length(); i++) {
-			if (mc.textRenderer.getWidth(sb.toString() + s.charAt(i) + "…") > maxWidth) break;
-			sb.append(s.charAt(i));
-		}
-		return sb + "…";
+		int textWidth = maxWidth - mc.textRenderer.getWidth("…");
+		return textWidth > 0 ? mc.textRenderer.trimToWidth(s, textWidth) + "…" : "";
 	}
 
 	private static void segBar(DrawContext ctx, int x, int y, int w, int h, float pct, int color) {
@@ -952,13 +969,13 @@ public final class DescentHud {
 	}
 
 	/** Column / End / orbit aftermath cue — visible even outside 6DoF. */
-	private static void renderReactorSyncStrip(DrawContext ctx, MinecraftClient mc) {
+	private static boolean renderReactorSyncStrip(DrawContext ctx, MinecraftClient mc) {
 		var sync = com.terminaldetector.drmd.client.sync.ClientReactorSync.INSTANCE;
 		int breachSec = sync.nearestBreachSeconds(
 				mc.player.getX(), mc.player.getY(), mc.player.getZ());
 		int falls = sync.falls().size();
 		boolean fateActive = DescentClientState.isSilenceEnding() || DescentClientState.isVoidEnding();
-		if (!fateActive && breachSec < 0 && falls <= 0 && sync.lastGameTime() < 0) return;
+		if (!fateActive && breachSec < 0 && falls <= 0 && sync.lastGameTime() < 0) return false;
 
 		int sw = mc.getWindow().getScaledWidth();
 		String line;
@@ -984,6 +1001,7 @@ public final class DescentHud {
 		int y = 6;
 		ctx.fill(x - 4, y - 2, x + tw + 4, y + 11, 0x88000C10);
 		ctx.drawText(mc.textRenderer, Text.literal(line), x, y, color, false);
+		return true;
 	}
 
 	private record TargetInfo(String name, String type, int hp, int hpMax, int dist, float vel) {}

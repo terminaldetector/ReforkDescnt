@@ -21,15 +21,13 @@ import java.lang.ref.WeakReference;
 /**
  * Local gravity for non-player living entities (mobs).
  *
- * <p>Players use {@link FootGravitySystem}. Mobs get the same field sample, a safe mount when
- * "down" changes, a runtime gravity override, and a soft pull/stick toward the surface — never a shove
- * into the wall that causes suffocation.
+ * <p>Players use {@link FootGravitySystem}. Supported ground actors share checked in-place
+ * frames; native constrained actors retain their attachment/phase controller. Other living
+ * families receive only the sampled force, without borrowing ground mounts, snap or drag.
  */
 public final class EntityGravitySystem {
 	private static final double GRAVITY = 0.06;
 	private static final double STICK = 1.6;
-	/** Remount when field up turns more than ~45°. */
-	private static final double REMOUNT_DOT = 0.70;
 
 	private static final class MobState {
 		final WeakReference<LivingEntity> actor;
@@ -82,6 +80,14 @@ public final class EntityGravitySystem {
 		if (entity instanceof PlayerEntity) return; // FootGravitySystem
 		if (entity.hasVehicle()) {ActorFrames.tryRelease(entity);STATE.remove(entity.getUuid());return;}
 
+        var policy=ActorPhysicsProfile.gravityPolicy(entity);
+        if(policy==ActorPhysicsProfile.GravityPolicy.NATIVE_CONSTRAINT) {
+            // Roosts, attachment faces and multipart phase controllers retain their own frame.
+            // A live force lease from an earlier free-flight state must not survive attachment.
+            if(ActorFrames.tryRelease(entity))STATE.remove(entity.getUuid());
+            return;
+        }
+
 		GravityFields.Sample sample = GravityFields.sample(entity.getWorld(), entity.getPos());
 		if (sample == null || sample.strength() < 0.05f) {
 			if(!ActorFrames.tryRelease(entity)) {
@@ -96,13 +102,12 @@ public final class EntityGravitySystem {
 		Vec3d up = sample.upDir().normalize();
 		MobState prev = STATE.get(entity.getUuid());
 		if(prev!=null && !prev.owns(entity))prev=null;
-		boolean remount = prev == null || prev.fieldUp.dotProduct(up) < REMOUNT_DOT;
-		boolean forceOnly = ActorPhysicsProfile.flying(entity) || ActorPhysicsProfile.submergedFish(entity);
-		if(ActorFrames.supported(entity)) {
+        // Every unframed family has a predictable force-only fallback. Native pose, goals,
+        // medium drag and propulsion remain theirs; unknown actors never borrow foot mounting.
+        boolean forceOnly=policy==ActorPhysicsProfile.GravityPolicy.FORCE_ONLY;
+		if(policy==ActorPhysicsProfile.GravityPolicy.FRAMED_GROUND) {
 			if(!ActorFrames.trySetUp(entity,up))return;
 			up=ActorFrames.up(entity);
-		} else if (remount && !forceOnly) {
-			GravityMount.safeMount(entity, up);
 		}
 		if(prev==null)STATE.put(entity.getUuid(),new MobState(entity,up));
 		else prev.fieldUp=up;

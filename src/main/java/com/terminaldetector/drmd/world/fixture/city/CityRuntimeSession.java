@@ -20,7 +20,6 @@ public final class CityRuntimeSession {
     private CompletableFuture<Void> closeAck;private CityBatchJournal.Disposition closeIntent=CityBatchJournal.Disposition.PAUSED;
     private boolean restoredOnly;private long lastTick=Long.MIN_VALUE;
     private CityAuthoringJob.Inspection lastJob;private CityWorldStorage.Diagnostic lastStorage;
-    private OrbitalRouteProgress route;
 
     public static CityRuntimeSession plan(ServerPlayerEntity owner,long citySeed,CityBlueprint.Point anchor){
         return plan(owner,citySeed,anchor,CityManifest.Kind.CITY);
@@ -107,15 +106,16 @@ public final class CityRuntimeSession {
         caller(id);
         if(!contextStillMatches()||manifest==null||manifest.kind()!=CityManifest.Kind.ORBITAL_PILOT||job==null||job.inspect().state()!=CityAuthoringJob.State.COMPLETED)
             throw new IllegalStateException("Complete an explicitly applied orbital pilot before starting its route");
-        if(route==null)route=new OrbitalRouteProgress(OrbitalRouteBlueprint.gates(manifest.anchor()));
+        var memory=OrbitalRouteMemory.of(world);var routeContext=OrbitalRouteMemory.Context.of(manifest);var gates=OrbitalRouteBlueprint.gates(manifest.anchor());
+        var route=memory.progress(routeContext,gates);
         var next=route.next();var at=next.position();var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);boolean clear=true;
         for(int x=-1;x<=1;x++)for(int z=-1;z<=1;z++)for(int y=0;y<3;y++){
             var pos=new net.minecraft.util.math.BlockPos(at.x()+x,at.y()+y,at.z()+z);
             var cell=access.readIfLoaded(pos);if(cell.isEmpty()||!cell.get().isAir())clear=false;
         }
         var position=new OrbitalRouteProgress.Position(owner.getX(),owner.getY(),owner.getZ());
-        var progress=route.observe(position,world.getTime(),clear);
-        if(progress.complete())return "Orbital route complete: "+progress.passed()+" gates, "+progress.elapsedTicks()+" actual world ticks. Session measurement only; no reward.";
+        var progress=memory.observe(routeContext,gates,position,world.getTime(),clear);route=memory.progress(routeContext,gates);
+        if(progress.complete())return "Orbital route complete: "+progress.passed()+" gates, "+progress.elapsedTicks()+" actual world ticks. Saved for this owner and original job; no reward.";
         next=route.next();
         return "Orbital route "+progress.passed()+"/"+progress.total()+"; next "+next.id()+" "+next.position()+"; distance "+Math.round(route.distance(position))
             +"m; elapsed "+progress.elapsedTicks()+" ticks"+(clear?"":"; current gate blocked/unavailable")+". Fly/walk normally, then use route again.";

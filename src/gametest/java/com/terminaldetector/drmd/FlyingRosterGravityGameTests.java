@@ -122,4 +122,73 @@ public final class FlyingRosterGravityGameTests implements FabricGameTest {
         }
         context.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-family-fallback")
+    public void nativeAerialSpecialAndUnknownFamiliesKeepTheirControllersWithoutGroundMounts(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));
+        for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var p:BlockPos.iterate(centre.add(3,-4,-4),centre.add(3,6,4)))world.setBlockState(p,Blocks.BRICKS.getDefaultState(),2);
+        var id=UUID.randomUUID();
+        EntityType<?>[] types={EntityType.BAT,EntityType.PARROT,EntityType.WITHER,EntityType.VILLAGER,EntityType.RABBIT,EntityType.SLIME};
+        try {
+            for(var type:types)for(boolean originalNoGravity:new boolean[]{false,true}) {
+                var actor=(MobEntity)type.create(world);MobEntity copy=null;
+                c.assertTrue(!actor.isAiDisabled(),"native AI enabled before the disclosed force-only fixture: "+type);
+                actor.setAiDisabled(true);actor.setNoGravity(originalNoGravity);actor.setPosition(Vec3d.ofCenter(centre));
+                if(actor instanceof net.minecraft.entity.passive.BatEntity bat)bat.setRoosting(false);
+                if(actor instanceof net.minecraft.entity.passive.ParrotEntity parrot)parrot.setInSittingPose(false);
+                actor.setOnGround(false);actor.setYaw(37);actor.setPitch(-23);world.spawnEntity(actor);
+                var navigation=actor.getNavigation();var controller=actor.getMoveControl();var start=actor.getPos();var propulsion=new Vec3d(.17,.03,-.04);
+                try {
+                    for(var direction:FIELD_AXES) {
+                        var down=Vec3d.of(direction.getVector());actor.setVelocity(propulsion);
+                        GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),centre,down,32,.5f,FieldShape.SPHERE,"native family fallback"));
+                        EntityGravitySystem.tick(world.getServer());
+                        c.assertTrue(actor.getPos().distanceTo(start)<1e-9&&actor.getVelocity().distanceTo(propulsion.add(down.multiply(.03)))<1e-8,
+                            "actual native actor receives only one force and never a foot teleport/snap/drag: "+type+" "+direction);
+                        c.assertTrue(actor.getYaw()==37&&actor.getPitch()==-23&&!actor.isOnGround()&&!ActorFrames.active(actor)
+                            &&actor.hasNoGravity()==originalNoGravity,"native pose/attitude/external flag preserved: "+type);
+                    }
+                    var saved=actor.writeNbt(new NbtCompound());copy=(MobEntity)type.create(world);copy.readNbt(saved);
+                    c.assertTrue(copy.getUuid().equals(actor.getUuid())&&!EntityGravitySystem.suppressesVanillaGravity(copy)
+                        &&copy.hasNoGravity()==originalNoGravity,"saved identity cannot acquire another live actor's lease: "+type);
+                    var velocity=actor.getVelocity();GravityFields.remove(id);EntityGravitySystem.tick(world.getServer());actor.setAiDisabled(false);
+                    c.assertTrue(!actor.isAiDisabled()&&actor.getNavigation()==navigation&&actor.getMoveControl()==controller
+                        &&actor.getVelocity().equals(velocity)&&actor.hasNoGravity()==originalNoGravity,
+                        "exit retains original goals/controllers/momentum instead of replacing native AI: "+type);
+                } finally {GravityFields.remove(id);if(copy!=null)copy.discard();actor.discard();EntityGravitySystem.tick(world.getServer());}
+            }
+        } finally {GravityFields.remove(id);for(var p:BlockPos.iterate(centre.add(3,-4,-4),centre.add(3,6,4)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);}
+        c.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-family-constraints")
+    public void roostAttachmentAndDragonMultipartConstraintsNeverBorrowAGroundLease(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));var id=UUID.randomUUID();
+        for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var type:new EntityType<?>[]{EntityType.BAT,EntityType.SHULKER,EntityType.ENDER_DRAGON}) {
+            var actor=(MobEntity)type.create(world);actor.setAiDisabled(true);actor.setPosition(Vec3d.ofCenter(centre));
+            if(actor instanceof net.minecraft.entity.passive.BatEntity bat)bat.setRoosting(true);
+            var attached=actor instanceof net.minecraft.entity.mob.ShulkerEntity shulker?shulker.getAttachedFace():null;
+            var parts=actor instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity dragon?dragon.getBodyParts().clone():null;
+            world.spawnEntity(actor);var start=actor.getPos();var propulsion=new Vec3d(.11,.03,-.04);actor.setVelocity(propulsion);
+            try {
+                for(var direction:FIELD_AXES) {
+                    GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),centre,Vec3d.of(direction.getVector()),32,1,FieldShape.SPHERE,"native constraint"));
+                    EntityGravitySystem.tick(world.getServer());
+                    c.assertTrue(actor.getPos().equals(start)&&actor.getVelocity().equals(propulsion)&&!ActorFrames.active(actor)
+                        &&!EntityGravitySystem.suppressesVanillaGravity(actor),"native constraint refuses unsupported local frame/force ownership: "+type+" "+direction);
+                }
+                if(actor instanceof net.minecraft.entity.mob.ShulkerEntity shulker)c.assertTrue(shulker.getAttachedFace()==attached,"actual native support face is untouched");
+                if(actor instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity dragon)
+                    c.assertTrue(java.util.Arrays.equals(parts,dragon.getBodyParts()),"actual multipart identities/controllers are never replaced by a generic body");
+                if(actor instanceof net.minecraft.entity.passive.BatEntity bat) {
+                    bat.setRoosting(false);EntityGravitySystem.tick(world.getServer());
+                    c.assertTrue(EntityGravitySystem.suppressesVanillaGravity(bat)&&bat.getVelocity().distanceTo(propulsion)>.02,"leaving the actual native roost enables the ordinary aerial force adapter");
+                    var velocity=bat.getVelocity();bat.setRoosting(true);EntityGravitySystem.tick(world.getServer());
+                    c.assertTrue(!EntityGravitySystem.suppressesVanillaGravity(bat)&&bat.isRoosting()&&bat.getVelocity().equals(velocity),"re-entry into a native constraint retires the earlier live force lease");
+                }
+            } finally {GravityFields.remove(id);actor.discard();EntityGravitySystem.tick(world.getServer());}
+        }
+        c.complete();
+    }
 }

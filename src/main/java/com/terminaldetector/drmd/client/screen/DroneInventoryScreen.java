@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.client.screen;
 
+import com.terminaldetector.drmd.client.input.DescentKeybinds;
 import com.terminaldetector.drmd.client.render.DroneLoadoutPreview;
 import com.terminaldetector.drmd.inventory.DroneInventoryHandler;
 import net.minecraft.client.gui.DrawContext;
@@ -26,8 +27,10 @@ public final class DroneInventoryScreen extends HandledScreen<DroneInventoryHand
 
     @Override protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         for (int i = 0; i < 5; i++) {
-            int slotX = x + handler.getSlot(i).x;
-            if (mouseX >= slotX - 2 && mouseX < slotX + 18 && mouseY >= y + 79 && mouseY < y + 109)
+            var slot = handler.getSlot(i);
+            int slotX = x + slot.x;
+            int slotY = y + slot.y;
+            if (mouseX >= slotX - 2 && mouseX < slotX + 18 && mouseY >= slotY - 12 && mouseY < slotY + 18)
                 previewBank = i;
         }
         context.fill(x, y, x + 176, y + 212, 0xee18252e);
@@ -57,5 +60,22 @@ public final class DroneInventoryScreen extends HandledScreen<DroneInventoryHand
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         drawMouseoverTooltip(context, mouseX, mouseY);
+        for (int bank = 0; bank < LABELS.length; bank++) {
+            var slot = handler.getSlot(bank);
+            if (!slot.hasStack() && isPointWithinBounds(slot.x, slot.y, 16, 16, mouseX, mouseY)) {
+                context.drawTooltip(textRenderer, socketHint(bank), mouseX, mouseY);
+                return;
+            }
+        }
+    }
+
+    private Text socketHint(int bank) {
+        return switch (bank) {
+            case 0 -> Text.translatable("container.drmd.drone_inventory.primary.hint", client.options.attackKey.getBoundKeyLocalizedText());
+            case 1 -> Text.translatable("container.drmd.drone_inventory.secondary.hint", client.options.useKey.getBoundKeyLocalizedText());
+            case 2 -> Text.translatable("container.drmd.drone_inventory.auxiliary.hint", DescentKeybinds.auxiliary.getBoundKeyLocalizedText());
+            case 3 -> Text.translatable("container.drmd.drone_inventory.reserve.hint");
+            default -> Text.translatable("container.drmd.drone_inventory.engine.hint", DescentKeybinds.alwaysRun.getBoundKeyLocalizedText());
+        };
     }
 }

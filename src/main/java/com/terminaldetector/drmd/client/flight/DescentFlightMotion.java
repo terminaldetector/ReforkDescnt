@@ -4,6 +4,8 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.input.DescentKeybinds;
 import com.terminaldetector.drmd.flight.FlightSystem;
+import com.terminaldetector.drmd.flight.FlightEnvironment;
+import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -143,6 +145,12 @@ public final class DescentFlightMotion {
 				? com.terminaldetector.drmd.flight.AfterburnerTiers.accelMult(abTier, engAlloc) : 1f;
 		float speedMult = afterburner
 				? com.terminaldetector.drmd.flight.AfterburnerTiers.speedMult(abTier, engAlloc) : 1f;
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if(mc==null||mc.world==null||mc.player==null)return vel;
+		var band=AtmosphereBand.at(mc.world,mc.player.getY());
+		var environment=FlightEnvironment.resolve(accelMult,speedMult,DescentClientState.drag,band.thrustScale,band.airDrag);
+		accelMult=environment.accelerationMultiplier();
+		speedMult=environment.speedMultiplier();
 
 		double accel = DescentMod.su(DescentClientState.accel) * accelMult;
 		Vec3d wish = look.multiply(fwd)
@@ -153,7 +161,6 @@ public final class DescentFlightMotion {
 		}
 
 		// Match server micro-g + idle gravity ramp so the predictor does not fight SyncPayload sink.
-		MinecraftClient mc = MinecraftClient.getInstance();
 		boolean endVacuum = false;
 		if (mc != null && mc.world != null && mc.player != null) {
 			var level = com.terminaldetector.drmd.world.level.WorldLevels.at(mc.player.getY());
@@ -172,7 +179,7 @@ public final class DescentFlightMotion {
 
 		double speed = vel.length();
 		if (speed > 1e-4) {
-			double qDrag = DescentClientState.drag * speed * speed * DescentMod.UNIT_SCALE * dt;
+			double qDrag = environment.dragCoefficient() * speed * speed * DescentMod.UNIT_SCALE * dt;
 			vel = vel.multiply(Math.max(0, 1.0 - qDrag / speed));
 		}
 		if (DescentClientState.flightAssist && !thrusting) {

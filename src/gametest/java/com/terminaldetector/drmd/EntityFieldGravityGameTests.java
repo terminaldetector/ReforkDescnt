@@ -297,4 +297,74 @@ public final class EntityFieldGravityGameTests implements FabricGameTest {
             context.complete();
         });
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,tickLimit=60,batchId="aquatic-native-family-medium")
+    public void ordinaryWetAquaticFamiliesKeepNativeMediumMotionAcrossAllFieldAxes(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));var id=UUID.randomUUID();
+        var actors=new java.util.ArrayList<net.minecraft.entity.mob.MobEntity>();
+        for(var p:BlockPos.iterate(centre.add(-6,-4,-6),centre.add(6,4,6)))world.setBlockState(p,Blocks.WATER.getDefaultState(),2);
+        long chunk=new ChunkPos(centre).toLong();boolean forced=world.getForcedChunks().contains(chunk);
+        world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),true);
+        for(var type:new EntityType<?>[]{EntityType.DOLPHIN,EntityType.SQUID,EntityType.GLOW_SQUID,EntityType.GUARDIAN,EntityType.ELDER_GUARDIAN,EntityType.AXOLOTL}) {
+            var actor=(net.minecraft.entity.mob.MobEntity)type.create(world);actor.setAiDisabled(true);actor.setNoGravity(true);
+            actor.setPosition(Vec3d.ofCenter(centre));c.assertTrue(world.spawnEntity(actor),"actual aquatic actor registered: "+type);actors.add(actor);
+        }
+        c.runAtTick(5,()->{
+            try {
+                for(var actor:actors) {
+                    c.assertTrue(actor.age>=2&&actor.isTouchingWater()&&actor.isSubmergedInWater(),"admission: actual ordinary world ticks establish native water contact: "+actor.getType());
+                    var navigation=actor.getNavigation();var control=actor.getMoveControl();var start=actor.getPos();var propulsion=new Vec3d(.17,.03,-.04);boolean swimming=actor.isSwimming();
+                    actor.setOnGround(false);actor.setYaw(37);actor.setPitch(-23);
+                    for(var direction:Direction.values()) {
+                        var down=Vec3d.of(direction.getVector());actor.setVelocity(propulsion);
+                        GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),centre,down,32,.5f,FieldShape.SPHERE,"actual aquatic medium"));
+                        var sample=GravityFields.sample(world,start);c.assertTrue(sample!=null,"actual native medium actor is inside the source");
+                        tick(c);
+                        c.assertTrue(actor.getPos().equals(start)&&actor.getVelocity().distanceTo(propulsion.add(down.multiply(.06*sample.strength())))<1e-8,
+                            "one force preserves actual native fluid propulsion without standing snap or drag: "+actor.getType()+" "+direction);
+                        c.assertTrue(!actor.isOnGround()&&!ActorFrames.active(actor)&&actor.isSwimming()==swimming&&actor.isTouchingWater()&&actor.isSubmergedInWater()
+                            &&actor.getYaw()==37&&actor.getPitch()==-23,"native fluid/attitude/contact ownership remains unchanged: "+actor.getType());
+                    }
+                    var velocity=actor.getVelocity();GravityFields.remove(id);tick(c);
+                    c.assertTrue(actor.hasNoGravity()&&actor.getVelocity().equals(velocity)&&actor.getNavigation()==navigation&&actor.getMoveControl()==control,
+                        "aquatic field exit restores native controllers and saved gravity ownership: "+actor.getType());
+                }
+            } finally {
+                GravityFields.remove(id);for(var actor:actors)actor.discard();tick(c);
+                for(var p:BlockPos.iterate(centre.add(-6,-4,-6),centre.add(6,4,6)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+                if(!forced)world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),false);
+            }
+            c.complete();
+        });
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-family-real-torch-nbt")
+    public void sevenActualFamiliesRetainNativeIdentityAndPoseAcrossRealTorchTurnsAndNbt(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));
+        for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        EntityType<?>[] types={EntityType.COW,EntityType.SPIDER,EntityType.BAT,EntityType.DOLPHIN,
+            com.terminaldetector.drmd.entity.ModEntities.ORB,EntityType.WITHER,EntityType.SHULKER};
+        for(var type:types)for(var facing:Direction.values()) {
+            var actor=(net.minecraft.entity.mob.MobEntity)type.create(world);net.minecraft.entity.mob.MobEntity copy=null;
+            actor.setAiDisabled(true);actor.setNoGravity(true);actor.setPosition(Vec3d.ofCenter(centre));
+            if(actor instanceof net.minecraft.entity.passive.BatEntity bat)bat.setRoosting(false);
+            c.assertTrue(world.spawnEntity(actor),"real species registered before native torch entry: "+type);
+            var source=centre.offset(facing.getOpposite(),3);var original=world.getBlockState(source);var position=actor.getPos();
+            try {
+                world.setBlockState(source,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState().with(GravityTorchBlock.FACING,facing),3);
+                var field=GravityFields.sample(world,position);c.assertTrue(field!=null&&field.upDir().dotProduct(Vec3d.of(facing.getVector()))>.99999,"real native emitter/front-side vector admitted");
+                tick(c);
+                boolean framed=ActorFrames.supported(actor),constrained=ActorPhysicsProfile.nativeConstraint(actor);
+                c.assertTrue(actor.getPos().equals(position),"no family receives a hidden proxy or torch-wall teleport: "+type);
+                c.assertTrue(ActorFrames.active(actor)==framed&&EntityGravitySystem.suppressesVanillaGravity(actor)!=constrained,"each actual family selects its declared frame/constraint policy: "+type);
+                if(framed)c.assertTrue(ActorFrames.up(actor).dotProduct(Vec3d.of(facing.getVector()))>.99999
+                    &&actor.getEyePos().subtract(actor.getPos()).normalize().dotProduct(Vec3d.of(facing.getVector()))>.99999,"actual local body and eye share the torch frame");
+                var saved=actor.writeNbt(new NbtCompound());copy=(net.minecraft.entity.mob.MobEntity)type.create(world);copy.readNbt(saved);
+                c.assertTrue(copy.getUuid().equals(actor.getUuid())&&copy.hasNoGravity()&&!EntityGravitySystem.suppressesVanillaGravity(copy),"actual NBT reload retains identity and authored flag, never another runtime lease: "+type);
+                c.assertTrue(ActorFrames.up(copy).distanceTo(ActorFrames.up(actor))<1e-6&&copy.getPos().equals(position),"actual saved pose and position survive native NBT decoding: "+type);
+                world.setBlockState(source,Blocks.AIR.getDefaultState(),3);tick(c);
+                c.assertTrue(!EntityGravitySystem.suppressesVanillaGravity(actor)&&!ActorFrames.active(actor)&&actor.hasNoGravity(),"real source removal releases physical orientation and acceleration without changing saved flags: "+type);
+            } finally {world.setBlockState(source,original,3);if(copy!=null)copy.discard();actor.discard();tick(c);}
+        }
+        c.complete();
+    }
 }

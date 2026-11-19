@@ -166,8 +166,9 @@ public final class FlightSystem {
 				|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.END
 				|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.ORBITAL;
 		AtmosphereBand band = AtmosphereBand.at(player.getWorld(), player.getY());
-		accelMult *= band.thrustScale;
-		speedMult *= MathHelper.lerp(1f - band.airDrag, 1f, 1.15f);
+		var environment=FlightEnvironment.resolve(accelMult,speedMult,effDrag,band.thrustScale,band.airDrag);
+		accelMult=environment.accelerationMultiplier();
+		speedMult=environment.speedMultiplier();
 		boolean psychedelicVoid = com.terminaldetector.drmd.world.DescentWorldState
 				.get(player.getServerWorld()).isPsychedelic();
 		if (endVacuum || psychedelicVoid) {
@@ -245,7 +246,7 @@ public final class FlightSystem {
 
 		// Drag / Flight Assist — scaled by atmosphere air density
 		double speed = vel.length();
-		double dragK = effDrag * band.airDrag;
+		double dragK = environment.dragCoefficient();
 		if (data.isFlightAssist()) {
 			// Quadratic drag + linear brake when no input
 			if (speed > 1e-4) {

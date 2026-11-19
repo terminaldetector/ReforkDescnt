@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.DescentClient;
 import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
+import com.terminaldetector.drmd.client.input.DescentKeybinds;
 import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
@@ -16,6 +17,8 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.MovementType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -32,6 +35,13 @@ public final class NativeVerticalFlightCheck {
     private static final List<Map<String,Object>> SERVER=new ArrayList<>(),CLIENT=new ArrayList<>();
     private static final Map<Integer,Map<String,Object>> SERVER_CROSSES=new LinkedHashMap<>(),CLIENT_CROSSES=new LinkedHashMap<>();
     private static final Set<BlockPos> AUTHORED=new HashSet<>();
+    private record MoveStart(String side,Vec3d start,Vec3d requested,Vec3d velocity,String type,int tick){}
+    private record Move(int serial,String side,List<Double> start,List<Double> end,List<Double> requested,List<Double> velocity,String type,int tick,boolean horizontalCollision,boolean verticalCollision){}
+    private static final ThreadLocal<Deque<MoveStart>> MOVING=ThreadLocal.withInitial(ArrayDeque::new);
+    private static final List<Move> CLIENT_MOVES=new ArrayList<>(),SERVER_MOVES=new ArrayList<>();
+    private static Vec3d lastClientMoveEnd;private static int matchedClientMove=-1,matchedServerMove=-1;
+    private static volatile int pendingEndpointRows;private static volatile String movementFailure;
+    private static int afterburnerHeldTicks,measuredTicks,armClientTick;private static volatile int armServerTick=-1;
     private static volatile UUID playerId;private static volatile String failure;
     private static volatile int phase,materialWrites,initialTeleports,surfaceY=Integer.MIN_VALUE,authorTop,epoch;
     private static volatile boolean armed,done;private static int ticks,frames,serverRows,untouchedAirSamples;
@@ -78,12 +88,18 @@ public final class NativeVerticalFlightCheck {
                 p.changeGameMode(GameMode.CREATIVE);FlightSystem.enableWithoutMount(p,data);data.setFlightVelocity(Vec3d.ZERO);
                 data.setShipAttitude(0,1,0,0,0,1);ModNetworking.syncPlayer(p,data);epoch=data.portalEpoch();phase=2;return;
             }
-            if(!armed)return;
+            if(!armed)return;if(armServerTick<0)armServerTick=server.getTicks();
             var pos=p.getPos();boolean loaded=full(w,pos);var velocity=data.getFlightVelocity();
             if(p.isSpectator()||p.noClip||!data.isEnabled())throw new IllegalStateException("measured actor lacks ordinary colliding 6DoF ownership");
             if(data.portalEpoch()!=epoch||Math.abs(pos.x-START.x)>1||Math.abs(pos.z-START.z)>1)throw new IllegalStateException("unexpected portal/lateral discontinuity");
-            if(previousServer!=null&&pos.distanceTo(previousServer)>velocity.length()*.05+3)throw new IllegalStateException("server step exceeds actual motor velocity");
             var row=new LinkedHashMap<String,Object>();row.put("tick",server.getTicks());row.put("p",xyz(pos));row.put("vMetresPerSecond",xyz(velocity));row.put("full",loaded);row.put("writes",materialWrites);row.put("seed",w.getSeed());
+            if(previousServer!=null&&pos.distanceTo(previousServer)>1e-7){
+                int clientMatch=matching(CLIENT_MOVES,pos,matchedClientMove),serverMatch=matching(SERVER_MOVES,pos,matchedServerMove);
+                row.put("matchingClientMove",clientMatch);row.put("matchingServerMove",serverMatch);
+                if(clientMatch>=0){matchedClientMove=clientMatch;pendingEndpointRows=0;}
+                else if(serverMatch>=0){matchedServerMove=serverMatch;pendingEndpointRows=0;}
+                else {pendingEndpointRows++;synchronized(SERVER){SERVER.add(row);}throw new IllegalStateException("server endpoint lacks a genuine monotonic native move witness: "+row);}
+            }
             if(++serverRows>2400)throw new IllegalStateException("server journal cap");synchronized(SERVER){SERVER.add(row);}
             if(pos.y>authorTop+2&&access.readIfLoaded(p.getBlockPos()).filter(s->s.isAir()).isPresent())untouchedAirSamples++;
             if(previousServer!=null)for(int height:HEIGHTS)if(!SERVER_CROSSES.containsKey(height)&&previousServer.y<height&&pos.y>=height){
@@ -95,8 +111,8 @@ public final class NativeVerticalFlightCheck {
     }
     private static void client(MinecraftClient c){
         if(done)return;
-        if(++ticks>2400||System.nanoTime()-boot>180_000_000_000L){finish(c,"FAIL","180s/2400tick deadline");return;}
-        if(failure!=null){finish(c,"FAIL",failure);return;}
+        ticks++;if((!armed&&ticks>2400)||(armed&&++measuredTicks>2400)||System.nanoTime()-boot>180_000_000_000L){finish(c,"FAIL","180s overallwall /2400pre-admission /2400measuredtick deadline");return;}
+        if(failure!=null||movementFailure!=null){finish(c,"FAIL",failure!=null?failure:movementFailure);return;}
         if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen p)for(var child:p.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
         if(c.player==null||c.world==null||c.getServer()==null)return;
         if(playerId==null){
@@ -107,17 +123,43 @@ public final class NativeVerticalFlightCheck {
         if(phase<2||!DescentClientState.enabled||c.player.isSpectator())return;
         if(!full(c.world,c.player.getPos())){if(armed)finish(c,"FAIL","client entered an unavailable cube during measured flight");return;}
         if(!basis){ShipAttitudeClient.acceptPortalFrame(c.player,F,UP);basis=true;return;}
-        if(!armed){previousClient=c.player.getPos();previousClientFull=true;armed=true;}
+        if(!armed){previousClient=c.player.getPos();lastClientMoveEnd=previousClient;previousClientFull=true;armClientTick=ticks;armed=true;}
         c.options.forwardKey.setPressed(true);
         var pos=c.player.getPos();boolean loaded=full(c.world,pos);
+        boolean burn=phase==2&&pos.y>authorTop+4&&afterburnerHeldTicks<800;
+        DescentKeybinds.alwaysRun.setPressed(burn);if(burn)afterburnerHeldTicks++;
+        if(lastClientMoveEnd!=null&&pos.distanceTo(lastClientMoveEnd)>1e-7){finish(c,"FAIL","client position changed outside actual Entity.move: "+lastClientMoveEnd+" -> "+pos);return;}
         if(CLIENT.size()>=2400){finish(c,"FAIL","client journal cap");return;}
-        CLIENT.add(Map.of("tick",ticks,"p",xyz(pos),"full",loaded,"held",c.options.forwardKey.isPressed(),"forward",xyz(ShipAttitudeClient.get().forward())));
+        CLIENT.add(Map.of("tick",ticks,"p",xyz(pos),"full",loaded,"held",c.options.forwardKey.isPressed(),"forward",xyz(ShipAttitudeClient.get().forward()),"afterburnerKey",burn,"actualAfterburner",DescentClientState.alwaysRun,"configuredMaxSourceUnits",DescentClientState.maxSpeed));
         if(previousClient!=null)for(int height:HEIGHTS)if(!CLIENT_CROSSES.containsKey(height)&&previousClient.y<height&&pos.y>=height){
             if(!previousClientFull||!loaded){finish(c,"FAIL","client crossed unavailable plane "+height);return;}
             CLIENT_CROSSES.put(height,Map.of("before",xyz(previousClient),"after",xyz(pos),"tick",ticks));
         }
         previousClient=pos;previousClientFull=loaded;
-        synchronized(SERVER_CROSSES){if(SERVER_CROSSES.size()==4&&CLIENT_CROSSES.size()==4){c.options.forwardKey.setPressed(false);phase=3;}}
+        synchronized(SERVER_CROSSES){if(SERVER_CROSSES.size()==4&&CLIENT_CROSSES.size()==4&&pendingEndpointRows==0){c.options.forwardKey.setPressed(false);DescentKeybinds.alwaysRun.setPressed(false);phase=3;}}
+    }
+    private static int matching(List<Move> moves,Vec3d position,int minimum){
+        synchronized(moves){for(int i=moves.size()-1;i>=Math.max(0,minimum);i--){var move=moves.get(i);for(var point:List.of(move.start(),move.end()))if(position.squaredDistanceTo(new Vec3d(point.get(0),point.get(1),point.get(2)))<1e-14)return i;}}
+        return -1;
+    }
+    /** Passive actual collision-call observations. No movement, tick or velocity write is made here. */
+    public static void beforeMove(Entity entity,MovementType type,Vec3d requested){
+        if(!ENABLED||!armed||done||playerId==null||!playerId.equals(entity.getUuid()))return;
+        String side=entity.getWorld().isClient?"client":"server";
+        if(side.equals("client")&&entity!=MinecraftClient.getInstance().player)return;
+        var pending=MOVING.get();if(pending.size()>=4){movementFailure="native move nesting cap";return;}
+        var position=entity.getPos();
+        if(side.equals("client")&&lastClientMoveEnd!=null&&position.distanceTo(lastClientMoveEnd)>1e-7)movementFailure="client native move starts after unobserved position discontinuity";
+        if(!Double.isFinite(position.lengthSquared())||!Double.isFinite(requested.lengthSquared()))movementFailure="nonfinite actual native move";
+        pending.addLast(new MoveStart(side,position,requested,entity.getVelocity(),type.name(),side.equals("client")?ticks:((net.minecraft.server.world.ServerWorld)entity.getWorld()).getServer().getTicks()));
+    }
+    public static void afterMove(Entity entity){
+        if(!ENABLED||!armed||done||playerId==null||!playerId.equals(entity.getUuid()))return;
+        // The integrated server may be inside a staging move when the client arms the case.
+        var pending=MOVING.get();if(pending.isEmpty())return;var start=pending.removeLast();
+        var rows=start.side().equals("client")?CLIENT_MOVES:SERVER_MOVES;var end=entity.getPos();
+        synchronized(rows){if(rows.size()>=4096){movementFailure="4096 actual native move receipt cap";return;}rows.add(new Move(rows.size(),start.side(),xyz(start.start()),xyz(end),xyz(start.requested()),xyz(start.velocity()),start.type(),start.tick(),entity.horizontalCollision,entity.verticalCollision));}
+        if(start.side().equals("client"))lastClientMoveEnd=end;
     }
     /** Genuine render RETURN hook only: no camera override, teleport-follow or world-step loop. */
     public static void rendered(){
@@ -129,10 +171,12 @@ public final class NativeVerticalFlightCheck {
         }catch(Throwable e){finish(c,"FAIL","render capture: "+e);}
     }
     private static void finish(MinecraftClient c,String status,String reason){
-        if(done)return;done=true;c.options.forwardKey.setPressed(false);
+        if(done)return;done=true;c.options.forwardKey.setPressed(false);if(DescentKeybinds.alwaysRun!=null)DescentKeybinds.alwaysRun.setPressed(false);
         try{
-            var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",reason);out.put("initialTeleports",initialTeleports);out.put("materialWrites",materialWrites);out.put("initialSpectatorStagingOnly",true);out.put("surfaceY",surfaceY);out.put("authoredThroughY",authorTop);out.put("untouchedAboveY",authorTop+1);out.put("untouchedAirSamples",untouchedAirSamples);out.put("observerTickOrSolverCalls",0);out.put("coldReaderInThisRun",false);
+            var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",reason);out.put("initialTeleports",initialTeleports);out.put("preAdmissionClientTicks",armClientTick);out.put("measuredClientTicks",measuredTicks);out.put("armServerTick",armServerTick);out.put("materialWrites",materialWrites);out.put("initialSpectatorStagingOnly",true);out.put("surfaceY",surfaceY);out.put("authoredThroughY",authorTop);out.put("untouchedAboveY",authorTop+1);out.put("untouchedAirSamples",untouchedAirSamples);out.put("observerTickOrSolverCalls",0);out.put("coldReaderInThisRun",false);
             synchronized(SERVER_CROSSES){out.put("serverCrossings",new LinkedHashMap<>(SERVER_CROSSES));}out.put("clientCrossings",CLIENT_CROSSES);synchronized(SERVER){out.put("server",List.copyOf(SERVER));}out.put("client",CLIENT);
+            synchronized(CLIENT_MOVES){out.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){out.put("actualServerMoves",List.copyOf(SERVER_MOVES));}out.put("unmatchedEndpointRows",pendingEndpointRows);out.put("movementFailure",movementFailure);
+            out.put("afterburnerHeldTicks",afterburnerHeldTicks);out.put("afterburnerPolicy","ordinary R only above authored shaft+4, max800ticks, no energy refill; 180s overallwall unchanged;2400pre-admission and2400measuredticks start at real input arm");
             Files.writeString(c.runDirectory.toPath().resolve("vertical-flight-outcome.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");System.out.println("VERTICAL_FLIGHT_OUTCOME "+status+" "+reason);
         }catch(Exception e){e.printStackTrace();}c.scheduleStop();
     }
