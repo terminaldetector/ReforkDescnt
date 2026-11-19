@@ -103,8 +103,9 @@ public final class NativeHudReadabilityCheck {
             menuRequested = true;
             client.getServer().execute(() -> DroneInventoryHandler.open(client.getServer().getPlayerManager().getPlayer(playerId)));
         }
-        if (client.currentScreen instanceof DroneInventoryScreen menu
-                && client.player.currentScreenHandler instanceof DroneInventoryHandler handler) {
+        var menu = client.currentScreen;
+        var handler = client.player.currentScreenHandler;
+        if (menu instanceof DroneInventoryScreen && handler instanceof DroneInventoryHandler) {
             var slot = handler.getSlot((phase - 1) % 3);
             double mouseX = (menu.width - 176) / 2 + slot.x + 8;
             double mouseY = (menu.height - 212) / 2 + slot.y + 8;
@@ -147,7 +148,8 @@ public final class NativeHudReadabilityCheck {
             }
             if (++hudFrames < HUD_FRAMES) return;
         } else {
-            if (!(client.currentScreen instanceof DroneInventoryScreen menu) || tooltip == null) return;
+            var menu = client.currentScreen;
+            if (!(menu instanceof DroneInventoryScreen) || tooltip == null) return;
             var options = client.options;
             Text expected = switch ((phase - 1) % 3) {
                 case 0 -> Text.translatable("container.drmd.drone_inventory.primary.hint", options.attackKey.getBoundKeyLocalizedText());
