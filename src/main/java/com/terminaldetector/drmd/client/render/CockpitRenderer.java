@@ -39,6 +39,7 @@ public final class CockpitRenderer {
             if(com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
 			MinecraftClient mc = MinecraftClient.getInstance();
 			if (mc.player == null || mc.options == null) return;
+            if(!com.terminaldetector.drmd.client.flight.DescentCamera.ownsView(context.camera()))return;
 			if (!DescentConfig.cockpit || !DescentClientState.enabled || mc.currentScreen != null) return;
 			if (!mc.options.getPerspective().isFirstPerson() || mc.options.hudHidden) return;
 

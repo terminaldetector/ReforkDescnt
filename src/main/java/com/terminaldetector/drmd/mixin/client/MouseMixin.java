@@ -20,10 +20,11 @@ public class MouseMixin {
 	)
 	private void drmd$descentLook(ClientPlayerEntity player, double cursorDeltaX, double cursorDeltaY) {
 		boolean open = MinecraftClient.getInstance().currentScreen == null;
-		if(open&&com.terminaldetector.drmd.client.flight.UfoControlClient.active()&&!net.minecraft.client.util.InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(),org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT)){com.terminaldetector.drmd.client.flight.UfoControlClient.mouse(cursorDeltaX,cursorDeltaY);return;}
-		if (DescentClientState.enabled && open) {
+        boolean local=com.terminaldetector.drmd.client.flight.DescentCamera.ownsView();
+		if(local&&open&&com.terminaldetector.drmd.client.flight.UfoControlClient.active()&&!net.minecraft.client.util.InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(),org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT)){com.terminaldetector.drmd.client.flight.UfoControlClient.mouse(cursorDeltaX,cursorDeltaY);return;}
+		if (local&&DescentClientState.enabled&&open) {
 			ShipAttitudeClient.applyMouse(player, cursorDeltaX, cursorDeltaY);
-		} else if (open && !com.terminaldetector.drmd.client.gravity.FootGravityCamera.settled()) {
+		} else if (local&&open&&!com.terminaldetector.drmd.client.gravity.FootGravityCamera.settled()) {
 			// A gravity torch redefines which way is up; look has to turn in that frame or the pilot
 			// loses most of their headings the moment the surface goes vertical.
 			com.terminaldetector.drmd.client.gravity.FootLook.applyMouse(player, cursorDeltaX, cursorDeltaY);

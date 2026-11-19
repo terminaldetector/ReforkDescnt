@@ -24,13 +24,15 @@ public class CameraMixin {
                                     boolean inverseView,float tickDelta,CallbackInfo ci) {
         Camera self=(Camera)(Object)this;CameraAccessor access=(CameraAccessor)(Object)this;
         boolean outer=self==MinecraftClient.getInstance().gameRenderer.getCamera();
-        if(!DescentClientState.enabled&&focusedEntity instanceof PlayerEntity player&&BoardingPose.active(player)&&outer) {
+        if(!outer||com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
+        boolean flight=DescentCamera.ownsView(self)&&focusedEntity==MinecraftClient.getInstance().player&&DescentClientState.enabled;
+        if(!flight&&focusedEntity instanceof PlayerEntity player&&BoardingPose.active(player)) {
             BoardingCamera.apply(self,access,player,thirdPerson,inverseView,tickDelta);return;
         }
-        if(!DescentClientState.enabled&&focusedEntity instanceof PlayerEntity player&&FootGravitySystem.isActive(player)) {
+        if(!flight&&focusedEntity instanceof PlayerEntity player&&FootGravitySystem.isActive(player)) {
             Vec3d up=FootGravitySystem.getUp(player);double height=player.getEyeHeight(player.getPose());
             access.drmd$invokeSetPos(self.getPos().add(up.multiply(height)).subtract(0,height,0));
-        }else if(DescentClientState.enabled&&DescentClientState.attitudeValid) {
+        }else if(flight&&DescentClientState.attitudeValid) {
             DescentCamera.apply(self,new DescentCamera.CameraAccess() {
                 @Override public void drmd$setPos(Vec3d pos){access.drmd$invokeSetPos(pos);}
                 @Override public void drmd$setRotation(float yaw,float pitch){access.drmd$invokeSetRotation(yaw,pitch);}

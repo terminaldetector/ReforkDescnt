@@ -20,6 +20,7 @@ public class GameRendererMixin {
 
 	@Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
 	private void drmd$cancelBob(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
+        if(!DescentCamera.ownsView())return;
 		// View bob walks the camera along world axes, which fights any tilted frame.
         var player=net.minecraft.client.MinecraftClient.getInstance().player;
 		if (DescentClientState.enabled || !FootGravityCamera.settled() || player!=null&&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)) ci.cancel();
@@ -31,6 +32,7 @@ public class GameRendererMixin {
 	 */
 	@Inject(method = "tiltViewWhenHurt", at = @At("HEAD"), cancellable = true)
 	private void drmd$cameraBank(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
+        if(!DescentCamera.ownsView())return;
 		if (DescentClientState.enabled) {
             if(com.terminaldetector.drmd.client.render.HandRenderFrame.active){ci.cancel();return;}
 			float roll = DescentCamera.viewRoll();
@@ -49,6 +51,9 @@ public class GameRendererMixin {
         var player=net.minecraft.client.MinecraftClient.getInstance().player;
         if(player!=null&&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)){ci.cancel();return;}
 		if (!FootGravityCamera.settled()) {
+            // Bank belongs to the world camera. The held model is already in its lens frame,
+            // just as in free flight, so applying the bank here makes the hands sweep again.
+            if(com.terminaldetector.drmd.client.render.HandRenderFrame.active){ci.cancel();return;}
 			FootGravityCamera.apply(matrices, tickDelta);
 			ci.cancel();
 		}
@@ -57,6 +62,7 @@ public class GameRendererMixin {
 	/** Mild FOV stretch under afterburner / speed — Descent menu FOV feel. */
 	@Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
 	private void drmd$fovBoost(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> cir) {
+        if(!DescentCamera.ownsView(camera))return;
 		float boost = DescentCamera.fovBoost();
 		if (boost > 0.01f) {
 			cir.setReturnValue(cir.getReturnValueD() + boost);

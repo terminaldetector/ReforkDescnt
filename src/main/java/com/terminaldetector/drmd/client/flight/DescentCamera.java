@@ -35,6 +35,23 @@ public final class DescentCamera {
 	private static long lastDashPulseMs;
 	/** F5 front view mirrors the camera, so the bank has to be mirrored with it. */
 	private static boolean mirroredView;
+    private static java.lang.ref.WeakReference<ClientPlayerEntity> viewOwner=new java.lang.ref.WeakReference<>(null);
+    private static java.lang.ref.WeakReference<net.minecraft.client.world.ClientWorld> viewWorld=new java.lang.ref.WeakReference<>(null);
+
+    /** Global flight mirrors belong to the actual local lens, not a spectator target or borrowed portal pass. */
+    public static boolean ownsView() {
+        var client=MinecraftClient.getInstance();
+        return client!=null&&client.player!=null&&client.getCameraEntity()==client.player&&!client.player.isSpectator()
+            &&!com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy();
+    }
+    public static boolean ownsView(Camera camera) {
+        var client=MinecraftClient.getInstance();
+        return ownsView()&&client.gameRenderer!=null&&camera==client.gameRenderer.getCamera();
+    }
+    private static void bindView(ClientPlayerEntity player) {
+        if(viewOwner.get()==player&&viewWorld.get()==player.getWorld())return;
+        clear();viewOwner=new java.lang.ref.WeakReference<>(player);viewWorld=new java.lang.ref.WeakReference<>((net.minecraft.client.world.ClientWorld)player.getWorld());
+    }
 
 	private DescentCamera() {}
 
@@ -43,6 +60,7 @@ public final class DescentCamera {
 		dashKick = Vec3d.ZERO;
 		hudRoll = 0;
 		leveling = false;
+        mirroredView=false;lastDashPulseMs=0;viewOwner.clear();viewWorld.clear();
 	}
 
 	/** Pulse opposite-dash camera kick (client dash front-edge). */
@@ -91,6 +109,7 @@ public final class DescentCamera {
 			clear();
 			return;
 		}
+        bindView(player);
 		ShipAttitude att = ShipAttitudeClient.get();
 		Vec3d forward = att.forward();
 		Vec3d vel = player.getVelocity();
@@ -120,8 +139,8 @@ public final class DescentCamera {
 	public static void apply(Camera camera, CameraAccess access, boolean thirdPerson, boolean inverseView, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		ClientPlayerEntity player = mc.player;
-		mirroredView = false;
-		if (player == null || !DescentClientState.enabled) return;
+        if(!ownsView(camera)||!DescentClientState.enabled)return;
+        bindView(player);mirroredView=false;
 
 		// Roll + soft-level on the render clock before we read the basis for the lens.
 		ShipAttitudeClient.integrateRender(player);
