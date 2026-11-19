@@ -331,13 +331,9 @@ public final class PlanetSurfaceMesh {
         private double surfaceHeight(double x,double z) {
             long key=((long)(int)x<<32)^((int)z&0xffffffffL);
             return heights.computeIfAbsent(key,unused -> Math.max(PlanetMap.SEA_LEVEL,
-                SurfaceInterpolation.height(x,z,16,(sx,sz) -> {
-                    for(int level=0;level<=com.terminaldetector.drmd.world.store.SectionKey.MAX_LEVEL;level++) {
-                        short h=PlanetClientState.INSTANCE.observedHeight(sx,sz,level);
-                        if(h!=SurfaceSection.NO_HEIGHT)return h;
-                    }
-                    return PlanetMap.height(seed,sx,sz);
-                })));
+                SurfaceInterpolation.groundHeight(x,z,16,
+                    PlanetClientState.INSTANCE::observedHeight,
+                    (sx,sz) -> PlanetMap.height(seed,sx,sz))));
         }
 
 		/** Neighbour height for a skirt, from the same source the cell itself came from. */

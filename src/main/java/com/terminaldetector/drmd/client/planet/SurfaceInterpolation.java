@@ -4,6 +4,20 @@ package com.terminaldetector.drmd.client.planet;
 public final class SurfaceInterpolation {
     private SurfaceInterpolation() {}
     @FunctionalInterface public interface Sampler { double height(double x,double z); }
+    @FunctionalInterface public interface ObservedSampler { short height(double x,double z,int level); }
+
+    /**
+     * Reconstruct a local surface only from measured finest cells. Coarser store levels are
+     * MAX-child silhouettes, not a measurement of every unknown child beneath them. Promoting
+     * one high platform through that pyramid otherwise makes a kilometre-wide false ceiling.
+     * Unmeasured children retain the procedural fallback; real measured heights are not clamped.
+     */
+    public static double groundHeight(double x,double z,int pitch,ObservedSampler observed,Sampler fallback) {
+        return height(x,z,pitch,(sx,sz) -> {
+            short measured=observed.height(sx,sz,0);
+            return measured==Short.MIN_VALUE ? fallback.height(sx,sz) : measured;
+        });
+    }
     public static double height(double x,double z,int pitch,Sampler source) {
         double x0=(Math.floor(x/pitch-.5)+.5)*pitch;
         double z0=(Math.floor(z/pitch-.5)+.5)*pitch;
