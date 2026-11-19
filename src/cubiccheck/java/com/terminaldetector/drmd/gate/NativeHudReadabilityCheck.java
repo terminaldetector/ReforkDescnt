@@ -32,13 +32,14 @@ public final class NativeHudReadabilityCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.hudReadability");
     private static final int HUD_FRAMES = 185;
     private static final List<Map<String, Object>> results = new ArrayList<>();
+    private static final List<String> currentHints = new ArrayList<>();
     private static UUID playerId;
     private static int phase, frame, age, hudFrames, notices, debugPrefix, tooltipFrames;
-    private static int x, y;
+    private static int x, y, desiredX = -1, desiredY = -1, bank;
     private static String tooltip;
     private static volatile boolean fixtureReady, menuRequested;
     private static boolean configured, done;
-    private static long startedAt;
+    private static long startedAt, hoverStartedAt;
 
     private NativeHudReadabilityCheck() {}
 
@@ -106,11 +107,17 @@ public final class NativeHudReadabilityCheck {
         var menu = client.currentScreen;
         var handler = client.player.currentScreenHandler;
         if (menu instanceof DroneInventoryScreen && handler instanceof DroneInventoryHandler) {
-            var slot = handler.getSlot((phase - 1) % 3);
-            double mouseX = (menu.width - 176) / 2 + slot.x + 8;
-            double mouseY = (menu.height - 212) / 2 + slot.y + 8;
-            GLFW.glfwSetCursorPos(client.getWindow().getHandle(), mouseX * client.getWindow().getWidth() / menu.width,
-                mouseY * client.getWindow().getHeight() / menu.height);
+            var slot = handler.getSlot(bank);
+            desiredX = (menu.width - 176) / 2 + slot.x + 8;
+            desiredY = (menu.height - 212) / 2 + slot.y + 8;
+            if (hoverStartedAt == 0) hoverStartedAt = System.nanoTime();
+            if (System.nanoTime() - hoverStartedAt > 12_000_000_000L) {
+                finish(client, "FAIL", "Tooltip did not render for the selected GUI slot in phase " + phase + " bank " + bank);
+                return;
+            }
+            GLFW.glfwSetCursorPos(client.getWindow().getHandle(),
+                (double) desiredX * client.getWindow().getWidth() / menu.width,
+                (double) desiredY * client.getWindow().getHeight() / menu.height);
         }
     }
 
@@ -149,13 +156,17 @@ public final class NativeHudReadabilityCheck {
             if (++hudFrames < HUD_FRAMES) return;
         } else {
             var menu = client.currentScreen;
-            if (!(menu instanceof DroneInventoryScreen) || tooltip == null) return;
+            if (!(menu instanceof DroneInventoryScreen) || desiredX < 0 || tooltip == null
+                    || Math.abs(x - desiredX) > 2 || Math.abs(y - desiredY) > 2) return;
             var options = client.options;
-            Text expected = switch ((phase - 1) % 3) {
+            Text expected = switch (bank) {
                 case 0 -> Text.translatable("container.drmd.drone_inventory.primary.hint", options.attackKey.getBoundKeyLocalizedText());
                 case 1 -> Text.translatable("container.drmd.drone_inventory.secondary.hint", options.useKey.getBoundKeyLocalizedText());
-                default -> Text.translatable("container.drmd.drone_inventory.auxiliary.hint",
+                case 2 -> Text.translatable("container.drmd.drone_inventory.auxiliary.hint",
                     com.terminaldetector.drmd.client.input.DescentKeybinds.auxiliary.getBoundKeyLocalizedText());
+                case 3 -> Text.translatable("container.drmd.drone_inventory.reserve.hint");
+                default -> Text.translatable("container.drmd.drone_inventory.engine.hint",
+                    com.terminaldetector.drmd.client.input.DescentKeybinds.alwaysRun.getBoundKeyLocalizedText());
             };
             if (!tooltip.equals(expected.getString()) || x <= 0 || x >= menu.width || y <= 0 || y >= menu.height
                     || client.textRenderer.getWidth(tooltip) + 12 > menu.width) {
@@ -164,6 +175,14 @@ public final class NativeHudReadabilityCheck {
             }
             tooltipFrames++;
             if (++frame < 3) return;
+            currentHints.add(tooltip);
+            if (bank < 4) {
+                bank++;
+                frame = 0;
+                hoverStartedAt = 0;
+                desiredX = -1;
+                return;
+            }
         }
         if (GL11.glGetError() != GL11.GL_NO_ERROR) {
             finish(client, "FAIL", "GL error at output frame");
@@ -175,14 +194,20 @@ public final class NativeHudReadabilityCheck {
             Files.createDirectories(folder);
             image.writeTo(folder.resolve(name + ".png"));
             results.add(Map.of("name", name, "profile", profile().name(), "scale", scale(), "width", image.getWidth(),
-                "height", image.getHeight(), "tooltip", tooltip == null ? "" : tooltip, "nativeOutput", true,
+                "height", image.getHeight(), "tooltips", List.copyOf(currentHints), "nativeOutput", true,
                 "battleNoticeDraws", notices));
         } catch (Exception failure) {
             finish(client, "FAIL", failure.toString());
             return;
         }
         if (++phase == 7) finish(client, "PASS", "Native HUD and three actual equipment scales under each presentation profile");
-        else { configured = false; frame = 0; }
+        else {
+            configured = false;
+            frame = bank = 0;
+            desiredX = -1;
+            hoverStartedAt = 0;
+            currentHints.clear();
+        }
     }
 
     private static void finish(MinecraftClient client, String status, String reason) {
