@@ -84,6 +84,8 @@ public class DroneEntity extends HostileEntity {
 
     private long steeringUpdates;
     private long coastingUpdates;
+    private long planningWakeUntil;
+    public long planningWakeUntil(){return planningWakeUntil;}
 
     public void countSteeringUpdate() { steeringUpdates++; }
     public void countCoastingUpdate() { coastingUpdates++; }
@@ -168,6 +170,9 @@ public class DroneEntity extends HostileEntity {
 
 	@Override
 	public boolean damage(DamageSource source, float amount) {
+        // A genuine shield/armour impact may not set vanilla hurtTime. It still
+        // wakes decisions without changing damage acceptance, target or pools.
+        if(!getWorld().isClient&&isAlive()&&Float.isFinite(amount)&&amount>0){long now=getWorld().getTime();planningWakeUntil=Math.max(planningWakeUntil,now>Long.MAX_VALUE-20?Long.MAX_VALUE:now+20);}
 		DamageClass cls = DamageClass.KINETIC;
 		String name = source.getName();
 		if (name.contains("magic") || name.contains("lightning")) cls = DamageClass.ENERGY;

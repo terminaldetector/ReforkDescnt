@@ -6,7 +6,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
+import java.lang.ref.WeakReference;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -30,6 +35,13 @@ public final class DroneSwarmAi {
 	private static final float WEIGHT_ALIGNMENT = 1.0f;
 	private static final float WEIGHT_TARGET = 2.2f;
 	private static final Map<ServerWorld, FrameSnapshot> SNAPSHOTS = new WeakHashMap<>();
+    private static final Map<ServerWorld,LoadedRoster> LOADED=new WeakHashMap<>();
+    private static boolean registered;
+    private static final class LoadedRoster {
+        final LinkedHashMap<UUID,WeakReference<DroneEntity>> entries=new LinkedHashMap<>();
+        long builds,samples,worldScans,pruned,unloads;boolean seeded;
+    }
+    public record IndexStats(long snapshotTick,int residentSlots,int lastLiveSamples,long snapshotBuilds,long indexedSamples,long fullWorldScans,long pruned,long unloaded){}
 
 	private record DroneSample(UUID id, Vec3d position, Vec3d velocity, AiRole role,double halfWidth) {}
 	private record FrameSnapshot(long tick, BoundedSpatialIndex<DroneSample> all,
@@ -39,6 +51,25 @@ public final class DroneSwarmAi {
     public record CoordinationQuery(java.util.List<UUID> ids,int examinedCandidates){}
 
 	private DroneSwarmAi() {}
+
+    /** One loaded-actor lifecycle index, not a second world or a sensing scheduler.
+     * Entity movement/target/physics remain owned by their normal ticks. */
+    public static void register(){
+        if(registered)return;registered=true;
+        ServerEntityEvents.ENTITY_LOAD.register((entity,world)->{if(entity instanceof DroneEntity drone)synchronized(SNAPSHOTS){
+            LOADED.computeIfAbsent(world,w->new LoadedRoster()).entries.put(drone.getUuid(),new WeakReference<>(drone));
+        }});
+        ServerEntityEvents.ENTITY_UNLOAD.register((entity,world)->{if(entity instanceof DroneEntity drone)synchronized(SNAPSHOTS){
+            var roster=LOADED.get(world);var entry=roster==null?null:roster.entries.get(drone.getUuid());
+            if(entry!=null&&entry.get()==drone){roster.entries.remove(drone.getUuid());roster.unloads++;}
+        }});
+        ServerWorldEvents.UNLOAD.register((server,world)->{synchronized(SNAPSHOTS){LOADED.remove(world);SNAPSHOTS.remove(world);}});
+        ServerLifecycleEvents.SERVER_STOPPED.register(server->clear());
+    }
+    /** Read-only profiler sample; asking for counters never builds an index or runs a neighbour query. */
+    public static IndexStats indexStats(ServerWorld world){synchronized(SNAPSHOTS){var r=LOADED.get(world);var f=SNAPSHOTS.get(world);
+        return r==null?new IndexStats(-1,0,0,0,0,0,0,0):new IndexStats(f==null?-1:f.tick,r.entries.size(),f==null?0:f.all.size(),r.builds,r.samples,r.worldScans,r.pruned,r.unloads);
+    }}
 
 	public static boolean participates(AiRole role) {
 		if (role == null) return false;
@@ -52,6 +83,7 @@ public final class DroneSwarmAi {
 	public static void clear() {
 		synchronized (SNAPSHOTS) {
 			SNAPSHOTS.clear();
+            LOADED.clear();
 		}
         DroneSquadCoordinator.clear();
 	}
@@ -206,8 +238,17 @@ public final class DroneSwarmAi {
 			if (current != null && current.tick == tick) return current;
 			BoundedSpatialIndex<DroneSample> all = new BoundedSpatialIndex<>(SWARM_RADIUS);
 			BoundedSpatialIndex<DroneSample> flock = new BoundedSpatialIndex<>(SWARM_RADIUS);
-			for (Entity entity : world.iterateEntities()) {
-				if (!(entity instanceof DroneEntity drone) || !drone.isAlive()) continue;
+            var roster=LOADED.computeIfAbsent(world,w->new LoadedRoster());
+            // One seed also covers startup clear() after already loaded actors.
+            // Unregistered standalone embeddings retain the original per-tick
+            // scan rather than silently publishing an empty neighbourhood.
+            if(!roster.seeded||!registered){if(!registered)roster.entries.clear();roster.seeded=true;roster.worldScans++;
+                for(Entity entity:world.iterateEntities())if(entity instanceof DroneEntity drone){var old=roster.entries.get(drone.getUuid());
+                    if(old==null||old.get()==null||old.get().isRemoved())roster.entries.put(drone.getUuid(),new WeakReference<>(drone));}
+            }
+            for(var iterator=roster.entries.entrySet().iterator();iterator.hasNext();){var e=iterator.next();var drone=e.getValue().get();
+                if(drone==null||drone.isRemoved()||drone.getWorld()!=world||!drone.getUuid().equals(e.getKey())){iterator.remove();roster.pruned++;continue;}
+                if(!drone.isAlive())continue;
 				DroneSample sample = new DroneSample(drone.getUuid(), drone.getPos(),
 						drone.getVelocity(), drone.getRole(),drone.getWidth()*.5);
 				all.add(sample, sample.position().x, sample.position().y, sample.position().z);
@@ -216,6 +257,7 @@ public final class DroneSwarmAi {
 				}
 			}
 			FrameSnapshot rebuilt = new FrameSnapshot(tick, all, flock,new java.util.HashMap<>());
+            roster.builds++;roster.samples+=all.size();
 			SNAPSHOTS.put(world, rebuilt);
 			return rebuilt;
 		}

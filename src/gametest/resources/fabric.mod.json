@@ -25,6 +25,7 @@
       "com.terminaldetector.drmd.HybridTerrainGameTests",
       "com.terminaldetector.drmd.HybridWaterGameTests",
       "com.terminaldetector.drmd.HybridNavigationGameTests",
+      "com.terminaldetector.drmd.DronePlanningInterestGameTests",
       "com.terminaldetector.drmd.CollapseGameTests",
       "com.terminaldetector.drmd.RagdollGameTests",
       "com.terminaldetector.drmd.RagdollLifecycleGameTests",

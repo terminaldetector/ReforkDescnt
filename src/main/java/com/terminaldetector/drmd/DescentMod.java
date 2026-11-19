@@ -104,6 +104,7 @@ public class DescentMod implements ModInitializer {
         com.terminaldetector.drmd.ai.TeleportAbilityRelay.register();
         com.terminaldetector.drmd.world.compat.NativeDeferredFluids.register();
 		com.terminaldetector.drmd.world.geometry.HybridTerrainCommands.register();
+        com.terminaldetector.drmd.ai.DroneSwarmAi.register();
 		AiCommands.register();
         com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.register();
 
