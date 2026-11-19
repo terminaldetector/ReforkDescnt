@@ -50,11 +50,15 @@ public final class NativeOrbitalRouteCheck {
     private static volatile boolean done,armed;private static volatile String failure,pendingFrame,blockedCube;
     private static long boot,armedAt;private static int ticks,flightTicks,frames,initialTeleports,heldTicks,serverSamples,lastServerTick=-1;
     private static long cursor,cas;private static Vec3d previousServer,previousClient,lastClientMoveEnd;
+    private static net.minecraft.server.OperatorEntry operatorBefore,assignedOperator;
+    private static com.mojang.authlib.GameProfile authorProfile;
+    private static boolean operatorProvisioned,operatorRestored;
+    private static int permissionBefore=-1,permissionAfter=-1;
     private static double travelled,maxStep;private static int matchedServer=-1,matchedClient=-1;
     private NativeOrbitalRouteCheck(){}
     public static void register(){
         boot=System.nanoTime();ServerTickEvents.END_SERVER_TICK.register(NativeOrbitalRouteCheck::server);
-        ServerLifecycleEvents.SERVER_STOPPING.register(server->{release();});ClientTickEvents.END_CLIENT_TICK.register(NativeOrbitalRouteCheck::client);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server->{release();restoreOperator(server);});ClientTickEvents.END_CLIENT_TICK.register(NativeOrbitalRouteCheck::client);
     }
     private static void require(boolean ok,String reason){if(!ok)throw new IllegalStateException(reason);}
     private static List<Double> xyz(Vec3d v){return List.of(v.x,v.y,v.z);}
@@ -65,9 +69,38 @@ public final class NativeOrbitalRouteCheck {
         var row=new LinkedHashMap<String,Object>();row.put("event",name);row.put("worldTime",p.getWorld().getTime());row.put("serverTick",p.getServerWorld().getServer().getTicks());row.put("p",xyz(p.getPos()));row.put("phase",phase);row.put("passed",passed);row.put("verifiedCells",verified);row.put("requestedColumns",requested);row.put("fullHaloCubes",readyCubes);row.put("planHash",plan==null?"":plan.hash());
         synchronized(EVENTS){require(EVENTS.size()<64,"native orbital event cap64");EVENTS.add(row);}System.out.println("NATIVE_ORBITAL_ROUTE="+new com.google.gson.Gson().toJson(row));
     }
+    /** Test-owned real authority list, never a permission-method override or forged command source. */
+    private static void admitAuthor(ServerPlayerEntity p){
+        var manager=p.getServerWorld().getServer().getPlayerManager();
+        require(ENABLED&&playerId!=null&&playerId.equals(p.getUuid())&&manager.getPlayer(playerId)==p
+            &&p.networkHandler!=null,"only exact connected native pilot may receive fixture author rights");
+        require(!operatorProvisioned,"fixture author grant occurs once");
+        authorProfile=p.getGameProfile();operatorBefore=manager.getOpList().get(authorProfile);permissionBefore=permission(p);
+        assignedOperator=new net.minecraft.server.OperatorEntry(p.getGameProfile(),2,false);operatorProvisioned=true;
+        manager.getOpList().add(assignedOperator);manager.sendCommandTree(p);permissionAfter=permission(p);
+        require(manager.getOpList().get(p.getGameProfile())==assignedOperator&&assignedOperator.getPermissionLevel()==2
+            &&p.hasPermissionLevel(2),"real native OperatorEntry2 must satisfy original author permission");
+        event("ACTUAL_CONNECTED_AUTHOR_OP2_ADMITTED",p);
+    }
+    private static int permission(ServerPlayerEntity p){int level=0;for(int next=1;next<=4;next++)if(p.hasPermissionLevel(next))level=next;return level;}
+    private static void restoreOperator(MinecraftServer server){
+        if(!operatorProvisioned||operatorRestored)return;
+        var manager=server.getPlayerManager();var p=manager.getPlayer(playerId);
+        var profile=authorProfile;
+        boolean owned=manager.getOpList().get(profile)==assignedOperator;
+        if(owned){manager.getOpList().remove(profile);if(operatorBefore!=null)manager.getOpList().add(operatorBefore);operatorRestored=true;}
+        var receipt=new LinkedHashMap<String,Object>();receipt.put("owner",playerId.toString());receipt.put("permissionBefore",permissionBefore);
+        receipt.put("permissionAfterAdmission",permissionAfter);receipt.put("assignedEntryLevel",assignedOperator.getPermissionLevel());
+        receipt.put("previousEntryLevel",operatorBefore==null?null:operatorBefore.getPermissionLevel());receipt.put("ownedAssignedEntryAtCleanup",owned);
+        receipt.put("restored",operatorRestored);receipt.put("currentEntryMatchesOriginal",manager.getOpList().get(profile)==operatorBefore);
+        receipt.put("playerStillConnected",p!=null&&p.networkHandler!=null);
+        try{Files.writeString(MinecraftClient.getInstance().runDirectory.toPath().resolve("orbital-route-operator-cleanup.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(receipt));}
+        catch(Exception problem){problem.printStackTrace();}
+        System.out.println("NATIVE_ORBITAL_ROUTE_OPERATOR_CLEANUP="+new com.google.gson.Gson().toJson(receipt));
+    }
     private static void prepare(ServerPlayerEntity p){
         heldWorld=p.getServerWorld();require(WorldAccess.of(heldWorld).backend()==CubicAvailability.Backend.NATIVE_CUBIC,"actual native cubic backend required, no column fallback");
-        FlightSystem.disable(p,DescentPlayerData.get(p));p.changeGameMode(GameMode.CREATIVE);require(p.hasPermissionLevel(2),"real connected Creative author already needs permission2");
+        FlightSystem.disable(p,DescentPlayerData.get(p));p.changeGameMode(GameMode.CREATIVE);admitAuthor(p);require(p.hasPermissionLevel(2),"real connected Creative author already needs permission2");
         var context=CityWorldStorage.capture(p);CityWorldStorage.requireHaloEnvelope(context,ANCHOR);plan=OrbitalRouteBlueprint.create(2,ANCHOR,context.bounds());
         var cubes=new TreeSet<D6ChunkPos>(Comparator.comparingInt(D6ChunkPos::x).thenComparingInt(D6ChunkPos::z).thenComparingInt(D6ChunkPos::y));
         for(var cell:plan.cells()){var q=D6ChunkPos.ofBlock(cell.position().x(),cell.position().y(),cell.position().z());for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)cubes.add(new D6ChunkPos(q.x()+x,q.y()+y,q.z()+z));}
@@ -195,7 +228,7 @@ public final class NativeOrbitalRouteCheck {
     }
     private static void finish(MinecraftClient c,String status,String reason){
         if(done)return;done=true;if(c.player!=null)clearKeys(c);
-        var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("reason",reason);report.put("blockedCube",blockedCube);report.put("nativeCubic",true);report.put("coldReader",false);report.put("phase",phase);report.put("passed",passed);report.put("verifiedCells",verified);report.put("requestedColumns",requested);report.put("fullHaloCubes",readyCubes);report.put("initialTeleports",initialTeleports);report.put("heldKeyboardTicks",heldTicks);report.put("measuredClientTicks",flightTicks);report.put("measuredWallNanos",armedAt==0?0:System.nanoTime()-armedAt);report.put("actualPathMetres",travelled);report.put("minimumGeometricPathMetres",minimumPath());report.put("maxClientStep",maxStep);report.put("maxCursorDelta",maxCursorDelta);report.put("maxCasDelta",maxCasDelta);report.put("actualServerSamples",serverSamples);report.put("planHash",plan==null?"":plan.hash());
+        var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("reason",reason);report.put("blockedCube",blockedCube);report.put("nativeCubic",true);report.put("permissionBefore",permissionBefore);report.put("permissionAfterAdmission",permissionAfter);report.put("operatorEntryLevel",assignedOperator==null?null:assignedOperator.getPermissionLevel());report.put("authorProfile",playerId==null?null:playerId.toString());report.put("coldReader",false);report.put("phase",phase);report.put("passed",passed);report.put("verifiedCells",verified);report.put("requestedColumns",requested);report.put("fullHaloCubes",readyCubes);report.put("initialTeleports",initialTeleports);report.put("heldKeyboardTicks",heldTicks);report.put("measuredClientTicks",flightTicks);report.put("measuredWallNanos",armedAt==0?0:System.nanoTime()-armedAt);report.put("actualPathMetres",travelled);report.put("minimumGeometricPathMetres",minimumPath());report.put("maxClientStep",maxStep);report.put("maxCursorDelta",maxCursorDelta);report.put("maxCasDelta",maxCasDelta);report.put("actualServerSamples",serverSamples);report.put("planHash",plan==null?"":plan.hash());
         synchronized(EVENTS){report.put("events",List.copyOf(EVENTS));}synchronized(STATE_ROWS){report.put("stateRows",List.copyOf(STATE_ROWS));}synchronized(CLIENT_MOVES){report.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){report.put("actualServerMoves",List.copyOf(SERVER_MOVES));}
         try{Files.writeString(c.runDirectory.toPath().resolve("orbital-native-route.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception bad){bad.printStackTrace();}
         System.out.println("NATIVE_ORBITAL_ROUTE_"+status+" "+reason);c.scheduleStop();
