@@ -211,7 +211,14 @@ public final class NativeTorchCameraCheck {
                 case H_ON->{if(v.flight&&DescentClientState.enabled&&ownerChecked){pulse();step=Step.H_OFF;}}
                 case H_OFF->{if(!v.flight&&!DescentClientState.enabled&&!v.vehicle){axis=0;requestedSurface=0;step=Step.SURFACE;}}
                 case SURFACE->{
-                    if(v.surface==axis&&v.tick-surfaceStarted>120){finish("UNOBSERVED","actual source/support/client frame admission exceeded120 server ticks");return;}
+                    if(v.surface==axis&&v.tick-surfaceStarted>120){
+                        var actor=c.player;
+                        finish("UNOBSERVED","actual support admission exceeded120 ticks: client="+actor.getPos()
+                            +" box="+actor.getBoundingBox()+" velocity="+actor.getVelocity()
+                            +" grounded="+actor.isOnGround()+" horizontalCollision="+actor.horizontalCollision
+                            +" localUp="+FootGravitySystem.getUp(actor)+" server="+v);
+                        return;
+                    }
                     if(v.surface==axis&&v.matchedSource&&v.foot&&v.grounded&&v.clear&&v.up.dotProduct(Vec3d.of(AXES[axis].getVector()))>=.999999
                         &&DescentClientState.footGravity&&FootGravitySystem.getUp(c.player).dotProduct(v.up)>=.999999
                         &&FootGravityCamera.visualUp().dotProduct(v.up)>=.99999){look=0;setLook(c,v.up);step=Step.LOOK;}
