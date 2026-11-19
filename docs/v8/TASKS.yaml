@@ -85,8 +85,8 @@ tasks:
   status: pending_reverification
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/legacy-proxy-native-graph.json, EVIDENCE/finish36-20261119/legacy-proxy-native-graph.zip]
+  notes: "На штатных Fabric-серверах 1.1.6 и текущей сборки прослежен живой граф владельца и пассажира. В 1.1.6 отключение оставляет игрока в корпусе через восемь тиков, в текущей сборке связь снимается сразу. Случай, где необходима смерть в лаве, остаётся непроверенным."
 - id: S01-T02
   stage: S01
   stage_title: Reproduce and instrument baseline

@@ -1,0 +1,49 @@
+{
+  "task": "S01-T01",
+  "currentSource": "d1db371eab6295056ffdd7128741be6ed3ec831c",
+  "scope": "Two independent dedicated standard Fabric versions and one matching fixture. Historical flight off retains the physical passenger relation after eight ordinary ticks. The cavity with placed lava produces a later living dismount. The original death prerequisite and original incident save remain unverified.",
+  "results": {
+    "historical": {
+      "version": "1.1.6",
+      "sha256": "e1b31f01495d9f5a43e19d36310825f9c6382b7322c7789aff6a5a483074ffb0",
+      "exit": 1,
+      "afterFlightOff": {
+        "mounted": true,
+        "alive": true,
+        "enabled": false
+      },
+      "afterEightNormalTicks": {
+        "mounted": true,
+        "alive": true
+      },
+      "lastHazardCase": {
+        "mounted": false,
+        "alive": true,
+        "health": 20.0,
+        "observedInLava": false
+      }
+    },
+    "current": {
+      "version": "1.1.35-ufo-dev.1",
+      "sha256": "3ed8301cfc8cbe0ff754d1f16e64fd747563c9aa3f6a1c2b356521b7c37c6a30",
+      "exit": 0,
+      "afterFlightOff": {
+        "mounted": false,
+        "alive": true,
+        "enabled": false
+      },
+      "afterEightNormalTicks": {
+        "mounted": false,
+        "alive": true
+      },
+      "lastHazardCase": {
+        "mounted": false,
+        "alive": true,
+        "health": 20.0,
+        "observedInLava": false
+      }
+    }
+  },
+  "archive": "legacy-proxy-native-graph.zip",
+  "archiveSha256": "d9246ace4ba5699802398415bd8b1d366f8ebc0f8fb6bf0d2fcd4585107cd3ea"
+}
