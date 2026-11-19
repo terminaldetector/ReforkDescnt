@@ -30,7 +30,10 @@ class FeatureAwareTerrainMeshTest {
         var mesh=mesh(true,true);var bounds=mesh.collisionBounds();assertFalse(bounds.isEmpty());
         for(int y=0;y<=4;y++)for(int z=0;z<=4;z++)
             assertEquals(new HybridMesh.Point(1,y*.25,z*.25),mesh.vertex(4,y,z));
-        assertTrue(mesh.faces().stream().noneMatch(f->f.direction()==5),"opaque hull owns the shared face");
+        var eastFaces = mesh.faces().stream().filter(face -> face.direction() == 5).toList();
+        assertFalse(eastFaces.isEmpty(), "the curved cavity retains its internal east-facing surfaces");
+        assertTrue(eastFaces.stream().noneMatch(face -> face.vertices().stream()
+            .allMatch(vertex -> vertex.texturePosition().x() == 1)), "opaque hull owns the external shared face");
         for(var face:mesh.faces())for(var vertex:face.vertices()) {
             var p=vertex.position();
             assertTrue(bounds.stream().anyMatch(b->p.x()>=b.minX()-1e-12&&p.x()<=b.maxX()+1e-12
