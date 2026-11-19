@@ -107,6 +107,17 @@ public final class EnclaveMissionLedger {
         instances.put(key,instance);active.put(owner,instance);owners.add(owner);mutationVersion++;
         return Outcome.ACCEPTED;
     }
+    /** Explicit owner withdrawal forgets only unclaimed progress; claim receipts never leave history. */
+    public boolean abandon(UUID owner,Context actual) {
+        Objects.requireNonNull(owner);Objects.requireNonNull(actual);
+        if(!available())return false;
+        var instance=active.get(owner);if(instance==null||instance.status!=Outcome.ACTIVE)return false;
+        var site=sites.get(instance.key.site);
+        if(site==null||!site.context.equals(actual))return false;
+        active.remove(owner);instances.remove(instance.key);
+        if(instances.keySet().stream().noneMatch(key->key.owner.equals(owner)))owners.remove(owner);
+        mutationVersion++;return true;
+    }
     public void pause(UUID owner) {
         var instance=active.get(owner);
         if(instance!=null)instance.entryArmed=false;

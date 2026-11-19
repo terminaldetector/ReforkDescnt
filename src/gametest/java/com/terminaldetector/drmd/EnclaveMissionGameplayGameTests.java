@@ -20,6 +20,10 @@ public final class EnclaveMissionGameplayGameTests implements FabricGameTest {
     public void operatorBuildsAndBindsPhysicalShaftWithoutOverwritingMaterials(TestContext context) {
         run(context, EnclaveMissionGameplayFixture.Case.PROTOTYPE);
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="enclave-mission-recovery",tickLimit=700)
+    public void foreignDamageCanBeAbandonedThenSalvagedRepairedAndCompletedOnce(TestContext context){run(context,EnclaveMissionGameplayFixture.Case.RECOVERY);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="enclave-mission-missing-offer",tickLimit=500)
+    public void anAlreadyMinedPanelCannotTrapAFreshOwnerInAnUnplayableMission(TestContext context){run(context,EnclaveMissionGameplayFixture.Case.BROKEN_START);}
     private static void run(TestContext context,EnclaveMissionGameplayFixture.Case scenario){
         var driver=new EnclaveMissionGameplayFixture(context,scenario);
         context.runAtEveryTick(()->{

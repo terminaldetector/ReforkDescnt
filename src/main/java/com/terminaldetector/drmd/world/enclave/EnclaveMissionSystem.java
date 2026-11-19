@@ -140,15 +140,37 @@ public final class EnclaveMissionSystem {
         var site=site(world,herald);var definition=current(site);var ledger=FactionMemory.of(world).missions();
         return "Mission "+definition.id()+" at "+site.herald()+": "+ledger.status(player.getUuid(),site.id(),context(world),definition.hash())+". Sneak-use to accept or extract; acceptance grants no reward.";
     }
+    /** Check only before a fresh instance: an already credited owner may still extract mined panels. */
+    private static void requireStartPanels(ServerWorld world,EnclaveMissionLedger.Site site){
+        var access=WorldAccess.of(world);
+        for(var step:site.steps())if(step.type()==Type.BREAK_BLOCK){
+            var state=access.readIfLoaded(block(step.block()));
+            // A remote unavailable panel is unknown, not damaged. No new tickets, permission
+            // radius or collision-shape/halo requirement is introduced by accepting an offer.
+            if(state.isEmpty())continue;
+            if(!Registries.BLOCK.getId(state.get().getBlock()).toString().equals(step.expectedBlock()))
+                throw new IllegalArgumentException("Mission panel was changed or removed. Restore it or choose another contact; no mission was accepted.");
+        }
+    }
+    static boolean abandon(ServerPlayerEntity player){
+        var world=player.getServerWorld();
+        if(!survivor(world,player))throw new IllegalArgumentException("Actual connected Survival owner required");
+        var memory=existing(world);if(memory==null)return false;
+        var ledger=memory.missions();if(!ledger.available())throw new IllegalArgumentException(ledger.problem().orElse("Mission state unavailable"));long before=ledger.mutationVersion();
+        try{return ledger.abandon(player.getUuid(),context(world));}
+        finally{memory.missionChanged(before);}
+    }
     static String accept(ServerPlayerEntity player,BlockPos herald,BlockHitResult hit){
         var world=player.getServerWorld();interactable(world,player,herald,hit);var site=site(world,herald);var definition=validate(world,player,site);
         var memory=FactionMemory.of(world);var ledger=memory.missions();long before=ledger.mutationVersion();
+        if(ledger.status(player.getUuid(),site.id(),context(world),definition.hash())==Outcome.UNAVAILABLE)
+            requireStartPanels(world,site);
         final Outcome result;
         try{result=ledger.accept(player.getUuid(),site.id(),context(world),definition.hash(),position(player));}
         finally{memory.missionChanged(before);}
         return switch(result){
             case ACCEPTED->"Accepted "+definition.id()+". Complete the actual objectives and return here; no reputation granted.";
-            case ACTIVE->"Mission active; complete its next real objective.";
+            case ACTIVE->"Mission active; complete its next real objective. If it is no longer possible, use /ungravitymission abandon; this grants no reward.";
             case READY->"Objectives complete; sneak-use this contact to extract.";
             case CLAIMED->"Already extracted; no additional reward.";
             case OWNER_BUSY->"Another contact owns your current mission.";
@@ -245,8 +267,9 @@ public final class EnclaveMissionSystem {
                     }
                 })));
             dispatcher.register(CommandManager.literal("ungravitymission")
-                .requires(source->source.getEntity() instanceof ServerPlayerEntity player&&author(player))
+                .requires(source->source.getEntity() instanceof ServerPlayerEntity player&&connected(player.getServerWorld(),player))
                 .then(CommandManager.literal("bind")
+                    .requires(source->source.getEntity() instanceof ServerPlayerEntity player&&author(player))
                     .then(CommandManager.argument("contract",IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("herald",BlockPosArgumentType.blockPos())
                             .then(CommandManager.argument("anchor",BlockPosArgumentType.blockPos())
@@ -262,12 +285,22 @@ public final class EnclaveMissionSystem {
                                     }
                                 })))))
                 .then(CommandManager.literal("inspect")
+                    .requires(source->source.getEntity() instanceof ServerPlayerEntity player&&author(player))
                     .then(CommandManager.argument("herald",BlockPosArgumentType.blockPos())
                         .executes(command->{
                             var player=command.getSource().getPlayerOrThrow();
                             try{notify(player,inspect(player,BlockPosArgumentType.getBlockPos(command,"herald")));return 1;}
                             catch(RuntimeException refused){notify(player,"Mission unavailable: "+Objects.toString(refused.getMessage(),refused.getClass().getSimpleName()));return 0;}
-                        }))));
+                        })))
+                .then(CommandManager.literal("abandon")
+                    .requires(source->source.getEntity() instanceof ServerPlayerEntity player&&survivor(player.getServerWorld(),player))
+                    .executes(command->{
+                        var player=command.getSource().getPlayerOrThrow();
+                        try{boolean changed=abandon(player);notify(player,changed
+                            ?"Mission abandoned. Unclaimed progress was removed; no reward or world change."
+                            :"No current mission in this world can be abandoned; claimed rewards remain unchanged.");return changed?1:0;}
+                        catch(RuntimeException refused){notify(player,"Mission withdrawal refused: "+Objects.toString(refused.getMessage(),refused.getClass().getSimpleName()));return 0;}
+                    })));
         });
     }
     public static synchronized void register(){

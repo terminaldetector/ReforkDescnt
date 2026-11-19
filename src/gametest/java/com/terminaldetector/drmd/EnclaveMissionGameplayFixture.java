@@ -28,7 +28,7 @@ import java.util.*;
 
 /** Test-owned actors and arena. Mission state is observed only through read-only NBT snapshots. */
 final class EnclaveMissionGameplayFixture {
-    enum Case { LAB,SIDE,FOREIGN,RIGHTS,INVALIDATE,PROTOTYPE }
+    enum Case { LAB,SIDE,FOREIGN,RIGHTS,INVALIDATE,PROTOTYPE,RECOVERY,BROKEN_START }
     record Actor(ServerPlayerEntity player,EmbeddedChannel channel,OperatorEntry operatorBefore){}
     final TestContext c;final ServerWorld w;final Case scenario;final BlockPos herald,anchor,otherHerald,panel;
     final String definition;final Map<BlockPos,BlockState> previous=new LinkedHashMap<>();
@@ -36,7 +36,8 @@ final class EnclaveMissionGameplayFixture {
     final Set<UUID> preexistingItems=new HashSet<>(),ownedDrops=new HashSet<>();
     AiFixtureChunks chunks;Actor author,owner,foreign;FactionMemory memory;UUID siteId;
     int admission,phase,phaseTicks,miningTicks,sequence,commandCount,useCount,returnLeg;long lastTick=Long.MIN_VALUE;
-    boolean finished,closed,miningStarted;Actor miner;String repeatReceipt;
+    int salvageWait;
+    boolean finished,closed,miningStarted,foreignOfferRefused;Actor miner;String repeatReceipt;
 
     EnclaveMissionGameplayFixture(TestContext context,Case scenario){
         c=context;w=c.getWorld();this.scenario=scenario;definition=scenario==Case.SIDE?"drmd:lab_side_entry":"drmd:lab_infiltration";
@@ -53,7 +54,7 @@ final class EnclaveMissionGameplayFixture {
     }
     void tick(){
         w.resetIdleTimeout();
-        c.assertTrue(c.getTick()<480,"500 framework retains bounded cleanup margin; scenario="+scenario+" phase="+phase+" age="+phaseTicks);
+        c.assertTrue(c.getTick()<(scenario==Case.RECOVERY?680:480),"finite actual driver retains cleanup margin; scenario="+scenario+" phase="+phase+" age="+phaseTicks);
         if(lastTick!=Long.MIN_VALUE)c.assertTrue(c.getTick()==lastTick+1,"one registered driver observes consecutive actual game ticks");lastTick=c.getTick();
         if(chunks==null){chunks=new AiFixtureChunks(w,herald.add(7,0,2),1);return;}
         if(!chunks.entityTicking(herald,anchor,panel)){
@@ -162,7 +163,7 @@ final class EnclaveMissionGameplayFixture {
         c.assertTrue(snapshot().getCompound("missions").getList("instances",NbtElement.COMPOUND_TYPE).equals(before.getCompound("missions").getList("instances",NbtElement.COMPOUND_TYPE)),"binding cannot create a mission instance or progress");
         for(var actor:this.actors)c.assertTrue(rep(actor)==0,"binding awards nobody reputation");
         var root=w.getServer().getCommandManager().getDispatcher().getRoot().getChild("ungravitymission");
-        c.assertTrue(root!=null&&root.getChildren().stream().map(node->node.getName()).collect(java.util.stream.Collectors.toSet()).equals(Set.of("bind","inspect")),"production dispatcher exposes author bind/inspect only, no raw progress or reward command");
+        c.assertTrue(root!=null&&root.getChildren().stream().map(node->node.getName()).collect(java.util.stream.Collectors.toSet()).equals(Set.of("bind","inspect","abandon")),"production dispatcher exposes author bind/inspect and self-withdrawal only, no raw progress or reward command");
         String unchanged=snapshot().toString();command(author.player.getCommandSource(),"ungravitymission inspect "+xyz(herald));
         c.assertTrue(snapshot().toString().equals(unchanged),"real authorized inspect command cannot change progress or reward");
     }
@@ -226,6 +227,8 @@ final class EnclaveMissionGameplayFixture {
     }
     private void next(int phase){this.phase=phase;phaseTicks=0;record("phase:"+phase);}
     private void step(){
+        if(scenario==Case.RECOVERY){recover();return;}
+        if(scenario==Case.BROKEN_START){brokenOffer();return;}
         if (scenario == Case.PROTOTYPE) {
             buildPrototype();
             finished = true;
@@ -301,6 +304,80 @@ final class EnclaveMissionGameplayFixture {
             default->throw new IllegalStateException("unknown fixture phase "+phase);
         }
     }
+    private int iron(Actor actor){int total=0;for(int i=0;i<actor.player.getInventory().size();i++){var stack=actor.player.getInventory().getStack(i);if(stack.isOf(Items.IRON_BLOCK))total+=stack.getCount();}return total;}
+    /** Select an existing empty slot; never erase the actual salvage or a used tool for a click. */
+    private void recoveryUse(Actor actor,boolean sneak){
+        int empty=-1;for(int slot=0;slot<9;slot++)if(actor.player.getInventory().getStack(slot).isEmpty()){empty=slot;break;}
+        c.assertTrue(empty>=0&&actor.player.getOffHandStack().isEmpty(),"ordinary contact has a real empty slot without deleting inventory");
+        actor.player.getInventory().selectedSlot=empty;use(actor,herald,sneak);
+    }
+    private void deniedWithdrawal(){
+        var before=snapshot().toString();
+        command(foreign.player.getCommandSource(),"ungravitymission abandon");
+        command(author.player.getCommandSource(),"ungravitymission abandon");
+        command(w.getServer().getCommandSource(),"ungravitymission abandon");
+        owner.player.changeGameMode(GameMode.SPECTATOR);command(owner.player.getCommandSource(),"ungravitymission abandon");owner.player.changeGameMode(GameMode.SURVIVAL);
+        c.assertTrue(snapshot().toString().equals(before),"foreign owner, Creative author, console and Spectator cannot cancel this Survival instance");
+    }
+    private boolean salvage(){
+        c.assertTrue(iron(owner)<=1,"one real foreign-mined panel cannot multiply salvage");
+        if(iron(owner)==1)return true;
+        c.assertTrue(++salvageWait<=80,"actual normal pickup of one real mined panel is bounded80ticks");
+        walk(owner,panel);return false;
+    }
+    private void replaceSalvage(){
+        var p=owner.player;int slot=-1;
+        for(int i=0;i<9;i++)if(p.getInventory().getStack(i).isOf(Items.IRON_BLOCK)){slot=i;break;}
+        c.assertTrue(slot>=0&&iron(owner)==1&&w.getBlockState(panel).isAir(),"only actual picked-up iron panel is available for ordinary replacement");
+        p.getInventory().selectedSlot=slot;p.setSneaking(false);var target=new Vec3d(panel.getX()+.5,panel.getY(),panel.getZ()+.5);aim(owner,target);
+        var ray=w.raycast(new net.minecraft.world.RaycastContext(p.getEyePos(),target.add(0,-.002,0),net.minecraft.world.RaycastContext.ShapeType.COLLIDER,net.minecraft.world.RaycastContext.FluidHandling.NONE,p));
+        c.assertTrue(ray.getType()==HitResult.Type.BLOCK&&ray.getBlockPos().equals(panel.down())&&ray.getSide()==Direction.UP,"ordinary replacement ray hits real support floor");
+        var result=p.interactionManager.interactBlock(p,w,p.getMainHandStack(),Hand.MAIN_HAND,new BlockHitResult(target,Direction.UP,panel.down(),false));
+        c.assertTrue(result.isAccepted()&&w.getBlockState(panel).isOf(Blocks.IRON_BLOCK)&&iron(owner)==0,"normal Survival placement consumes exactly the one actual salvage block");record("actual-salvage-replacement");
+    }
+    private void recover(){
+        switch(phase){
+            case 0->{bind();c.assertTrue(iron(owner)==0,"fresh owner has no injected repair resource");next(1);}
+            case 1->{recoveryUse(owner,true);expect(owner,0,"ACTIVE",0,"ordinary acceptance before foreign damage");next(2);}
+            case 2->{if(walk(owner,firstEntry()))next(3);}
+            case 3->{expect(owner,1,"ACTIVE",0,"actual owner entered before foreign damage");if(mine(foreign))next(4);}
+            case 4->{if(walk(foreign,herald.add(15,0,-2)))next(5);}
+            case 5->{if(walk(owner,home()))next(6);}
+            case 6->{
+                expect(owner,1,"ACTIVE",0,"foreign mining cannot complete owner's panel");deniedWithdrawal();var original=siteId;
+                command(owner.player.getCommandSource(),"ungravitymission abandon");expect(owner,-1,"NONE",0,"actual self command releases unclaimed instance with zero reward");
+                c.assertTrue(site().getUuid("id").equals(original)&&site().getBoolean("valid"),"withdrawal never replaces or invalidates authored site identity");
+                String unchanged=snapshot().toString();command(owner.player.getCommandSource(),"ungravitymission abandon");c.assertTrue(snapshot().toString().equals(unchanged),"repeat withdrawal is inert");next(7);
+            }
+            case 7->{recoveryUse(owner,true);expect(owner,-1,"NONE",0,"fresh missing-panel offer cannot strand owner again");c.assertTrue(w.getBlockState(panel).isAir(),"refused acceptance never repairs or creates a panel");next(8);}
+            case 8->{if(salvage())next(9);}
+            case 9->{if(walk(owner,miningStance()))next(10);}
+            case 10->{replaceSalvage();next(11);}
+            case 11->{if(walk(owner,home()))next(12);}
+            case 12->{recoveryUse(owner,true);expect(owner,0,"ACTIVE",0,"physically restored panel admits a genuinely new unclaimed sequence");miningStarted=false;miner=null;miningTicks=0;next(13);}
+            case 13->{if(walk(owner,firstEntry()))next(14);}
+            case 14->{if(!miningStarted)expect(owner,1,"ACTIVE",0,"new actual entry precedes owner's own mining");if(mine(owner))next(15);}
+            case 15->{if(walk(owner,home()))next(16);}
+            case 16->{recoveryUse(owner,true);claimed();var receipt=instance(owner).toString();command(owner.player.getCommandSource(),"ungravitymission abandon");c.assertTrue(instance(owner).toString().equals(receipt)&&rep(owner)==3,"abandon cannot remove a claimed receipt or enable reward farming");next(17);}
+            case 17->{recoveryUse(owner,phaseTicks<=3);claimed();c.assertTrue(instance(owner).toString().equals(repeatReceipt),"same receipt survives ordinary repeat/status uses");if(phaseTicks==4)next(18);}
+            case 18->{verifyPackets();record("actual-recovery-complete");finished=true;close(null);c.complete();}
+            default->throw new IllegalStateException("unknown recovery phase "+phase);
+        }
+    }
+    private void brokenOffer(){
+        switch(phase){
+            case 0->{bind();next(1);}
+            case 1->{if(mine(foreign))next(2);}
+            case 2->{var before=snapshot().toString();recoveryUse(owner,true);expect(owner,-1,"NONE",0,"missing real panel refuses BEFORE fresh instance creation");c.assertTrue(snapshot().toString().equals(before),"failed fresh offer leaves authoritative persistent state unchanged");next(3);}
+            case 3->{
+                if(phaseTicks<2)return;var delivered=messages(owner);
+                c.assertTrue(delivered.stream().anyMatch(text->text.contains("Mission panel was changed or removed")),"normal end-tick feedback explains actual broken offer without fake packet injection");
+                c.assertTrue(delivered.stream().noneMatch(text->text.contains("Accepted "+definition)||text.contains("Extracted "+definition)),"refused offer never reports acceptance or reward");
+                expect(owner,-1,"NONE",0,"fresh owner remains free of unusable mission state");c.assertTrue(rep(foreign)==0&&w.getBlockState(panel).isAir(),"ordinary foreign mining grants neither reputation nor automatic repair");record("actual-broken-offer-refused");finished=true;close(null);c.complete();
+            }
+            default->throw new IllegalStateException("unknown broken-offer phase "+phase);
+        }
+    }
     private void buildPrototype() {
         var command = "ungravitylab " + xyz(anchor);
         var before = fingerprint();
@@ -348,13 +425,13 @@ final class EnclaveMissionGameplayFixture {
     private void rightsExtraction(){
         if(phaseTicks==1){owner.player.changeGameMode(GameMode.CREATIVE);use(owner,herald,true);expect(owner,2,"READY",0,"Creative cannot extract actual ready Survival mission");return;}
         if(phaseTicks==2){owner.player.changeGameMode(GameMode.SPECTATOR);use(owner,herald,true);expect(owner,2,"READY",0,"Spectator cannot extract actual ready Survival mission");return;}
-        if(instance(foreign).isEmpty()){
+        if(instance(foreign).isEmpty()&&!foreignOfferRefused){
             if(!walk(foreign,home().add(1,0,0)))return;
-            use(foreign,herald,true);expect(foreign,0,"ACTIVE",0,"other real owner receives only its own fresh uncompleted instance");
-            expect(owner,2,"READY",0,"foreign use cannot take original owner's ready cursor or claim");return;
+            use(foreign,herald,true);expect(foreign,-1,"NONE",0,"already removed panel refuses a fresh foreign instance instead of stranding it");
+            expect(owner,2,"READY",0,"foreign use cannot take original owner's ready cursor or claim");foreignOfferRefused=true;return;
         }
         owner.player.changeGameMode(GameMode.SURVIVAL);use(owner,herald,true);claimed();
-        expect(foreign,0,"ACTIVE",0,"first owner reward never leaks into another instance");next(15);
+        expect(foreign,-1,"NONE",0,"first owner reward never leaks into a foreign broken-panel offer");next(15);
     }
     private void claimed(){
         int count=scenario==Case.SIDE?3:2;
@@ -373,7 +450,7 @@ final class EnclaveMissionGameplayFixture {
     private void verifyPackets(){
         var messages=messages(owner);String joined=String.join("\n",messages);
         c.assertTrue(!messages.isEmpty(),"actual normal end-tick packet delivery is visible without manual flush/pump");
-        boolean claimed=scenario==Case.LAB||scenario==Case.SIDE||scenario==Case.RIGHTS;
+        boolean claimed=scenario==Case.LAB||scenario==Case.SIDE||scenario==Case.RIGHTS||scenario==Case.RECOVERY;
         long extracts=messages.stream().filter(s->s.contains("Extracted "+definition+" (+3 miners)")).count();
         c.assertTrue(extracts==(claimed?1:0),"normal feedback agrees with exactly-once authoritative extraction, not acceptance: "+messages);
         c.assertTrue(joined.contains("Offer:")&&joined.contains("Accepted "+definition),"retained actual offer title and truthful acceptance feedback are delivered after state operation");
