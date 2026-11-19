@@ -176,7 +176,12 @@ public final class NativeHudReadabilityCheck {
         } else {
             var menu = client.currentScreen;
             if (!(menu instanceof DroneInventoryScreen) || desiredX < 0 || tooltip == null
-                    || Math.abs(x - desiredX) > 2 || Math.abs(y - desiredY) > 2) return;
+                    || Math.abs(x - desiredX) > 2) return;
+            int expectedAnchor = (menu.height - 212) / 2 + 79;
+            if (y != expectedAnchor) {
+                finish(client, "FAIL", "Equipment tooltip overlaps the caption row");
+                return;
+            }
             var options = client.options;
             Text expected = switch (bank) {
                 case 0 -> Text.translatable("container.drmd.drone_inventory.primary.hint", options.attackKey.getBoundKeyLocalizedText());

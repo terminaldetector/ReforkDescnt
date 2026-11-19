@@ -65,14 +65,17 @@ public final class DroneInventoryScreen extends HandledScreen<DroneInventoryHand
 
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        drawMouseoverTooltip(context, mouseX, mouseY);
         for (int bank = 0; bank < LABELS.length; bank++) {
             var slot = handler.getSlot(bank);
-            if (!slot.hasStack() && isPointWithinBounds(slot.x, slot.y, 16, 16, mouseX, mouseY)) {
-                context.drawTooltip(textRenderer, socketHint(bank), mouseX, mouseY);
-                return;
-            }
+            if (!isPointWithinBounds(slot.x, slot.y, 16, 16, mouseX, mouseY)) continue;
+            // Vanilla puts its tooltip just above this anchor. Keep that background above
+            // the equipment captions even when the pointer is centered over a socket.
+            int tooltipY = Math.min(mouseY, y + 79);
+            if (slot.hasStack()) drawMouseoverTooltip(context, mouseX, tooltipY);
+            else context.drawTooltip(textRenderer, socketHint(bank), mouseX, tooltipY);
+            return;
         }
+        drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
     private Text socketHint(int bank) {
