@@ -22,13 +22,17 @@ import org.joml.Vector4f;
 /** Actual mouse-entry methods, actual C2S aim, BE metadata, owned pair and through-view. */
 public final class NativePortalGunCheck {
     private static final BlockPos A=new BlockPos(8,2156,12),B=new BlockPos(22,2156,12),C=new BlockPos(8,2156,28);
-    private static final Vec3d PLAYER=new Vec3d(15,2154.88,26);
+    private static final NativeGunPortalApproach TRAVERSAL=Boolean.getBoolean("drmd.gate.gunTraversal")?new NativeGunPortalApproach():null;
+    private static final Vec3d PLAYER=TRAVERSAL==null?new Vec3d(15,2154.88,26):new Vec3d(8.5,2154.88,19);
     private static boolean started,preparing,shot,capture,finished;
     private static volatile boolean ready;
     private static int phase,ticks,age,frames;
     private static final List<String> RESULTS=new ArrayList<>();
     private static final String[] NAMES={"blue-only","paired-blue-orange","blue-replaced","pair-cleared","container-protected"};
-    public static void register(){ClientTickEvents.END_CLIENT_TICK.register(NativePortalGunCheck::tick);}
+    public static void register(){
+        ClientTickEvents.END_CLIENT_TICK.register(NativePortalGunCheck::tick);
+        if(TRAVERSAL!=null)net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(TRAVERSAL::observe);
+    }
     public static void camera(Camera camera) {
         if(!capture)return;
         var access=(CameraAccessor)camera;
@@ -43,6 +47,7 @@ public final class NativePortalGunCheck {
                 && button.getMessage().getString().equals("I know what I'm doing!"))button.onPress();
         if(client.player==null || client.world==null || client.getServer()==null)return;
         com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
+        if(TRAVERSAL!=null&&phase==2){finished=TRAVERSAL.tick(client);return;}
         com.terminaldetector.drmd.client.DescentClientState.enabled=false;
         if(!started) {
             if(!client.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"))throw new IllegalStateException("Disposable cubic runtime required");
@@ -120,8 +125,10 @@ public final class NativePortalGunCheck {
         };
     }
     public static void rendered() {
-        if(!capture || finished)return;
+        if(finished)return;
         var client=MinecraftClient.getInstance();
+        if(TRAVERSAL!=null&&phase==2){TRAVERSAL.rendered(client);return;}
+        if(!capture)return;
         if(++frames<60)return;
         if(client.currentScreen!=null)throw new IllegalStateException("Gun opened a screen instead of firing");
         if(phase==1 && (PortalSeeThroughRenderer.scannedCount()!=2 || !String.valueOf(PortalViewDiagnostics.lastSummary("portal")).startsWith("drawing")))return;
@@ -147,6 +154,7 @@ public final class NativePortalGunCheck {
             RESULTS.add("{\"scene\":\""+NAMES[phase]+"\",\"frames\":"+frames+",\"bluePixels\":"+blue+",\"orangePixels\":"+orange+"}");
             System.out.println("PORTAL_GUN_CLIENT "+NAMES[phase]+" PASS blue="+blue+" orange="+orange);
             capture=false;shot=false;age=0;
+            if(TRAVERSAL!=null&&phase==1){phase=2;TRAVERSAL.start(client,A,B);return;}
             if(++phase==5) {
                 client.getServer().execute(()->{
                     var world=client.getServer().getOverworld();var chest=world.getBlockEntity(new BlockPos(15,2156,24));
