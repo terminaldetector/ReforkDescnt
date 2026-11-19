@@ -98,7 +98,10 @@ final class EconomyFixture implements AutoCloseable {
         var point=Vec3d.ofCenter(block).add(Vec3d.of(face.getVector()).multiply(.5));
         // Approach side faces from above neighbouring supports, so the test player
         // does not stand inside another placed block while clicking the correct face.
-        var stand=point.add(Vec3d.of(face.getVector()).multiply(2));if(face.getAxis().isHorizontal())stand=stand.add(0,2.5,0);
+        // A top-face click needs room for both the new block and the player below their eye.
+        double clearance = face == Direction.UP ? 3 : 2;
+        var stand = point.add(Vec3d.of(face.getVector()).multiply(clearance));
+        if (face.getAxis().isHorizontal()) stand = stand.add(0, 2.5, 0);
         aim(stand,point);return new BlockHitResult(point,face,block,false);
     }
     void placeWorld(BlockPos support,Direction face,Item item){

@@ -13,7 +13,11 @@ final class GravityFieldIds {
 
 	/** Equal coordinates through a portal are separate emitters because the dimension is in the seed. */
 	static UUID torch(RegistryKey<World> worldKey, BlockPos pos) {
-		String seed = worldKey.getValue() + "@" + pos.asLong();
+		// Vanilla packs Y into twelve bits. Preserve existing ordinary-world identities,
+        // but never alias separate native cubic layers outside that representable range.
+        String location = pos.getY() >= -2048 && pos.getY() <= 2047 ? Long.toString(pos.asLong())
+            : "xyz:" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
+        String seed = worldKey.getValue() + "@" + location;
 		return UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8));
 	}
 }
