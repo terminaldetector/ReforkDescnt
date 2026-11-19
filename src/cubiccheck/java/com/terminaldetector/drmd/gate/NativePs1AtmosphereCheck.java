@@ -29,6 +29,9 @@ import java.util.*;
 public final class NativePs1AtmosphereCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.ps1Atmosphere");
     private static final int[] ALTITUDES={600,1020,1580};
+    // The inherited donor has an opaque marker stack at X8/Z8 up to2160. Keep the
+    // entire camera/foreground geometry unchanged relative to itself, outside that shadow.
+    private static final int FIXTURE_SHIFT_X=32;
     private static final List<Map<String,Object>> RESULTS=new ArrayList<>();
     private static volatile ServerPlayerEntity player;
     private static volatile boolean admitted,authored,authoring;
@@ -69,7 +72,7 @@ public final class NativePs1AtmosphereCheck {
         HudRenderCallback.EVENT.register((draw,counter)->{if(!ENABLED||done)return;var m=draw.getMatrices();m.push();float scale=(float)(1/MinecraftClient.getInstance().getWindow().getScaleFactor());m.scale(scale,scale,1);draw.fill(17,20,18,40,0xff00ffff);m.pop();witness=true;});
     }
     private static List<BlockPos> wall(){
-        var result=new ArrayList<BlockPos>();for(int x=11;x<=12;x++)for(int y=altitude()-2;y<=altitude()-1;y++)result.add(new BlockPos(x,y,14));return result;
+        var result=new ArrayList<BlockPos>();for(int x=11+FIXTURE_SHIFT_X;x<=12+FIXTURE_SHIFT_X;x++)for(int y=altitude()-2;y<=altitude()-1;y++)result.add(new BlockPos(x,y,14));return result;
     }
     private static void begin(MinecraftClient c){
         DescentConfig.presentationProfile=phase==6?PresentationProfile.HYBRID_NATIVE:PresentationProfile.PS1_HYBRID;
@@ -83,7 +86,7 @@ public final class NativePs1AtmosphereCheck {
                 require(CubicAvailability.backend(w)==CubicAvailability.Backend.NATIVE_CUBIC,"actual BCC backend");
                 player.changeGameMode(GameMode.CREATIVE);FlightSystem.disable(player,DescentPlayerData.get(player));
                 player.getAbilities().allowFlying=true;player.getAbilities().flying=true;player.sendAbilitiesUpdate();
-                player.teleport(w,8.5,altitude(),8.5,Set.of(),0,20);player.setVelocity(Vec3d.ZERO);
+                player.teleport(w,8.5+FIXTURE_SHIFT_X,altitude(),8.5,Set.of(),0,20);player.setVelocity(Vec3d.ZERO);
                 w.getGameRules().get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false,c.getServer());w.setTimeOfDay(6000);admitted=true;
             });
         }
@@ -121,12 +124,12 @@ public final class NativePs1AtmosphereCheck {
         var camera=c.gameRenderer.getCamera();
         float exposure=com.terminaldetector.drmd.client.sky.Ps1SkyBackground.skyExposure();
         boolean protectedView=com.terminaldetector.drmd.client.sky.Ps1SkyBackground.protectedView(camera,false);
-        skyAdmission=Map.of("exposure",exposure,"protectedView",protectedView,
-            "nativeCameraSkyLight",c.world.getLightLevel(net.minecraft.world.LightType.SKY,BlockPos.ofFloored(camera.getPos())),
-            "cameraY",camera.getPos().y,"submersion",camera.getSubmersionType().name(),"phase",phase);
+        int nativeSky=c.world.getLightLevel(net.minecraft.world.LightType.SKY,BlockPos.ofFloored(camera.getPos()));
+        skyAdmission=Map.of("exposure",exposure,"protectedView",protectedView,"nativeCameraSkyLight",nativeSky,
+            "cameraY",camera.getPos().y,"submersion",camera.getSubmersionType().name(),"phase",phase,"fixtureShiftX",FIXTURE_SHIFT_X);
         // The enabled production path explicitly preserves protected/dark native views. Admit
         // its open-sky fixture BEFORE OFF, independently of the effect and with the same deadline.
-        if(phase<6&&protectedView)return;
+        if(phase<6&&(protectedView||nativeSky<=0))return;
         if(wall().stream().anyMatch(p->!WorldEditSafety.neighbourhoodLoaded(c.world,p)||!c.world.getBlockState(p).isOf(Blocks.WHITE_CONCRETE)))return;
         armed=true;
     }
