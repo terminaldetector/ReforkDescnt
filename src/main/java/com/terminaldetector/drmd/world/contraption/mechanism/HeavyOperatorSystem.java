@@ -54,6 +54,11 @@ public final class HeavyOperatorSystem {
         ServerLifecycleEvents.SERVER_STOPPED.register(server->FRAMES.clear());
     }
     public static Stats stats(ServerWorld world){var frame=FRAMES.get(world);return frame==null?new Stats(0,0,0,0,0):frame.stats;}
+    /** Read-only terminal/profiler inspection; no sensing, admission or state refresh. */
+    public static Optional<BlockPos> aimingBank(BlockBodyEntity barrel){
+        if(!(barrel.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return Optional.empty();
+        var f=FRAMES.get(world);return f==null?Optional.empty():Optional.ofNullable(f.aimSlots.get(uuid(barrel,PARENT)));
+    }
     private static UUID uuid(BlockBodyEntity body,String prefix){
         UUID id=null;try{for(String tag:body.getCommandTags())if(tag.startsWith(prefix)){if(id!=null)return null;id=UUID.fromString(tag.substring(prefix.length()));}}catch(IllegalArgumentException invalid){return null;}return id;
     }

@@ -75,7 +75,23 @@ public final class HeavyOperatorGameTests implements FabricGameTest {
     private static void receipt(Rig r,String label,Map<String,Object> details){
         var data=new LinkedHashMap<String,Object>();data.put("case",label);data.put("worldTime",r.c.getWorld().getTime());data.put("testTick",r.c.getTick());data.put("details",details);
         data.put("target",Map.of("id",r.target.getUuid(),"position",r.target.getPos(),"health",r.target.getHealth(),"removed",r.target.isRemoved()));
-        data.put("parts",r.a.bodies().stream().map(b->Map.of("id",b.getUuid(),"tags",Set.copyOf(b.getCommandTags()),"position",b.getPos(),"rotation",b.rotation(),"w",b.physics().angularVelocity(),"paused",b.boardingMotionPaused(),"indexed",BodySpatialIndex.find(b.getWorld(),b.getUuid()).orElse(null)==b)).toList());
+        data.put("parts",r.a.bodies().stream().map(b->Map.of("id",b.getUuid(),"tags",Set.copyOf(b.getCommandTags()),"position",b.getPos(),"rotation",b.rotation(),"w",b.physics().angularVelocity(),"paused",b.boardingMotionPaused(),"indexed",BodySpatialIndex.find(b.getWorld(),b.getUuid()).orElse(null)==b,
+            "v",b.physics().linearVelocity(),"com",b.physics().position(),"pivot",b.localPivot())).toList());
+        var barrel=r.a.barrel();data.put("selectedBank",HeavyOperatorSystem.aimingBank(barrel).map(BlockPos::toShortString).orElse("NONE"));
+        data.put("mountedCooldowns",barrel.mountedWeapons().write(barrel).toString());
+        var banks=new ArrayList<Map<String,Object>>();
+        for(var slot:List.of(HeavyOperatorSystem.LASER,HeavyOperatorSystem.LEFT,HeavyOperatorSystem.RIGHT)){
+            var bank=new LinkedHashMap<String,Object>();bank.put("cell",slot.toShortString());bank.put("material",barrel.getLocalBlock(slot).toString());banks.add(bank);
+            var cfg=MountedWeaponEmitter.config(barrel,barrel,slot);if(cfg==null)continue;
+            var point=r.target.getBoundingBox().getCenter();var delta=point.subtract(cfg.pos);var relative=r.target.getVelocity().subtract(cfg.inheritedVelocity);
+            var solution=InterceptAim.solve(new Vec3(delta.x,delta.y,delta.z),new Vec3(relative.x,relative.y,relative.z),cfg.speed,cfg.life*20);
+            var wanted=solution.map(s->new Vec3d(s.direction().x(),s.direction().y(),s.direction().z())).orElseGet(delta::normalize);
+            bank.put("muzzle",cfg.pos);bank.put("physicalForward",cfg.dir);bank.put("inheritedVelocityPerTick",cfg.inheritedVelocity);
+            bank.put("targetPoint",point);bank.put("targetVelocityPerTick",r.target.getVelocity());bank.put("speedPerTick",cfg.speed);
+            bank.put("desiredDirection",wanted);bank.put("interceptTicks",solution.map(InterceptAim.Solution::ticks).orElse(null));
+            bank.put("range",delta.length());bank.put("aimErrorDegrees",Math.toDegrees(Math.acos(MathHelper.clamp(cfg.dir.dotProduct(wanted),-1,1))));
+        }
+        data.put("bankBallistics",banks);
         data.put("births",List.copyOf(r.births));data.put("motors",BodyJointRegistry.get(r.c.getWorld()).forBody(r.a.yaw().getUuid()).stream().map(l->Map.of("id",l.id(),"speed",l.speed(),"force",l.motorForce())).toList());
         String json=new com.google.gson.Gson().toJson(data);System.err.println("HEAVY_FAILURE_RECEIPT "+json);
         try{var directory=java.nio.file.Path.of("reports");java.nio.file.Files.createDirectories(directory);java.nio.file.Files.writeString(directory.resolve("heavy-"+label+"-"+r.a.base().getUuid()+".json"),json+"\n");}
