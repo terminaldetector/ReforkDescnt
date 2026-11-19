@@ -279,6 +279,24 @@ public final class NativeWeaponPresentationCheck {
                 try(var image=capture(c)){image.writeTo(c.runDirectory.toPath().resolve("weapon-presentation-menu-failure.png"));}
                 catch(Exception captureFailure){evidence.put("captureFailure",captureFailure.toString());}
             }
+            if(failure!=null&&(phase==8||phase==10||phase==12)&&c.player!=null&&c.world!=null) {
+                var evidence=new LinkedHashMap<String,Object>();
+                var primary=DroneCombatInput.primary(c);
+                var eye=c.player.getEyePos();
+                evidence.put("clientPrimary",id(primary));
+                evidence.put("clientBanks",java.util.stream.IntStream.range(0,5)
+                    .mapToObj(i->id(DroneLoadout.of(c.player).getStack(i))).toList());
+                evidence.put("clientEye",List.of(eye.x,eye.y,eye.z));
+                evidence.put("blockLightAtEye",c.world.getLightLevel(LightType.BLOCK,BlockPos.ofFloored(eye)));
+                evidence.put("weaponViewEnabled",DescentConfig.weaponView);
+                evidence.put("weaponViewReplacesHand",com.terminaldetector.drmd.client.render.WeaponViewRenderer.replacesVanillaHand(c));
+                evidence.put("clientScreen",c.currentScreen==null?null:c.currentScreen.getClass().getSimpleName());
+                evidence.put("lastRenderedWeapons",Set.copyOf(cockpit));
+                evidence.put("lastProjectedRegions",projected.size());
+                result.put("flightFailure",evidence);
+                try(var image=capture(c)){image.writeTo(c.runDirectory.toPath().resolve("weapon-presentation-world-failure.png"));}
+                catch(Exception captureFailure){evidence.put("captureFailure",captureFailure.toString());}
+            }
             Files.writeString(c.runDirectory.toPath().resolve("weapon-presentation-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(result)+"\n");
         }catch(Exception e){e.printStackTrace();}finally{if(beforeHand!=null)beforeHand.close();if(flightBackground!=null)flightBackground.close();}System.out.println("WEAPON_PRESENTATION_OUTCOME "+status+" "+failure);c.scheduleStop();
     }
