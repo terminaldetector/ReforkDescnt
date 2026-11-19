@@ -21,6 +21,7 @@ public class CubicFrameProbe {
     private void completed(RenderTickCounter counter,boolean tick,CallbackInfo ci) {
         if(NativeBdhCubicCheck.ENABLED){NativeBdhCubicCheck.rendered();return;}
         if(NativeHudReadabilityCheck.ENABLED){NativeHudReadabilityCheck.rendered();return;}
+        if(com.terminaldetector.drmd.gate.NativeOrbitalRouteCheck.ENABLED){com.terminaldetector.drmd.gate.NativeOrbitalRouteCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeVerticalFlightCheck.ENABLED){com.terminaldetector.drmd.gate.NativeVerticalFlightCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativePs1AtmosphereCheck.ENABLED){com.terminaldetector.drmd.gate.NativePs1AtmosphereCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeMobGeometryCheck.ENABLED){com.terminaldetector.drmd.gate.NativeMobGeometryCheck.rendered();return;}
