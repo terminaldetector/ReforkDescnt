@@ -8,6 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.*;
+import net.minecraft.world.GameRules;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,8 @@ public final class HeavyDrillDrops implements AutoCloseable {
         var state=com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos).orElse(null);
         if(state==null||state.isAir()||!state.getFluidState().isEmpty()||state.getHardness(world,pos)<0)return false;
         boolean creative=breaker instanceof PlayerEntity player && player.isCreative();
-        var loot=creative?List.<ItemStack>of():Block.getDroppedStacks(state,world,pos,world.getBlockEntity(pos),breaker,ItemStack.EMPTY);
+        boolean dropItems=!creative&&world.getGameRules().getBoolean(GameRules.DO_TILE_DROPS);
+        var loot=dropItems?Block.getDroppedStacks(state,world,pos,world.getBlockEntity(pos),breaker,ItemStack.EMPTY):List.<ItemStack>of();
         if(!world.breakBlock(pos,false,breaker))return false;
         for(var stack:loot)add(stack);
         if(!creative)state.onStacksDropped(world,pos,ItemStack.EMPTY,true);

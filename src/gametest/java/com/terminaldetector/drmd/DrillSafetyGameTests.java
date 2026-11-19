@@ -1,7 +1,10 @@
 package com.terminaldetector.drmd;
 
 import com.mojang.authlib.GameProfile;
+import com.terminaldetector.drmd.physics.PhysicsProfile;
+import com.terminaldetector.drmd.physics.PhysicsProfileState;
 import com.terminaldetector.drmd.pickup.LootField;
+import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.engineer.HeavyDrillDrops;
 import com.terminaldetector.drmd.world.micro.TunnelCarving;
@@ -15,11 +18,59 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameRules;
 import java.util.ArrayList;
 import java.util.UUID;
 
 public final class DrillSafetyGameTests implements FabricGameTest {
+    @GameTest(templateName="drmd:collapse_lab")
+    public void blastPacksNativeLootBeforeSpawnAndHonorsTileDrops(TestContext context) {
+        var world = context.getWorld();
+        var center = context.getAbsolutePos(new BlockPos(12,8,12));
+        var positions = BlockPos.stream(center.add(-2,-2,-2), center.add(1,1,1))
+            .map(BlockPos::toImmutable).toList();
+        var area = new Box(center).expand(6);
+        var profile = PhysicsProfileState.get(world);
+        var originalProfile = profile.profile();
+        var rule = world.getGameRules().get(GameRules.DO_TILE_DROPS);
+        boolean originalDrops = rule.get();
+        try {
+            profile.set(PhysicsProfile.EXPANDED);
+            for (boolean spawnDrops : new boolean[]{true,false}) {
+                rule.set(spawnDrops, world.getServer());
+                positions.forEach(pos -> world.setBlockState(pos, Blocks.DIRT.getDefaultState(), 2));
+                WeaponFx.explode(null, world, Vec3d.ofCenter(center), 0, 9, DamageClass.ENERGY, true);
+                long removed = positions.stream().filter(pos -> world.getBlockState(pos).isAir()).count();
+                var drops = world.getEntitiesByClass(ItemEntity.class, area, item -> item.getStack().isOf(Items.DIRT));
+                int total = drops.stream().mapToInt(item -> item.getStack().getCount()).sum();
+                context.assertTrue(removed == positions.size(), "all 64 soil blocks hit by the actual blast");
+                org.slf4j.LoggerFactory.getLogger(DrillSafetyGameTests.class).info(
+                    "Blast loot: rule={}, broken={}, entities={}, items={}", spawnDrops, removed, drops.size(), total);
+                if (spawnDrops) {
+                    context.assertTrue(total == removed && drops.size() <= 27,
+                        "the blast keeps every loot item with at most 27 local stack entities, actual " + drops.size());
+                    drops.forEach(ItemEntity::discard);
+                } else {
+                    context.assertTrue(drops.isEmpty(), "disabled tile drops produce no block loot");
+                    world.setBlockState(center, Blocks.STONE.getDefaultState(), 2);
+                    try (var heavy = new HeavyDrillDrops(world, null, Vec3d.ofCenter(center))) {
+                        context.assertTrue(heavy.breakBlock(center), "heavy drill still cuts when tile drops are disabled");
+                    }
+                    context.assertTrue(world.getEntitiesByClass(ItemEntity.class, area,
+                        item -> item.getStack().isOf(Items.COBBLESTONE)).isEmpty(), "the heavy drill honors the same rule");
+                }
+            }
+        } finally {
+            rule.set(originalDrops, world.getServer());
+            profile.set(originalProfile);
+            world.getEntitiesByClass(ItemEntity.class, area, item -> item.getStack().isOf(Items.DIRT))
+                .forEach(ItemEntity::discard);
+        }
+        context.complete();
+    }
+
     @GameTest(templateName=EMPTY_STRUCTURE)
     public void consecutiveHeavyCutsReuseOneStackAndRespectReservedLoot(TestContext context) {
         var world = context.getWorld();

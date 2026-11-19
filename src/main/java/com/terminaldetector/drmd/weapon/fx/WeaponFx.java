@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.weapon.fx;
 
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.pickup.BlastBlockDrops;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereRules;
 import com.terminaldetector.drmd.world.fire.FireSystem;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
@@ -213,7 +214,7 @@ public final class WeaponFx {
             var structuralCuts=com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.capture(world,affected);
             if(expanded)com.terminaldetector.drmd.world.contraption.StructureCollapse.explosion(world,affected,pos,power,
                 p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
-            for(var p:affected)world.breakBlock(p,true,attacker);
+            BlastBlockDrops.breakBlocks(world, affected, attacker);
             com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.finish(world,structuralCuts,pos,power,
                 p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
 		}
