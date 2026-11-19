@@ -153,7 +153,11 @@ public final class NativeTorchCameraCheck {
                 actualBlocker=false;actualSurface=requestedSurface;
                 surfaceStarted=server.getTicks();
                 if(actualSurface>=0){
-                    Vec3d up=Vec3d.of(AXES[actualSurface].getVector());Vec3d contact=CENTRE.subtract(up.multiply(7));
+                    Vec3d up=Vec3d.of(AXES[actualSurface].getVector());
+                    // Keep both versions of the physical eye on the same voxel lane for the
+                    // obstruction ray. The client interpolates vanilla eye height as a float.
+                    Vec3d tangent=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(.5,0,.5),up);
+                    Vec3d contact=CENTRE.subtract(up.multiply(7)).add(tangent);
                     Vec3d spawn=contact.add(up.multiply(up.y<-.5?2.5:.7));
                     source=BlockPos.ofFloored(contact.add(up.multiply(.3)).add(Math.abs(up.x)>.5?new Vec3d(0,2,2):new Vec3d(2,0,2)));
                     w.setBlockState(source,ModWorldBlocks.GRAVITY_TORCH.getDefaultState().with(GravityTorchBlock.FACING,AXES[actualSurface]),3);
