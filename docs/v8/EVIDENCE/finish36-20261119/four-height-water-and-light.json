@@ -1,0 +1,38 @@
+{
+  "task": "S02-T05",
+  "scope": "Four native cubic heights, block light and ordinary water, distinct dedicated server/client save and cold read. Lava matrix remains open.",
+  "runs": {
+    "writer": {
+      "source": "88ce0587e4ba78fb7a8f67b656028bc362a3c08c",
+      "gameSHA": "f63ada2802578f596521944c182ef4268bf7efa080e36b4fd9f3fed5e3e26f43",
+      "observerSHA": "349ec4dacaa652c10e28f7294c9515e6096a60c644344f393abef29591a182e8",
+      "gameProcesses": {
+        "client": 0,
+        "server": 0
+      },
+      "originalWrapperCode": 1,
+      "isolatedStrictQualification": true,
+      "controller": "LIGHT_WRITER_STOPPING_PASS"
+    },
+    "reader": {
+      "source": "88ce0587e4ba78fb7a8f67b656028bc362a3c08c",
+      "gameSHA": "f63ada2802578f596521944c182ef4268bf7efa080e36b4fd9f3fed5e3e26f43",
+      "observerSHA": "349ec4dacaa652c10e28f7294c9515e6096a60c644344f393abef29591a182e8",
+      "gameProcesses": {
+        "client": 0,
+        "server": 0
+      },
+      "originalWrapperCode": 1,
+      "isolatedStrictQualification": true,
+      "controller": "COLD_LIGHT_READER_STOPPING_PASS"
+    }
+  },
+  "archive": "four-height-water-and-light.zip",
+  "archiveSha256": "50812d8cab59817f3e217d86cc54b676b7d5c4c2f5abb2ca2c69daae033abd27",
+  "cleanNativeYs": [
+    -512,
+    1024,
+    1640,
+    2150
+  ]
+}

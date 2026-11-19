@@ -207,8 +207,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip, NATIVE_FLUID_WRITER_2026-11-17/REPORT.md, NATIVE_FLUID_READER_2026-11-17/REPORT.md, EVIDENCE/fluid-component-byte-parity-ae1bd82.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: "Native water UNKNOWN continuation:19unit+2dedicatedVanillaSTOCK, unchanged-observer LIVE and genuine saved-UNKNOWN cold writer/reader PASS; canonical68fb885/450+two same-JAR clients pass. Fourteen fluid class entries equal component704; lava, multi-Y, lighting and general BlockEntity parity remain open."
+  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip, NATIVE_FLUID_WRITER_2026-11-17/REPORT.md, NATIVE_FLUID_READER_2026-11-17/REPORT.md, EVIDENCE/fluid-component-byte-parity-ae1bd82.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, EVIDENCE/finish36-20261119/four-height-water-and-light.json, EVIDENCE/finish36-20261119/four-height-water-and-light.zip, EVIDENCE/finish36-20261119/four-height-flight-and-cold.json]
+  notes: "Отдельные реальные сервер и клиент проверили обычную воду, свет и спавнеры на −512, +1024, +1640 и +2150. Повторная загрузка того же сохранения прошла на каждой высоте с обычными тиками и состоянием игрока. Матрица лавы на всех четырёх высотах остаётся открытой."
 - id: S02-T06
   stage: S02
   stage_title: Choose actual CubicWorld backend
