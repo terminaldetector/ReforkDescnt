@@ -48,6 +48,7 @@ public final class CubicClientGate implements ClientModInitializer {
         if(NativeBdhCubicCheck.ENABLED){NativeBdhCubicCheck.register();return;}
         if(NativeHudReadabilityCheck.ENABLED){NativeHudReadabilityCheck.register();return;}
         if(NativeOrbitalRouteCheck.ENABLED){NativeOrbitalRouteCheck.register();return;}
+        if(NativeHighAltitudeLodCheck.ENABLED){NativeHighAltitudeLodCheck.register();return;}
         if(NativeVerticalFlightCheck.ENABLED){NativeVerticalFlightCheck.register();return;}
         if(NativePs1AtmosphereCheck.ENABLED){NativePs1AtmosphereCheck.register();return;}
         if(NativePresentationCheck.ENABLED){NativePresentationCheck.register();return;}
