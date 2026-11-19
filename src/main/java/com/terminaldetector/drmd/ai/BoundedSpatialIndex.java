@@ -43,8 +43,17 @@ public final class BoundedSpatialIndex<T> {
 
 	private record Cell(int x, int y, int z) {}
 	private record Entry<T>(T value, Point position, long sequence) {}
-	private record CellDistance(Cell cell, double squaredDistance) {}
+	private record CellDistance<T>(Cell cell, List<Entry<T>> bucket, boolean origin, double squaredDistance) {}
 	private record Candidate<T>(Entry<T> entry, double squaredDistance) {}
+	private static final Comparator<CellDistance<?>> CELL_ORDER = Comparator
+			.comparingInt((CellDistance<?> value) -> value.origin ? 0 : 1)
+			.thenComparingDouble(CellDistance::squaredDistance)
+			.thenComparingInt(value -> value.cell.x)
+			.thenComparingInt(value -> value.cell.y)
+			.thenComparingInt(value -> value.cell.z);
+	private static final Comparator<Candidate<?>> CANDIDATE_ORDER = Comparator
+			.comparingDouble((Candidate<?> value) -> value.squaredDistance)
+			.thenComparingLong(value -> value.entry.sequence);
 
 	private final double cellSize;
 	private final Map<Cell, List<Entry<T>>> buckets = new HashMap<>();
@@ -97,7 +106,7 @@ public final class BoundedSpatialIndex<T> {
 		double radiusSquared = radius * radius;
 		Cell origin = cell(center);
 		int reach = (int) Math.ceil(radius / cellSize);
-		List<CellDistance> occupied = new ArrayList<>();
+		List<CellDistance<T>> occupied = new ArrayList<>();
 		long available = 0;
 		for (int x = origin.x - reach; x <= origin.x + reach; x++) {
 			for (int y = origin.y - reach; y <= origin.y + reach; y++) {
@@ -107,38 +116,33 @@ public final class BoundedSpatialIndex<T> {
 					if (bucket == null) continue;
 					double distance = squaredDistanceToCell(center, cell);
 					if (distance > radiusSquared) continue;
-					occupied.add(new CellDistance(cell, distance));
+					occupied.add(new CellDistance<>(cell, bucket, cell.equals(origin), distance));
 					available += bucket.size();
 				}
 			}
 		}
-		occupied.sort(Comparator
-				.comparingInt((CellDistance value) -> value.cell.equals(origin) ? 0 : 1)
-				.thenComparingDouble(CellDistance::squaredDistance)
-				.thenComparingInt(value -> value.cell.x)
-				.thenComparingInt(value -> value.cell.y)
-				.thenComparingInt(value -> value.cell.z));
+		occupied.sort(CELL_ORDER);
 
 		boolean exact = available <= maxCandidates;
 		int remaining = maxCandidates;
 		int examined = 0;
 		List<Candidate<T>> candidates = new ArrayList<>(Math.min(maxCandidates, maxResults * 2));
 		for (int cellIndex = 0; cellIndex < occupied.size() && remaining > 0; cellIndex++) {
-			Cell cell = occupied.get(cellIndex).cell;
-			List<Entry<T>> bucket = buckets.get(cell);
+			var cell = occupied.get(cellIndex);
+			List<Entry<T>> bucket = cell.bucket;
 			int cellsLeft = occupied.size() - cellIndex;
 			int quota;
 			if (exact) {
 				quota = bucket.size();
 			} else {
 				quota = (remaining + cellsLeft - 1) / cellsLeft;
-				if (cell.equals(origin)) {
+				if (cell.origin) {
 					int localShare = Math.min(maxResults * 2, maxCandidates * 2 / 3);
 					quota = Math.max(quota, localShare);
 				}
 			}
 			quota = Math.min(bucket.size(), Math.min(quota, remaining));
-			int start = exact ? 0 : sampleStart(seed, cell, bucket.size());
+			int start = exact ? 0 : sampleStart(seed, cell.cell, bucket.size());
 			for (int index = 0; index < quota; index++) {
 				int sampledIndex = exact ? index : (int) Math.floorMod((long) start
 						+ (long) index * bucket.size() / quota, bucket.size());
@@ -150,9 +154,7 @@ public final class BoundedSpatialIndex<T> {
 				if (distance <= radiusSquared) candidates.add(new Candidate<>(entry, distance));
 			}
 		}
-		candidates.sort(Comparator
-				.comparingDouble((Candidate<T> value) -> value.squaredDistance)
-				.thenComparingLong(value -> value.entry.sequence));
+		candidates.sort(CANDIDATE_ORDER);
 		int resultCount = Math.min(maxResults, candidates.size());
 		List<Hit<T>> hits = new ArrayList<>(resultCount);
 		for (int index = 0; index < resultCount; index++) {
