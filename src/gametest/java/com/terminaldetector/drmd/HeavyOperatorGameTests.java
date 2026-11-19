@@ -88,7 +88,7 @@ public final class HeavyOperatorGameTests implements FabricGameTest {
                 c.assertTrue(c.getWorld().getEntity(incoming[0])==null||c.getWorld().getEntity(incoming[0]).isRemoved(),"real incoming projectile terminated on the destroyed shoulder material");
                 left[0]=r.shots(HeavyOperatorSystem.LEFT);right[0]=r.shots(HeavyOperatorSystem.RIGHT);laser[0]=r.shots(HeavyOperatorSystem.LASER);until[0]=c.getTick()+32;phase[0]=2;return;}
             if(phase[0]==2){if(c.getTick()<until[0])return;
-                c.assertTrue(r.shots(HeavyOperatorSystem.LEFT)==left[0]&&r.shots(HeavyOperatorSystem.RIGHT)>right[0]&&r.shots(HeavyOperatorSystem.LASER)>laser[0],"destroyed actual shoulder stops while independently remaining material weapons continue");
+                c.assertTrue(r.shots(HeavyOperatorSystem.LEFT)==left[0]&&r.shots(HeavyOperatorSystem.RIGHT)>right[0]&&r.shots(HeavyOperatorSystem.LASER)>laser[0],"destroyed actual shoulder stops while independently remaining material weapons continue: left="+left[0]+"->"+r.shots(HeavyOperatorSystem.LEFT)+" right="+right[0]+"->"+r.shots(HeavyOperatorSystem.RIGHT)+" laser="+laser[0]+"->"+r.shots(HeavyOperatorSystem.LASER)+" targetHP="+r.target.getHealth()+" mask="+HeavyOperatorSystem.fireMask(r.a.barrel())+" joints="+BodyJointRegistry.get(c.getWorld()).forBody(r.a.yaw().getUuid())+" barrelW="+r.a.barrel().physics().angularVelocity());
                 var gun=r.a.barrel();var point=MountedWeaponEmitter.muzzle(gun,HeavyOperatorSystem.RIGHT);var velocity=gun.surfaceVelocityAt(point);var timers=gun.mountedWeapons().write(gun);var id=gun.getUuid();
                 c.assertTrue(new BlockBodyWorldAccess(gun).placeLocalBlock(HeavyOperatorSystem.LEFT,ModWorldBlocks.SHIP_ROCKET.getDefaultState().with(Properties.FACING,Direction.SOUTH)),"ordinary supported replacement block fits the actual mechanism");
                 var after=MountedWeaponEmitter.muzzle(gun,HeavyOperatorSystem.RIGHT);
@@ -101,7 +101,7 @@ public final class HeavyOperatorGameTests implements FabricGameTest {
         int[] phase={0};long[] until={0},before={0};
         admitted(c,r->{},r->{
             if(phase[0]==0){if(!r.allGuns())return;var tags=new ArrayList<NbtCompound>();var ids=r.a.bodies().stream().map(Entity::getUuid).toList();
-                for(var b:r.a.bodies())tags.add(b.writeNbt(new NbtCompound()));for(var b:r.a.bodies())b.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);var restored=new ArrayList<BlockBodyEntity>();
+                for(var b:r.a.bodies()){var tag=new NbtCompound();c.assertTrue(b.saveSelfNbt(tag),"actual save includes each registered part type id");tags.add(tag);}for(var b:r.a.bodies())b.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);var restored=new ArrayList<BlockBodyEntity>();
                 for(var tag:tags){var e=EntityType.loadEntityWithPassengers(tag,c.getWorld(),x->x);c.assertTrue(e instanceof BlockBodyEntity&&c.getWorld().spawnEntity(e),"registered saved part restores once through the ordinary entity codec");restored.add((BlockBodyEntity)e);}
                 r.a=new HeavyOperatorSystem.Assembly(restored.get(0),restored.get(1),restored.get(2));c.assertTrue(ids.equals(r.a.bodies().stream().map(Entity::getUuid).toList()),"same three saved UUIDs and ordinary material controller tags");before[0]=r.births.size();until[0]=c.getTick()+8;phase[0]=1;return;}
             if(phase[0]==1){if(c.getTick()<until[0]||r.births.size()<=before[0])return;

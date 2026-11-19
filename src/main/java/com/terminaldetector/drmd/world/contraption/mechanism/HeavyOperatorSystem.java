@@ -138,12 +138,16 @@ public final class HeavyOperatorSystem {
         var bodies=BodySpatialIndex.query(world,new Box(from,to).expand(.01));if(bodies.size()>32)return false;
         for(var b:bodies)if(b.physicsRaycast(from,to).isPresent())return false;return true;
     }
-    private static void drive(BlockBodyEntity body,BlockPos cell,Direction facing,Vec3d axis,Vec3d forward,Vec3d desired,Frame f){
+    private static void drive(BlockBodyEntity body,BlockPos cell,Direction facing,Vec3d axis,Vec3d forward,Vec3d desired,double angularSpeed,Frame f){
         var state=body.getLocalBlock(cell);if(!state.isOf(ModWorldBlocks.ROTARY_DRIVE)||state.get(MechanicalBearingBlock.FACING)!=facing)return;
         var a=forward.subtract(axis.multiply(forward.dotProduct(axis)));var b=desired.subtract(axis.multiply(desired.dotProduct(axis)));
         double angle=a.lengthSquared()<1e-8||b.lengthSquared()<1e-8?0:Math.atan2(axis.dotProduct(a.crossProduct(b)),a.dotProduct(b));
-        int power=Math.abs(angle)<.015?0:Math.abs(angle)<.15?5:Math.abs(angle)<.5?10:15;
-        var next=state.with(Properties.POWER,power).with(Properties.INVERTED,angle<0);
+        // A zero-power drive coasts; it cannot brake a recoiling/free bearing.
+        // Lead the angular error by four ordinary ticks using the real relative
+        // velocity, then use only the original physical drive power/torque levels.
+        double demand=angle-angularSpeed*.2;
+        int power=Math.abs(demand)<.015?0:Math.abs(demand)<.15?5:Math.abs(demand)<.5?10:15;
+        var next=state.with(Properties.POWER,power).with(Properties.INVERTED,demand<0);
         if(!state.equals(next)&&body.setLocalBlock(cell,next))f.drives++;
     }
     private static Vec3d axis(BlockBodyEntity b,Vec3 axis){var p=b.rotation().rotate(axis);return new Vec3d(p.x(),p.y(),p.z());}
@@ -161,7 +165,9 @@ public final class HeavyOperatorSystem {
             for(var candidate:candidates)if(candidate.squaredDistanceTo(from)<=48*48&&sight(world,a,from,candidate.getBoundingBox().getCenter(),f)){target=candidate;break;}
             if(target==null){stop(a,f);continue;}
             var desired=target.getBoundingBox().getCenter().subtract(from).normalize();var forward=MountedWeaponEmitter.direction(a.barrel,LASER);
-            drive(a.base,YAW_DRIVE,Direction.UP,axis(a.base,UP),forward,desired,f);drive(a.yaw,PITCH_DRIVE,Direction.EAST,axis(a.yaw,X),forward,desired,f);
+            double yawSpeed=a.yaw.physics().angularVelocity().minus(a.base.physics().angularVelocity()).dot(a.base.rotation().rotate(UP));
+            double pitchSpeed=a.barrel.physics().angularVelocity().minus(a.yaw.physics().angularVelocity()).dot(a.yaw.rotation().rotate(X));
+            drive(a.base,YAW_DRIVE,Direction.UP,axis(a.base,UP),forward,desired,yawSpeed,f);drive(a.yaw,PITCH_DRIVE,Direction.EAST,axis(a.yaw,X),forward,desired,pitchSpeed,f);
             f.permits.put(a.barrel.getUuid(),new Permit(base.getUuid(),target.getUuid(),new WeakReference<>(target),now));
         }
         f.stats=new Stats(visited,assemblies,f.candidates,f.rays,f.drives);
