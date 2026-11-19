@@ -24,7 +24,10 @@ public final class NativeSwarmBaselineCheck {
     public static final boolean TYPED=Boolean.getBoolean("drmd.gate.typedSwarm");
     private static final Map<String,Integer> TYPED_SHOTS=new TreeMap<>();
     private static Map<String,Object> acceptedTyped=Map.of();
-    private static final int COUNT=128;
+    private static final int CAPACITY = Integer.getInteger("drmd.gate.swarmCapacity", 0);
+    private static final boolean MEASURE_CAPACITY = CAPACITY != 0;
+    private static final int COUNT = MEASURE_CAPACITY ? CAPACITY : 128;
+    private static final int MINIMUM_MOVING = MEASURE_CAPACITY ? Math.min(96, COUNT * 3 / 4) : 96;
     private static final List<FlightEnemyKind> LEGACY_TYPED_KINDS=List.of(FlightEnemyKind.ORB,FlightEnemyKind.ROCKET,FlightEnemyKind.JET);
     private static final List<DroneEntity> DRONES=new ArrayList<>();
     private static final List<Entity> PROJECTILES=new ArrayList<>();
@@ -33,6 +36,9 @@ public final class NativeSwarmBaselineCheck {
     private static final Map<UUID,Vec3d> initial=new HashMap<>();
     private static final Map<UUID,Integer> initialAge=new HashMap<>();
     private static final List<Long> WORK=new ArrayList<>(),FRAMES=new ArrayList<>();
+    private static final List<Long> HEAP = new ArrayList<>();
+    private static long initialDetailed, initialCoast, detailed, coast;
+    private static int measuredFullCubes;
     private static final List<String> ROWS=new ArrayList<>();
     private static volatile boolean located,running,sampling,resultReady,done;
     private static volatile boolean abortPending;
@@ -44,15 +50,20 @@ public final class NativeSwarmBaselineCheck {
     private static Entity cow;
     private NativeSwarmBaselineCheck(){}
     private static Entity entity(DroneEntity d){return d;}
-    private static Vec3d centre(){return new Vec3d(12.5,stage==0?207:2156,20.5);}
+    private static Vec3d centre(){return new Vec3d(12.5,stage==0&&!MEASURE_CAPACITY?207:2156,20.5);}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
     public static void register() {
         require(!TYPED||VERTICAL,"typed fixture uses autonomous vertical target acquisition");
+        require(!MEASURE_CAPACITY || TYPED && !NativeDroneStateCheck.WRITE
+            && Set.of(32, 128, 256, 512, 1024).contains(COUNT), "supported type-aware capacity without save fixture");
         ROWS.add("height,requested,alive,active_ticks,moving,server_lookup,client_synced,unique_rendered,shots,shooters,indexed,targeting,max_candidates,server_p50_ms,server_p95_ms,server_p99_ms,observed_tps,frames,frame_p95_ms,cleanup_remaining");
         ServerTickEvents.START_SERVER_TICK.register(s->{if(running)tickStart=System.nanoTime();});
         ServerTickEvents.END_SERVER_TICK.register(s->{
             if(!running||resultReady||done)return;age++;
-            if(age==35){initial.clear();initialAge.clear();for(var d:DRONES){initial.put(entity(d).getUuid(),entity(d).getPos());initialAge.put(entity(d).getUuid(),entity(d).age);}WORK.clear();sampleStart=System.nanoTime();sampling=true;}
+            if(age==35){initial.clear();initialAge.clear();for(var d:DRONES){initial.put(entity(d).getUuid(),entity(d).getPos());initialAge.put(entity(d).getUuid(),entity(d).age);}WORK.clear();sampleStart=System.nanoTime();sampling=true;
+                initialDetailed = DRONES.stream().mapToLong(DroneEntity::steeringUpdates).sum();
+                initialCoast = DRONES.stream().mapToLong(DroneEntity::coastingUpdates).sum();
+            }
             if(sampling&&age>35)WORK.add(System.nanoTime()-tickStart);
             if(age!=95)return;
             sampling=false;seconds=(System.nanoTime()-sampleStart)/1e9;alive=moving=active=lookup=maxCandidates=targeting=0;indexed=Integer.MAX_VALUE;
@@ -64,13 +75,24 @@ public final class NativeSwarmBaselineCheck {
                 var target=((MobEntity)d).getTarget();if(NativeDroneStateCheck.WRITE?target!=null&&HostileEnvironment.isHostileTarget(d,target):target==cow)targeting++;
             }
             sampledShots=shots;sampledShooters=SHOOTERS.size();
+            if (MEASURE_CAPACITY) {
+                detailed = DRONES.stream().mapToLong(DroneEntity::steeringUpdates).sum() - initialDetailed;
+                coast = DRONES.stream().mapToLong(DroneEntity::coastingUpdates).sum() - initialCoast;
+                var centreCube = BlockPos.ofFloored(centre());
+                WorldAccess access = WorldAccess.of(s.getOverworld());
+                measuredFullCubes = 0;
+                for (int x = -3; x <= 3; x++) for (int y = -4; y <= 4; y++) for (int z = -4; z <= 4; z++) {
+                    if (access.isVolumeAvailable(new D6ChunkPos((centreCube.getX() >> 4) + x,
+                            (centreCube.getY() >> 4) + y, (centreCube.getZ() >> 4) + z))) measuredFullCubes++;
+                }
+            }
             require(cow!=null&&cow.isAlive(),"the inherited invulnerable target must remain available throughout sampling");
             System.out.println("SWARM_BASELINE height="+centre().y+" alive="+alive+" active="+active+" moving="+moving+" shots="+sampledShots+" shooters="+sampledShooters+" lookup="+lookup);
-            require(alive==COUNT&&active==COUNT&&moving>=96,"128 baseline must actually tick and move: alive="+alive+" active="+active+" moving="+moving);
+            require(alive==COUNT&&active==COUNT&&moving>=MINIMUM_MOVING,"swarm must actually tick and move: alive="+alive+" active="+active+" moving="+moving);
             require(maxCandidates<=DroneSwarmAi.MAX_BOID_CANDIDATES,"bounded swarm neighbour work");
-            require(indexed>=COUNT&&targeting>=96,"live drones must remain indexed and engaged: indexed="+indexed+" targeting="+targeting);
-            require(sampledShots>0&&sampledShooters>=16,"baseline AI must spawn real shots from multiple agents");
-            if(TYPED){
+            require(indexed>=COUNT&&targeting>=MINIMUM_MOVING,"live drones must remain indexed and engaged: indexed="+indexed+" targeting="+targeting);
+            require(sampledShots>0&&sampledShooters>=Math.min(16,COUNT/4),"AI must spawn real shots from multiple agents");
+            if(TYPED && !MEASURE_CAPACITY){
                 var kinds=new TreeMap<String,Map<String,Integer>>();
                 for(var kind:LEGACY_TYPED_KINDS){
                     int count=0,live=0,moved=0,targets=0;
@@ -92,7 +114,8 @@ public final class NativeSwarmBaselineCheck {
     }
     private static boolean loaded(MinecraftClient c) {
         var at=BlockPos.ofFloored(centre());var access=WorldAccess.of(c.world);
-        for(int x=-2;x<=2;x++)for(int y=-2;y<=2;y++)for(int z=-3;z<=2;z++)if(!access.isVolumeAvailable(new D6ChunkPos((at.getX()>>4)+x,(at.getY()>>4)+y,(at.getZ()>>4)+z)))return false;
+        int span = MEASURE_CAPACITY ? 3 : 2;
+        for(int x=-span;x<=span;x++)for(int y=-2;y<=2;y++)for(int z=-3;z<=span;z++)if(!access.isVolumeAvailable(new D6ChunkPos((at.getX()>>4)+x,(at.getY()>>4)+y,(at.getZ()>>4)+z)))return false;
         return true;
     }
     private static void tick(MinecraftClient c) {
@@ -110,12 +133,12 @@ public final class NativeSwarmBaselineCheck {
                 var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var d=DescentPlayerData.get(p);var at=centre();
                 com.terminaldetector.drmd.flight.FlightSystem.disable(p,d);
                 if(TYPED)c.getServer().getPlayerManager().setViewDistance(8);
-                p.teleport(p.getServerWorld(),at.x,at.y+(TYPED?24:12),at.z+(TYPED?48:6),Set.of(),180,TYPED?26:40);p.setInvulnerable(true);
+                p.teleport(p.getServerWorld(),at.x,at.y+(MEASURE_CAPACITY?22:TYPED?24:12),at.z+(MEASURE_CAPACITY?58:TYPED?48:6),Set.of(),180,MEASURE_CAPACITY?17:TYPED?26:40);p.setInvulnerable(true);
                 d.setGravity(0);d.setDrag(0);d.setFlightVelocity(Vec3d.ZERO);com.terminaldetector.drmd.flight.FlightSystem.enableWithoutMount(p,d);
                 c.getServer().setDifficulty(Difficulty.NORMAL,true);p.getServerWorld().setTimeOfDay(6000);located=true;
             });return;
         }
-        if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;DRAWN.clear();FRAMES.clear();lastFrame=0;c.getServer().execute(()->spawn(c.getServer().getOverworld()));}
+        if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;DRAWN.clear();FRAMES.clear();HEAP.clear();lastFrame=0;c.getServer().execute(()->spawn(c.getServer().getOverworld()));}
     }
     private static void spawn(ServerWorld w) {
         System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles="+(TYPED?"ORB,ROCKET,JET":"SUPPORT,ASSAULT,MG,INTERCEPTOR")+" target="+((NativeDroneStateCheck.WRITE||VERTICAL)?"targetable-resistance-cow":"invulnerable-invisible-cow")+" verticalTargets="+VERTICAL+" manualTargets="+!VERTICAL+" backgroundLOD=false manualDroneTicks=false");
@@ -123,7 +146,8 @@ public final class NativeSwarmBaselineCheck {
         DRONES.clear();PROJECTILES.clear();SHOOTERS.clear();TYPED_SHOTS.clear();shots=0;
         for(int i=0;i<COUNT;i++) {
             var d=TYPED?LEGACY_TYPED_KINDS.get(i%3).create(w):ModEntities.DRONE.create(w);require(d!=null,"registered drone created");
-            entity(d).setPosition(TYPED?at.add(((i&7)-3.5)*3,(((i>>3)&3)-1.5)*3,(((i>>5)&3)-1.5)*3):at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
+            entity(d).setPosition(MEASURE_CAPACITY ? at.add(((i & 15) - 7.5) * 3,
+                (((i >> 8) & 3) - 1.5) * 4, (((i >> 4) & 15) - 7.5) * 3) : TYPED?at.add(((i&7)-3.5)*3,(((i>>3)&3)-1.5)*3,(((i>>5)&3)-1.5)*3):at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
             if(!TYPED)d.applyRole(switch(i&3){case 0->AiRole.SUPPORT;case 1->AiRole.ASSAULT;case 2->AiRole.MG;default->AiRole.INTERCEPTOR;});
             ((MobEntity)d).setPersistent();entity(d).setInvulnerable(true);require(w.spawnEntity(d),"drone spawn accepted");if(!VERTICAL)((MobEntity)d).setTarget(target);DRONES.add(d);
         }
@@ -136,25 +160,40 @@ public final class NativeSwarmBaselineCheck {
     public static void drew(DroneEntity d){if(expected.contains(entity(d).getUuid()))DRAWN.add(entity(d).getUuid());}
     public static void rendered() {
         if(abortPending)throw new IllegalStateException("Deliberate typed-swarm renderer fault for shutdown recovery proof");
-        if(done)return;long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;}else lastFrame=0;
+        if(done)return;long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;
+            if (MEASURE_CAPACITY) { var vm = Runtime.getRuntime(); HEAP.add(vm.totalMemory() - vm.freeMemory()); }
+        }else lastFrame=0;
         if(!resultReady)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
         int synced=c.world.getEntitiesByClass(DroneEntity.class,new Box(centre().add(-128,-128,-128),centre().add(128,128,128)),d->expected.contains(entity(d).getUuid())).size();
         var visibleKinds=new HashSet<FlightEnemyKind>();
         if(TYPED)for(var e:c.world.getEntities())if(e instanceof FlightEnemyEntity d&&expected.contains(entity(d).getUuid())&&DRAWN.contains(entity(d).getUuid()))visibleKinds.add(d.kind());
         if(captureStart==0){captureStart=now;System.out.println("SWARM_CAMERA pos="+c.player.getPos()+" yaw="+c.player.getYaw()+" pitch="+c.player.getPitch()+" camera="+c.gameRenderer.getCamera().getRotation());}
-        if((synced!=COUNT||DRAWN.size()<32||(TYPED&&visibleKinds.size()!=3))&&now-captureStart<8_000_000_000L)return;
+        int requiredDrawn = MEASURE_CAPACITY ? Math.min(32, COUNT/2) : 32;
+        if((synced!=COUNT||DRAWN.size()<requiredDrawn||(TYPED&&visibleKinds.size()!=3))&&now-captureStart<8_000_000_000L)return;
         require(FRAMES.size()>=2&&!WORK.isEmpty(),"real timing samples");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             NativeScheduleBudgetCheck.write("height-"+(int)centre().y,true);
-            image.writeTo(c.runDirectory.toPath().resolve("swarm-128-height-"+(int)centre().y+".png"));
-            require(synced==COUNT&&DRAWN.size()>=32,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
-            if(TYPED){
+            image.writeTo(c.runDirectory.toPath().resolve("swarm-"+COUNT+"-height-"+(int)centre().y+".png"));
+            require(synced==COUNT&&DRAWN.size()>=requiredDrawn,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
+            if(TYPED && !MEASURE_CAPACITY){
                 var counts=new TreeMap<String,Integer>();var drawn=new TreeMap<String,Integer>();
                 for(var e:c.world.getEntities())if(e instanceof FlightEnemyEntity d&&expected.contains(entity(d).getUuid())){require(d.getRole()==d.kind().defaultRole,"typed client default role");counts.merge(d.kind().id,1,Integer::sum);if(DRAWN.contains(entity(d).getUuid()))drawn.merge(d.kind().id,1,Integer::sum);}
                 require(counts.equals(Map.of("orb",43,"rocket",43,"jet",42))&&drawn.size()==3,"all independent client types and three real renderers");
                 Files.writeString(c.runDirectory.toPath().resolve("typed-swarm-height-"+(int)centre().y+".json"),new com.google.gson.Gson().toJson(Map.of("server",acceptedTyped,"clientKinds",counts,"renderedKinds",drawn))+"\n");
             }
             String row=String.format(Locale.ROOT,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.4f,%.4f,%.4f,%.3f,%d,%.4f,",(int)centre().y,COUNT,alive,active,moving,lookup,synced,DRAWN.size(),sampledShots,sampledShooters,indexed,targeting,maxCandidates,percentile(WORK,.5)/1e6,percentile(WORK,.95)/1e6,percentile(WORK,.99)/1e6,WORK.size()/seconds,FRAMES.size(),percentile(FRAMES,.95)/1e6);
+            if (MEASURE_CAPACITY) {
+                var values=new LinkedHashMap<String,Object>();
+                values.put("requested",COUNT);values.put("live",alive);values.put("active",active);
+                values.put("moving",moving);values.put("synced",synced);values.put("uniqueRendered",DRAWN.size());
+                values.put("detailedSteeringUpdates",detailed);values.put("coastingUpdates",coast);values.put("shots",sampledShots);
+                values.put("loadedCubeWindow",Map.of("size",List.of(7,9,9),"full",measuredFullCubes));
+                values.put("serverTickNanos",WORK);values.put("frameNanos",FRAMES);values.put("javaHeapBytes",HEAP);
+                values.put("seconds",seconds);values.put("drawCalls",null);
+                values.put("drawCallsReason","Entity model submissions and GL driver draw calls are different measurements");
+                Files.writeString(c.runDirectory.toPath().resolve("swarm-capacity-"+COUNT+".json"),
+                    new com.google.gson.GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(values)+"\n");
+            }
             if(NativeDroneStateCheck.WRITE&&stage==1) {
                 running=false;sampling=false;done=true;ROWS.add(row+128);
                 Files.writeString(c.runDirectory.toPath().resolve("swarm-before-restart.csv"),String.join("\n",ROWS)+"\n");
@@ -175,8 +214,10 @@ public final class NativeSwarmBaselineCheck {
         DRONES.forEach(d->entity(d).discard());PROJECTILES.forEach(Entity::discard);if(cow!=null)cow.discard();
         long remaining=DRONES.stream().filter(d->!entity(d).isRemoved()).count();require(remaining==0,"fixture actors removed");ROWS.add(row+remaining);DRONES.clear();PROJECTILES.clear();expected=Set.of();DroneSwarmAi.clear();
         c.execute(()->{
-            if(++stage<2){located=false;requested=false;spawnRequested=false;return;}
-            try{Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline.csv"),String.join("\n",ROWS)+"\n");Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline-ok.json"),"{\"naturalVerticalTargets\":"+VERTICAL+",\"heights\":[207,2156],\"actorsPerCase\":128,\"minimumMoving\":96,\"realTicksAndShots\":true,\"fullSurvivalOrPersistenceAcceptance\":false}\n");done=true;c.scheduleStop();}catch(Exception e){throw new IllegalStateException(e);}
+            if(++stage<2 && !MEASURE_CAPACITY){located=false;requested=false;spawnRequested=false;return;}
+            try{Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline.csv"),String.join("\n",ROWS)+"\n");
+                if (MEASURE_CAPACITY) {done=true;c.scheduleStop();return;}
+                Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline-ok.json"),"{\"naturalVerticalTargets\":"+VERTICAL+",\"heights\":[207,2156],\"actorsPerCase\":128,\"minimumMoving\":96,\"realTicksAndShots\":true,\"fullSurvivalOrPersistenceAcceptance\":false}\n");done=true;c.scheduleStop();}catch(Exception e){throw new IllegalStateException(e);}
         });
     }
     private static double percentile(List<Long> values,double fraction){var sorted=new ArrayList<>(values);Collections.sort(sorted);return sorted.get(Math.max(0,(int)Math.ceil(fraction*sorted.size())-1));}
