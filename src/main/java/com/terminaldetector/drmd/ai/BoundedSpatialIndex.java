@@ -128,21 +128,31 @@ public final class BoundedSpatialIndex<T> {
 
 		double radiusSquared = radius * radius;
 		Cell origin = cell(center);
-		// This mutable key only probes the map. Keys owned by buckets are never modified.
-		Cell probe = new Cell(0, 0, 0);
 		int reach = (int) Math.ceil(radius / cellSize);
+		int minX = origin.x - reach, maxX = origin.x + reach;
+		int minY = origin.y - reach, maxY = origin.y + reach;
+		int minZ = origin.z - reach, maxZ = origin.z + reach;
 		List<CellDistance<T>> occupied = new ArrayList<>();
 		long available = 0;
-		for (int x = origin.x - reach; x <= origin.x + reach; x++) {
-			for (int y = origin.y - reach; y <= origin.y + reach; y++) {
-				for (int z = origin.z - reach; z <= origin.z + reach; z++) {
-					probe.set(x, y, z);
-					Bucket<T> bucket = buckets.get(probe);
-					if (bucket == null) continue;
-					double distance = squaredDistanceToCell(center, bucket.cell);
-					if (distance > radiusSquared) continue;
-					occupied.add(new CellDistance<>(bucket.cell, bucket.entries, bucket.cell.equals(origin), distance));
-					available += bucket.entries.size();
+		double span = 2.0 * reach + 1.0;
+		// Wide queries in a sparse index can visit its stored buckets directly. Candidate
+		// ordering is determined by the same sort below, independent of the hash iteration order.
+		if (buckets.size() * 2.0 <= span * span * span) {
+			for (Bucket<T> bucket : buckets.values()) {
+				Cell cell = bucket.cell;
+				if (cell.x < minX || cell.x > maxX || cell.y < minY || cell.y > maxY || cell.z < minZ || cell.z > maxZ) continue;
+				available += include(bucket, center, origin, radiusSquared, occupied);
+			}
+		} else {
+			// This mutable key only probes the map. Keys owned by buckets are never modified.
+			Cell probe = new Cell(0, 0, 0);
+			for (int x = minX; x <= maxX; x++) {
+				for (int y = minY; y <= maxY; y++) {
+					for (int z = minZ; z <= maxZ; z++) {
+						probe.set(x, y, z);
+						Bucket<T> bucket = buckets.get(probe);
+						if (bucket != null) available += include(bucket, center, origin, radiusSquared, occupied);
+					}
 				}
 			}
 		}
@@ -187,6 +197,13 @@ public final class BoundedSpatialIndex<T> {
 			hits.add(new Hit<>(candidate.entry.value, candidate.entry.position, candidate.squaredDistance));
 		}
 		return new Query<>(hits, examined, occupied.size());
+	}
+
+	private int include(Bucket<T> bucket, Point center, Cell origin, double radiusSquared, List<CellDistance<T>> occupied) {
+		double distance = squaredDistanceToCell(center, bucket.cell);
+		if (distance > radiusSquared) return 0;
+		occupied.add(new CellDistance<>(bucket.cell, bucket.entries, bucket.cell.equals(origin), distance));
+		return bucket.entries.size();
 	}
 
 	private Cell cell(Point position) {
