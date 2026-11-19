@@ -236,7 +236,7 @@ public final class NativeMobTorchReloadCheck {
                 if(source&&s.firstSourceAge>=0&&actor.age-s.firstSourceAge>80&&!s.admitted)
                     throw new IllegalStateException("actual loaded saved source failed cold eligibility within80 actor ticks: "+LABELS[i]);
                 if(ready&&actor.age>=8&&s.firstSourceAge>=0&&actor.age-s.firstSourceAge>=8){s.admitted=true;if(s.readyAge<0)s.readyAge=actor.age;}
-                all&=s.admitted;
+                all&=s.admitted&&ready;
                 if(serverTicks%5==0&&ROWS.size()<280){var row=basic(actor);row.put("familyId",LABELS[i]);row.put("sourcePresent",source);
                     row.put("sourceAge",s.firstSourceAge);row.put("admitted",s.admitted);row.put("source",xyz(s.source));
                     row.put("strength",sample==null?null:sample.strength());row.put("sourceId",sample==null?null:sample.sourceId().toString());
