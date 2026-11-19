@@ -8,9 +8,20 @@ public final class FlightEnemyMesh {
     public record Vertex(float x,float y,float z){}
     public record Face(List<Vertex> vertices,Vertex normal,int rgb,boolean emissive){public Face{vertices=List.copyOf(vertices);}}
     private static final Map<FlightEnemyKind,List<Face>> MESHES=new EnumMap<>(FlightEnemyKind.class);
-    static {for(var kind:FlightEnemyKind.values())MESHES.put(kind,build(kind));}
+    private static final Map<FlightEnemyKind,List<Face>> DISTANT_MESHES = new EnumMap<>(FlightEnemyKind.class);
+    static {
+        for (var kind : FlightEnemyKind.values()) {
+            List<Face> faces = build(kind);
+            MESHES.put(kind, faces);
+            DISTANT_MESHES.put(kind, kind == FlightEnemyKind.TELEPORT_FLYER ? faces
+                : faces.stream().filter(face -> !face.emissive()).toList());
+        }
+    }
     private FlightEnemyMesh(){}
     public static List<Face> faces(FlightEnemyKind kind){return MESHES.get(Objects.requireNonNull(kind));}
+    public static List<Face> faces(FlightEnemyKind kind, boolean detail) {
+        return detail ? faces(kind) : DISTANT_MESHES.get(Objects.requireNonNull(kind));
+    }
     private static Vertex v(double x,double y,double z){return new Vertex((float)x,(float)y,(float)z);}
     private static Face face(int rgb,boolean emissive,Vertex... vertices) {
         if(vertices.length<3||vertices.length>4)throw new IllegalArgumentException("triangle or quad required");

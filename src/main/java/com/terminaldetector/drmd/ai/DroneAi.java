@@ -42,7 +42,16 @@ public final class DroneAi {
 			this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
 		}
 
-        @Override public void stop(){navigation.stop();supportPatient=null;supportScanAt=0;super.stop();}
+        private LivingEntity lastSteeringTarget;
+        private long lastSteeringTick, lastSteeringFrame;
+
+        @Override public void stop() {
+            navigation.stop();
+            supportPatient = null;
+            supportScanAt = 0;
+            lastSteeringTarget = null;
+            super.stop();
+        }
         @Override public boolean shouldRunEveryTick(){return drone.continuousFlightSteering();}
 
 		@Override
@@ -121,6 +130,18 @@ public final class DroneAi {
 			else if (phase == Phase.RUN && drone.getPhaseTimer() > 1.5f) drone.setPhase(Phase.BREAK);
 			else if (phase == Phase.BREAK && drone.getPhaseTimer() > 1.2f) drone.setPhase(Phase.ORBIT);
 
+            double fireRange = "standoff".equals(style) ? DescentMod.su(2800) : DescentMod.su(2000);
+            long now = drone.getWorld().getTime();
+            long frame = drone.portalFrameRevision();
+            if (lastSteeringTarget == target && lastSteeringFrame == frame && !navigation.hasRouteWork()
+                    && DroneFlightDetail.mayCoast(drone, target, fireRange, now - lastSteeringTick)) {
+                drone.countCoastingUpdate();
+                return;
+            }
+            lastSteeringTarget = target;
+            lastSteeringTick = now;
+            lastSteeringFrame = frame;
+            drone.countSteeringUpdate();
 			Vec3d desire = styleDesire(style, pos, tpos, toTarget, dist, preferred);
 			// Role steering already owns target attraction; add flock forces without a second pursuit vector.
             Vec3d swarm = DroneSwarmAi.compute(drone, null);
@@ -140,7 +161,6 @@ public final class DroneAi {
 			drone.velocityModified = true;
 			alignAttitude(drone, vel, desire, dt);
 
-			double fireRange = "standoff".equals(style) ? DescentMod.su(2800) : DescentMod.su(2000);
 			if (dist < fireRange) {
 				drone.tryFireAt(target);
 			}

@@ -38,6 +38,7 @@ final class DroneNavigation {
         }
         return blockedSight;
     }
+    boolean hasRouteWork() { return search != null || !route.isEmpty(); }
     Vec3d steer(Vec3d velocity,Vec3d target){return steer(velocity,target,false);}
     Vec3d steer(Vec3d velocity,Vec3d target,boolean seekSight) {
         return steer(velocity,target,seekSight,false);

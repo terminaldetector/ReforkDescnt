@@ -20,7 +20,8 @@ public final class FlightEnemyRenderer extends EntityRenderer<FlightEnemyEntity>
         var q=FlightEnemyPose.rotation(heading,pitch,entity.getFlightRoll());
         matrices.push();matrices.translate(0,entity.getHeight()*.5,0);matrices.multiply(q);float bodyScale=entity.getScale();matrices.scale(bodyScale,bodyScale,bodyScale);
         var vertices=consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(WHITE));var entry=matrices.peek();
-        for(var face:FlightEnemyMesh.faces(kind))for(int i=0;i<4;i++) {
+        boolean detail = com.terminaldetector.drmd.ai.DroneFlightDetail.showSmallHullDetails(dispatcher.getSquaredDistanceToCamera(entity));
+        for(var face:FlightEnemyMesh.faces(kind, detail))for(int i=0;i<4;i++) {
             var p=face.vertices().get(Math.min(i,face.vertices().size()-1));var n=face.normal();
             vertices.vertex(entry,p.x(),p.y(),p.z()).color(0xff000000|face.rgb()).texture(0,0).overlay(OverlayTexture.DEFAULT_UV).light(face.emissive()?15728880:light).normal(entry,n.x(),n.y(),n.z());
         }
