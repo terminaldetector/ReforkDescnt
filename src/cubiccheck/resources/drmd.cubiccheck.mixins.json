@@ -54,6 +54,7 @@
     "ViewmodelCockpitProbe",
     "CubicTerrainProbe",
     "NativeMirrorCameraProbe",
+    "MirrorAllocationFailureProbe",
     "ActorModelProbe",
     "BodyRenderProbe",
     "ProjectorInputAccess",
