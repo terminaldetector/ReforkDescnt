@@ -85,14 +85,14 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
         for (var face:new HybridMesh(HybridTerrain.snapshot(world,pos,data)).faces()) {
             var quads=templates.get(face.direction());
             if (quads.isEmpty()) {
-                if (data.organic()) {
+                if (data.organic() || data.mask()!=MicroGrid.FULL) {
                     emit(emitter,face,TRIANGLE_A,null,material,com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(-1,data.heat()),source);
                     emit(emitter,face,TRIANGLE_B,null,material,com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(-1,data.heat()),source);
                 } else emit(emitter,face,QUAD,null,material,com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(-1,data.heat()),source);
             } else for (var template:quads) {
                 int colour=template.hasColor() ? client.getBlockColors().getColor(data.source(),world,pos,template.getColorIndex()) : -1;
                 colour=com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(colour,data.heat());
-                if (data.organic()) {
+                if (data.organic() || data.mask()!=MicroGrid.FULL) {
                     emit(emitter,face,TRIANGLE_A,template,material,colour,source);
                     emit(emitter,face,TRIANGLE_B,template,material,colour,source);
                 } else emit(emitter,face,QUAD,template,material,colour,source);
