@@ -42,6 +42,7 @@ public final class NativeVerticalFlightCheck {
     private static Vec3d lastClientMoveEnd;private static int matchedClientMove=-1,matchedServerMove=-1;
     private static volatile int pendingEndpointRows;private static volatile String movementFailure;
     private static int afterburnerHeldTicks,measuredTicks,armClientTick;private static volatile int armServerTick=-1;
+    private static volatile Map<String,Object> failedAvailability;
     private static volatile UUID playerId;private static volatile String failure;
     private static volatile int phase,materialWrites,initialTeleports,surfaceY=Integer.MIN_VALUE,authorTop,epoch;
     private static volatile boolean armed,done;private static int ticks,frames,serverRows,untouchedAirSamples;
@@ -92,7 +93,7 @@ public final class NativeVerticalFlightCheck {
             var pos=p.getPos();boolean loaded=full(w,pos);var velocity=data.getFlightVelocity();
             if(p.isSpectator()||p.noClip||!data.isEnabled())throw new IllegalStateException("measured actor lacks ordinary colliding 6DoF ownership");
             if(data.portalEpoch()!=epoch||Math.abs(pos.x-START.x)>1||Math.abs(pos.z-START.z)>1)throw new IllegalStateException("unexpected portal/lateral discontinuity");
-            var row=new LinkedHashMap<String,Object>();row.put("tick",server.getTicks());row.put("p",xyz(pos));row.put("vMetresPerSecond",xyz(velocity));row.put("full",loaded);row.put("writes",materialWrites);row.put("seed",w.getSeed());
+            var row=new LinkedHashMap<String,Object>();row.put("tick",server.getTicks());row.put("p",xyz(pos));row.put("vMetresPerSecond",xyz(velocity));row.put("full",loaded);row.put("flightLeaseEpoch",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.epoch(p));row.put("flightAcknowledgment",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.acknowledgment(p));row.put("writes",materialWrites);row.put("seed",w.getSeed());
             if(previousServer!=null&&pos.distanceTo(previousServer)>1e-7){
                 int clientMatch=matching(CLIENT_MOVES,pos,matchedClientMove),serverMatch=matching(SERVER_MOVES,pos,matchedServerMove);
                 row.put("matchingClientMove",clientMatch);row.put("matchingServerMove",serverMatch);
@@ -121,7 +122,13 @@ public final class NativeVerticalFlightCheck {
         }
         DescentClient.markUserFlightChoice();
         if(phase<2||!DescentClientState.enabled||c.player.isSpectator())return;
-        if(!full(c.world,c.player.getPos())){if(armed)finish(c,"FAIL","client entered an unavailable cube during measured flight");return;}
+        if(!full(c.world,c.player.getPos())){if(armed){
+            var at=c.player.getPos();var access=WorldAccess.of(c.world);var block=BlockPos.ofFloored(at);var cube=access.cubeAt(block);
+            var row=new LinkedHashMap<String,Object>();row.put("tick",ticks);row.put("worldTime",c.world.getTime());row.put("p",xyz(at));row.put("block",List.of(block.getX(),block.getY(),block.getZ()));row.put("cube",List.of(cube.x(),cube.y(),cube.z()));row.put("actualCubeState",access.cubeState(cube));row.put("backend",access.backend());
+            row.put("lastActualNativeMoveEnd",lastClientMoveEnd==null?List.of():xyz(lastClientMoveEnd));row.put("unchangedSinceLastNativeMove",lastClientMoveEnd!=null&&at.squaredDistanceTo(lastClientMoveEnd)<1e-14);
+            row.put("flightAuthorityActive",com.terminaldetector.drmd.client.flight.FlightBodyClient.active());row.put("pendingPredictionCommands",com.terminaldetector.drmd.client.flight.FlightBodyClient.pending());row.put("nextPredictionSequence",com.terminaldetector.drmd.client.flight.FlightBodyClient.sequence());
+            synchronized(SERVER){if(!SERVER.isEmpty())row.put("latestActualServerRow",SERVER.getLast());}failedAvailability=Collections.unmodifiableMap(row);
+            finish(c,"FAIL","client entered an unavailable cube during measured flight");}return;}
         if(!basis){ShipAttitudeClient.acceptPortalFrame(c.player,F,UP);basis=true;return;}
         if(!armed){previousClient=c.player.getPos();lastClientMoveEnd=previousClient;previousClientFull=true;armClientTick=ticks;armed=true;}
         c.options.forwardKey.setPressed(true);
@@ -175,7 +182,7 @@ public final class NativeVerticalFlightCheck {
         try{
             var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",reason);out.put("initialTeleports",initialTeleports);out.put("preAdmissionClientTicks",armClientTick);out.put("measuredClientTicks",measuredTicks);out.put("armServerTick",armServerTick);out.put("materialWrites",materialWrites);out.put("initialSpectatorStagingOnly",true);out.put("surfaceY",surfaceY);out.put("authoredThroughY",authorTop);out.put("untouchedAboveY",authorTop+1);out.put("untouchedAirSamples",untouchedAirSamples);out.put("observerTickOrSolverCalls",0);out.put("coldReaderInThisRun",false);
             synchronized(SERVER_CROSSES){out.put("serverCrossings",new LinkedHashMap<>(SERVER_CROSSES));}out.put("clientCrossings",CLIENT_CROSSES);synchronized(SERVER){out.put("server",List.copyOf(SERVER));}out.put("client",CLIENT);
-            synchronized(CLIENT_MOVES){out.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){out.put("actualServerMoves",List.copyOf(SERVER_MOVES));}out.put("unmatchedEndpointRows",pendingEndpointRows);out.put("movementFailure",movementFailure);
+            synchronized(CLIENT_MOVES){out.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){out.put("actualServerMoves",List.copyOf(SERVER_MOVES));}out.put("unmatchedEndpointRows",pendingEndpointRows);out.put("movementFailure",movementFailure);out.put("failedAvailability",failedAvailability);
             out.put("afterburnerHeldTicks",afterburnerHeldTicks);out.put("afterburnerPolicy","ordinary R only above authored shaft+4, max800ticks, no energy refill; 180s overallwall unchanged;2400pre-admission and2400measuredticks start at real input arm");
             Files.writeString(c.runDirectory.toPath().resolve("vertical-flight-outcome.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");System.out.println("VERTICAL_FLIGHT_OUTCOME "+status+" "+reason);
         }catch(Exception e){e.printStackTrace();}c.scheduleStop();

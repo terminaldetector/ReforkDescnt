@@ -87,6 +87,14 @@ public final class FlightBodySystem {
             var data=DescentPlayerData.get(p);var candidates=nearby(p,data.getFlightVelocity());
             var l=LEASES.get(p.getUuid());if(l==null||l.player.get()!=p||l.world!=world){l=new Lease(p,++epoch);LEASES.put(p.getUuid(),l);}
             if(nativeAuthority(p)||!candidates.isEmpty())l.lastNear=world.getTime();
+            if(nativeAuthority(p)&&candidates.isEmpty()&&l.pending.isEmpty()) {
+                // A native free-flight step belongs to an actual client prediction command.
+                // Advancing on empty server ticks outruns a lagging client's cube subscription
+                // and unloads its current volume. Hold translation, not model momentum.
+                p.setVelocity(data.getFlightVelocity().multiply(.05));p.setOnGround(false);p.fallDistance=0;
+                if(p.networkHandler instanceof BoardingConnection c)c.drmd$bodyMovementOwned();
+                sync(p,l,true);continue;
+            }
             if(!l.pending.isEmpty())l.ack=l.pending.removeFirst();
             var bodies=new ArrayList<BodyMotion>();for(var b:candidates){bodies.add(motions.computeIfAbsent(b.getId(),id->b.boardingMotion()));touched.add(b);}
             var state=new DynamicBodyAttachment.State(BoardingSystem.pure(p.getPos()),BoardingSystem.pure(data.getFlightVelocity()),false,-1);
