@@ -37,10 +37,13 @@ public final class CarvedWaterRendering {
             for(var face:volume.faces(height,(x,y,z)->neighbourWater(world,pos,x,y,z))){
                 int dir=face.direction();float shade=dir==1?1:dir==0?.5f:dir<4?.8f:.6f;
                 float nx=dir==4?-1:dir==5?1:0,ny=dir==0?-1:dir==1?1:0,nz=dir==2?-1:dir==3?1:0;
-                for(var p:face.points()){
+                // The native translucent fluid layer has culling enabled. Like vanilla fluid
+                // sides, retain reverse winding so the surface also exists from inside the water.
+                for(int back=0;back<2;back++)for(int i=0;i<4;i++){
+                    var p=face.points().get(back==0?i:3-i);float sign=back==0?1:-1;
                     float u=(float)(dir<4?p.x():p.z()),v=(float)(dir<2?p.z():1-p.y());
                     vertices.vertex((float)((pos.getX()&15)+p.x()),(float)((pos.getY()&15)+p.y()),(float)((pos.getZ()&15)+p.z()))
-                        .color(r*shade,g*shade,b*shade,1).texture(sprite.getFrameU(u),sprite.getFrameV(v)).light(light).normal(nx,ny,nz);
+                        .color(r*shade,g*shade,b*shade,1).texture(sprite.getFrameU(u),sprite.getFrameV(v)).light(light).normal(sign*nx,sign*ny,sign*nz);
                 }
             }
         }
