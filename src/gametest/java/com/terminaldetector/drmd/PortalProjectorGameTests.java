@@ -283,7 +283,7 @@ public final class PortalProjectorGameTests implements FabricGameTest {
             if(closed)return;var w=c.getWorld();w.resetIdleTimeout();c.assertTrue(++ticks<170,"fresh projector ticker/actual movement has finite170tick bound phase="+phase);
             if(!chunks.entityTicking(a,b))return;
             if(player==null){
-                support(a,Direction.NORTH);support(b,Direction.EAST);
+                support(a,Direction.NORTH);support(b,Direction.WEST);
                 var login=net.minecraft.server.network.ConnectedClientData.createDefault(new com.mojang.authlib.GameProfile(UUID.randomUUID(),"fresh-gun-user"),false);
                 player=new net.minecraft.server.network.ServerPlayerEntity(w.getServer(),w,login.gameProfile(),login.syncedOptions());
                 var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);channel=new io.netty.channel.embedded.EmbeddedChannel(connection);
@@ -299,7 +299,7 @@ public final class PortalProjectorGameTests implements FabricGameTest {
             if(phase==1){
                 c.assertTrue(!((PortalPanelBlockEntity)w.getBlockEntity(a)).isLinked(),"one genuine shot remains inactive");
                 if(player.getItemCooldownManager().isCoolingDown(ModWorldBlocks.PORTAL_PROJECTOR))return;
-                fire(2,b,Direction.EAST);
+                fire(2,b,Direction.WEST);
                 for(var entry:Map.of(a,b,b,a).entrySet())c.assertTrue(w.getBlockEntity(entry.getKey()) instanceof PortalPanelBlockEntity panel&&panel.isLinked()&&entry.getValue().equals(panel.getLinkPartnerPos()),"actual quiet batch installed reciprocal pair");
                 phase=2;age=0;return;
             }
@@ -308,9 +308,9 @@ public final class PortalProjectorGameTests implements FabricGameTest {
                 if(++age<5)return;phase=3;age=0;
             }
             if(phase==3){
-                if(player.getX()>b.getX()+1){
+                if(player.getX()>b.getX()-1.25&&player.getX()<b.getX()){
                     c.assertTrue(steps>=2&&DescentPlayerData.get(player).portalEpoch()==initialEpoch+1,"normal BE tick/END-world drain, never direct carry, transfers actual inward movement once");
-                    c.assertTrue(Math.abs(player.getYaw()+90)<.01&&Math.abs(player.getPitch())<.01,"fresh gun transfer rotates real world look exactly once");
+                    c.assertTrue(Math.abs(player.getYaw()-90)<.01&&Math.abs(player.getPitch())<.01,"fresh gun transfer rotates real world look exactly once");
                     arrived=player.getPos();phase=4;age=0;return;
                 }
                 c.assertTrue(++age<=20,"fresh linked gun pair must tick and transfer within20 real inward moves; map-only BEs cannot pass");
