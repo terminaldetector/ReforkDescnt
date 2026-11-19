@@ -156,11 +156,11 @@ tasks:
   depends_on_stages: &id003
   - S00
   - S01
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/backend-evidence.json]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S02-T02
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -168,11 +168,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id003
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/backend-evidence.json]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S02-T03
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -180,11 +180,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id003
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/backend-source-comparison.json]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S02-T04
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -192,11 +192,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id003
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/first.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S02-T05
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -363,11 +363,11 @@ tasks:
   gate: G3
   depends_on_stages: &id006
   - S04
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
-  notes: "Current699b749:772unit/404GT/64entrypoints plus same-JAR Sodium target/toggle/resize pass; pure-world nearest-grid1.0. Earlier GL3.2 proof separate. Full S04 dependency/artistic PS1 effects remain open."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, TASK20_RESULT_2026-11-19.md, S05_ORIGINAL_TASK_DELIVERABLES_2026-11-19.md]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Current699b749:772unit/404GT/64entrypoints plus same-JAR Sodium target/toggle/resize pass; pure-world nearest-grid1.0. Earlier GL3.2 proof separate. Full S04 dependency/artistic PS1 effects remain open."
 - id: S05-T02
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -375,11 +375,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [PS1_COLOR_CHECKPOINT_2026-11-17.md, EVIDENCE/ps1-color-8f1b3b1.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [PS1_COLOR_CHECKPOINT_2026-11-17.md, EVIDENCE/ps1-color-8f1b3b1.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, TASK20_RESULT_2026-11-19.md, S05_ORIGINAL_TASK_DELIVERABLES_2026-11-19.md]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S05-T03
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -399,11 +399,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
-  notes: "Current699b749 native HUD witness stays1physicalpixel; projected weapon166Native/166PS1 with same camera/modules. Full roll/pitch/yaw and ordinary UI remain open. New real Pyro low-poly selection preserves ordinary domains; actual32/17/32 native model witness is scoped, not full HUD/UI acceptance."
+  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md", TASK20_RESULT_2026-11-19.md, S05_ORIGINAL_TASK_DELIVERABLES_2026-11-19.md]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Current699b749 native HUD witness stays1physicalpixel; projected weapon166Native/166PS1 with same camera/modules. Full roll/pitch/yaw and ordinary UI remain open. New real Pyro low-poly selection preserves ordinary domains; actual32/17/32 native model witness is scoped, not full HUD/UI acceptance."
 - id: S05-T05
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -411,11 +411,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
-  notes: "Current699b749 presentation separation and representative physical checks pass; universal geometry/physics/cache invariance remains open. Optional FPS cap uses the existing main loop; actual natural server/ship-age progress recorded across three presentation states. This is not universal physics/cache invariance acceptance."
+  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md", TASK20_RESULT_2026-11-19.md, S05_ORIGINAL_TASK_DELIVERABLES_2026-11-19.md]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Current699b749 presentation separation and representative physical checks pass; universal geometry/physics/cache invariance remains open. Optional FPS cap uses the existing main loop; actual natural server/ship-age progress recorded across three presentation states. This is not universal physics/cache invariance acceptance."
 - id: S05-T06
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -423,11 +423,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "SKY_LOD_BACKGROUND_FIX_2026-11-17.md", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md", "EVIDENCE/integrated-68fb20a.json", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
-  notes: "Current699b749 Sodium transitions/Debug world geometry pass. Original09b GL3.2 negative3/346 is preserved; separate7df contrast proof327/346 passes both renderers. Full style/sky/visual acceptance remains open. Actual56c0049f BCC/Sodium/MesaGL3.3 Native→PS1coarse→Native PASS:32/17/32cuboids, limit return30/10/30,3realPNGs. Known background LOD/sky defects and first observer registrationFAIL retained; hardware/debug/offscreen/fullstyle remain open."
+  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "SKY_LOD_BACKGROUND_FIX_2026-11-17.md", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md", "EVIDENCE/integrated-68fb20a.json", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md", TASK20_RESULT_2026-11-19.md, S05_ORIGINAL_TASK_DELIVERABLES_2026-11-19.md]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Current699b749 Sodium transitions/Debug world geometry pass. Original09b GL3.2 negative3/346 is preserved; separate7df contrast proof327/346 passes both renderers. Full style/sky/visual acceptance remains open. Actual56c0049f BCC/Sodium/MesaGL3.3 Native→PS1coarse→Native PASS:32/17/32cuboids, limit return30/10/30,3realPNGs. Known background LOD/sky defects and first observer registrationFAIL retained; hardware/debug/offscreen/fullstyle remain open."
 - id: S06-T01
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -473,11 +473,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id007
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/final.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S06-T05
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -485,11 +485,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id007
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/final.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S06-T06
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -731,11 +731,11 @@ tasks:
   owner: WEAPONS
   gate: G4
   depends_on_stages: *id011
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: ["IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md", docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md]
-  notes: "Do not assume complete from historic PR/summary. Programmed7/14carrier FAN/RING/STAGGER, actual forward/down banks, ammo/cooldown, finite stages/child life, NBT/portal frame and damage/defuse implemented. First42237/40 preserved; correctedba30 seven units/21actualGT PASS. Native carrier/viewmodel/input and separate cold-process acceptance remain open."
+  evidence: ["IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md", docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, TASK20_RESULT_2026-11-19.md, IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Do not assume complete from historic PR/summary. Programmed7/14carrier FAN/RING/STAGGER, actual forward/down banks, ammo/cooldown, finite stages/child life, NBT/portal frame and damage/defuse implemented. First42237/40 preserved; correctedba30 seven units/21actualGT PASS. Native carrier/viewmodel/input and separate cold-process acceptance remain open."
 - id: S10-T04
   stage: S10
   stage_title: Weapons, cluster, drill and building
@@ -755,11 +755,11 @@ tasks:
   owner: WEAPONS
   gate: G4
   depends_on_stages: *id011
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/first.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S11-T01
   stage: S11
   stage_title: ORB/ROCKET/JET swarms
@@ -781,11 +781,11 @@ tasks:
   owner: AI
   gate: G4
   depends_on_stages: *id012
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_ROUTES_WORLD_GRID_2026-11-05.md, EVIDENCE/drone-route-world-grid-5623e0a.zip, TYPED_SWARM_2026-11-05.md, EVIDENCE/typed-swarm-d1d92e9.zip, TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_CRITICAL_COVER_2026-11-10.md, EVIDENCE/integrated-5839062.zip, DRONE_SQUAD_INVESTIGATION_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md]
-  notes: "Loaded3D cover aa2 passes6focused and current391full. Full moving-cover/navigation/bestiary/performance open."
+  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_ROUTES_WORLD_GRID_2026-11-05.md, EVIDENCE/drone-route-world-grid-5623e0a.zip, TYPED_SWARM_2026-11-05.md, EVIDENCE/typed-swarm-d1d92e9.zip, TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_CRITICAL_COVER_2026-11-10.md, EVIDENCE/integrated-5839062.zip, DRONE_SQUAD_INVESTIGATION_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/first.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Loaded3D cover aa2 passes6focused and current391full. Full moving-cover/navigation/bestiary/performance open."
 - id: S11-T03
   stage: S11
   stage_title: ORB/ROCKET/JET swarms
@@ -867,11 +867,11 @@ tasks:
   owner: GAMEPLAY
   gate: G4
   depends_on_stages: *id013
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/final.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S12-T04
   stage: S12
   stage_title: Survival threat and minimal armament economy
@@ -905,11 +905,11 @@ tasks:
   depends_on_stages: &id014
   - S02
   - S04
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/first.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S13-T02
   stage: S13
   stage_title: 'World architecture: core to Citadel'
@@ -980,11 +980,11 @@ tasks:
   - S11
   - S12
   - S13
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_RESULT_2026-11-19.md, proposals/five_tech_candidates_v1.json]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence."
 - id: S14-T02
   stage: S14
   stage_title: Factions, Shapes and mission framework
@@ -992,11 +992,11 @@ tasks:
   owner: GAMEPLAY
   gate: G5
   depends_on_stages: *id015
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [COMBAT_UNUSED_CLAUSES_505_2026-11-18.md]
-  notes: "Shapes source exists in isolated809bd3c4:26/27 actual GameTests PASS, including all17 unchanged regressions. Natural crossfire attributed-damage case FAIL retained; passive trace found vanilla hurt-window contention. Separate physical-LOS relay364093dc is prepared, unrun. Not integrated or whole-task accepted."
+  evidence: [COMBAT_UNUSED_CLAUSES_505_2026-11-18.md, TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/first.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Shapes source exists in isolated809bd3c4:26/27 actual GameTests PASS, including all17 unchanged regressions. Natural crossfire attributed-damage case FAIL retained; passive trace found vanilla hurt-window contention. Separate physical-LOS relay364093dc is prepared, unrun. Not integrated or whole-task accepted."
 - id: S14-T03
   stage: S14
   stage_title: Factions, Shapes and mission framework
@@ -1004,11 +1004,11 @@ tasks:
   owner: GAMEPLAY
   gate: G5
   depends_on_stages: *id015
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: ["MULTI_AGENT_INTEGRATION_0107BD8_2026-11-18.md", "EVIDENCE/integrated-0107bd8.json"]
-  notes: "Canonical0107 actual1013units/513ordinaryGT/87entries+two same-JAR clients PASS. Distinct teleporter original natural warning/energy/momentum/physical counterplay passes; old failed component outcomes retained. Native new-role image, cold, repeatedwaves, prototype balance/spawncanon/fullS14 remain open."
+  evidence: ["MULTI_AGENT_INTEGRATION_0107BD8_2026-11-18.md", "EVIDENCE/integrated-0107bd8.json", TASK20_RESULT_2026-11-19.md, EVIDENCE/task20-20261119/teleporter.xml, EVIDENCE/task20-20261119/union.xml]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Canonical0107 actual1013units/513ordinaryGT/87entries+two same-JAR clients PASS. Distinct teleporter original natural warning/energy/momentum/physical counterplay passes; old failed component outcomes retained. Native new-role image, cold, repeatedwaves, prototype balance/spawncanon/fullS14 remain open."
 - id: S14-T04
   stage: S14
   stage_title: Factions, Shapes and mission framework
@@ -1028,11 +1028,11 @@ tasks:
   owner: GAMEPLAY
   gate: G5
   depends_on_stages: *id015
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MISSION_U05_LEDGER_FC54C41_2026-11-17.md, EVIDENCE/mission-ledger-fc54c41-units.json, MULTI_AGENT_INTEGRATION_13C52D0_2026-11-18.md, EVIDENCE/integrated-13c52d0.json]
-  notes: Lab contract/catalog/owner ledger and event adapter are integrated13c52d0 with18new protocol units and6actual gameplay cases inside916/456+two same-JAR clients. Genuine cold reopening and UFO/convoy adapters remain open; no complete-task acceptance.
+  evidence: [MISSION_U05_LEDGER_FC54C41_2026-11-17.md, EVIDENCE/mission-ledger-fc54c41-units.json, MULTI_AGENT_INTEGRATION_13C52D0_2026-11-18.md, EVIDENCE/integrated-13c52d0.json, TASK20_RESULT_2026-11-19.md, proposals/mission_contracts_v1.json]
+  notes: "2026-11-19: Original task accepted. See TASK20_RESULT_2026-11-19.md for scope and evidence. Earlier checkpoint: Lab contract/catalog/owner ledger and event adapter are integrated13c52d0 with18new protocol units and6actual gameplay cases inside916/456+two same-JAR clients. Genuine cold reopening and UFO/convoy adapters remain open; no complete-task acceptance."
 - id: S15-T01
   stage: S15
   stage_title: Cleanup / asset and UI integration

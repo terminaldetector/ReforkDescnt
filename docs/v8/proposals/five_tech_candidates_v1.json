@@ -1,0 +1,105 @@
+{
+  "schema": "drmd:proposed_tech_levels",
+  "schemaVersion": 1,
+  "revision": 1,
+  "status": "CANDIDATE_ONLY",
+  "authorApproved": false,
+  "runtimeEnabled": false,
+  "canonicalNamesAssigned": false,
+  "chronologyAssigned": false,
+  "factionAssignments": {},
+  "legacyEnclaveTech0To3Mapping": null,
+  "approvalRequiredBefore": [
+    "faction assignment",
+    "spawn/raid activation",
+    "unlock/cost/stat table changes",
+    "claimed chronology or canonical names"
+  ],
+  "requirements": [
+    "S14-T01"
+  ],
+  "sourceReference": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+  "candidates": [
+    {
+      "tierId": "candidate_1",
+      "status": "CANDIDATE_ONLY",
+      "authorApproved": false,
+      "economy": "Small salvage-and-repair loop using existing direct recipes; no factory prerequisite.",
+      "weapons": "One existing manually aimed gun; finite resource accounting remains the actual weapon policy.",
+      "transport": "Player flight and short ground/shaft approaches; no mandatory vehicle unlock.",
+      "patrols": "Single readable recon/contact; no automatic siege assignment from this candidate.",
+      "structures": "Shelter, repair corner and one clearly exposed entry.",
+      "antiAir": "Existing separate gun + bearing + drive + explicit controller; basic manual defense.",
+      "threatBudget": "Proposed one local pressure decision; numeric spawn/damage budget unassigned.",
+      "materials": "Common existing metal and repairable full-block families; exact recipe counts unchanged.",
+      "missions": "Existing authored lab entry/panel/extraction contract.",
+      "visualDialect": "Large utilitarian shapes, readable service gaps and one clear accent; original assets only."
+    },
+    {
+      "tierId": "candidate_2",
+      "status": "CANDIDATE_ONLY",
+      "authorApproved": false,
+      "economy": "Reuse reclaimed parts and repair damaged mounts before replacing them.",
+      "weapons": "Existing laser/plasma choices with visibly different operating limits, no new canon gun.",
+      "transport": "Short cargo routes and simple physical platforms using existing bodies.",
+      "patrols": "Small coordinated sentry pairs with visible alarm/escape routes.",
+      "structures": "Workshop shelter, independent power/control target and bypass passage.",
+      "antiAir": "Two separately built fields of fire; no free automatic missile-defense capability.",
+      "threatBudget": "Require defended/undefended novice comparison before numeric tuning or activation.",
+      "materials": "Recovered existing structural parts; no invented ore or tier resource.",
+      "missions": "Lab side entry and recoverable infrastructure repair.",
+      "visualDialect": "Repaired exposed frames and clear replacement modules; PS1 pipeline is presentation only."
+    },
+    {
+      "tierId": "candidate_3",
+      "status": "CANDIDATE_ONLY",
+      "authorApproved": false,
+      "economy": "Portable stock and field repair across a moving hull; no production-chain dependency.",
+      "weapons": "Existing independent laser and rocket mounts using normal energy/resource rules.",
+      "transport": "Boardable BlockBody with doors, joints and a persistent ControlCore.",
+      "patrols": "Small mixed squad with bounded local perception; no omniscient mission target feed.",
+      "structures": "Mobile repair deck and destructible propulsion/control compartments.",
+      "antiAir": "Modular manually controlled defense on a real moving bearing/drive assembly.",
+      "threatBudget": "Preserve shared director quotas; activation requires actual fair-pressure acceptance.",
+      "materials": "Reusable hull/engine/mount components; no balance multipliers assigned.",
+      "missions": "Candidate Reactor Boarding and Convoy Defense after their real event adapters exist.",
+      "visualDialect": "Interchangeable hard-edge mechanisms and original compact hull silhouettes."
+    },
+    {
+      "tierId": "candidate_4",
+      "status": "CANDIDATE_ONLY",
+      "authorApproved": false,
+      "economy": "Salvage plus repair of several specialized existing modules, not a factory tree.",
+      "weapons": "Specialized existing roles with observable warning and finite recovery; no automatic stat inflation.",
+      "transport": "Several cooperating physical hulls with safe transitions and local-frame navigation.",
+      "patrols": "Existing Shapes/flight-role coordination after their own gameplay gates; no vanilla teleport reassignment.",
+      "structures": "Station rooms, independent modules and multiple approach vectors.",
+      "antiAir": "Overlapping defense that still admits concealment/sabotage counterplay; numeric budgets unassigned.",
+      "threatBudget": "Bound near agents and far groups separately; scalability claims require measured gates.",
+      "materials": "Existing materials differentiated by function/repair, not a mandatory new ore ladder.",
+      "missions": "Station sabotage, rescue/boarding and relay interruption proposals.",
+      "visualDialect": "Clear role-specific silhouettes and sparse functional markings; no copied faction insignia."
+    },
+    {
+      "tierId": "candidate_5",
+      "status": "CANDIDATE_ONLY",
+      "authorApproved": false,
+      "economy": "Regional repair/salvage choices and captured infrastructure; no compulsory industrial automation.",
+      "weapons": "Coordinated existing weapon modules with physical weak points; no approved elite damage/HP table.",
+      "transport": "Ring/Citadel route hubs and distinct boardable station links in the same world.",
+      "patrols": "Command and reserve intent must remain local, bounded and interruptible.",
+      "structures": "Original damaged-ring hubs and a central Citadel blockout with navigable returns.",
+      "antiAir": "Strategic coverage with real occlusion, finite supply and physical sabotage points.",
+      "threatBudget": "No automatic full-scale siege/raid; author review and real novice recovery/performance gates precede activation.",
+      "materials": "Repairable structural segmentation and recovered components; exact costs remain unassigned.",
+      "missions": "Multi-route approach/extraction and faction-state consequences, pending runtime adapters.",
+      "visualDialect": "Large original low-poly landmarks, readable damage and consistent near/mid/far silhouette."
+    }
+  ],
+  "sharedConstraints": [
+    "Existing separate weapon/bearing/drive construction; no Create dependency or factory chain.",
+    "Five capability proposals are not a timeline, faction identity or automatic escalation rule.",
+    "No recipes, current resources, persistent legacy tech fields or live encounter quotas change.",
+    "Use original or explicitly licensed assets; PS1 applies to the embedded render pipeline."
+  ]
+}

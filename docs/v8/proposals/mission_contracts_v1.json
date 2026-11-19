@@ -1,0 +1,277 @@
+{
+  "schema": "drmd:authored_mission_designs",
+  "schemaVersion": 1,
+  "revision": 1,
+  "status": "AUTHORED_CONTRACTS_NOT_RUNTIME_REGISTRATION",
+  "requirements": [
+    "S14-T05"
+  ],
+  "runtimeDiscovery": "NONE: docs proposals are not data/drmd/missions and are never loaded by EnclaveMissionCatalog.",
+  "commonGuards": {
+    "acceptance": "Existing connected, alive Survival principal; ordinary valid interaction with a bound original contact. Acceptance grants nothing.",
+    "authoring": "Existing connected Creative permission2 author; loaded same-world actual signed bounds, edit permissions, stable state and explicit site binding.",
+    "identity": "Save identity, dimension/context, owner UUID, authored instance UUID and original definition hash; moving targets also require body UUID/local point/edit epoch.",
+    "progress": "Only successful server-owned owner/world events. No raw completion/reward command, DTO mutation, forced target or fake kill.",
+    "unavailable": "Unsupported event adapters refuse binding/acceptance; never translate missing boarding/convoy events to ENTER_VOLUME/BREAK_BLOCK.",
+    "reward": "Actual extraction after objectives, exactly-once receipt and reputation change in the existing same FactionMemory transaction. No new item or tier reward canon.",
+    "persistence": "Normal save + new-process continuation must preserve valid identity/cursor/receipt; unknown/future/corrupt definitions remain unavailable.",
+    "permissions": "Protected/unloaded/foreign/moved-context targets do not advance. No forced loads or retired generators.",
+    "feedback": "After committed state changes; lost notification cannot rerun a state action.",
+    "failure": "Destroyed objective/contact/owned body invalidates the authored contract; unavailable volume pauses rather than invents success. Explicit abandonment/retry adapters remain a separate implementation gate."
+  },
+  "contracts": [
+    {
+      "designId": "lab_infiltration_contract_v1",
+      "title": "Lab Infiltration",
+      "runtimeStatus": "EXISTING_LAB_SLICE",
+      "existingDefinition": "drmd:lab_infiltration",
+      "offer": "Existing MINERS / EXPLORE_SHAFT; no new faction.",
+      "difficultyProposal": 1,
+      "originalLayout": {
+        "boundingBoxRelative": {
+          "min": [
+            -8,
+            -12,
+            -8
+          ],
+          "max": [
+            9,
+            5,
+            9
+          ]
+        },
+        "rooms": [
+          "surface service recess",
+          "4-block clear vertical shaft",
+          "offset underground maintenance room",
+          "separate extraction contact approach"
+        ],
+        "route": [
+          "contact outside objective",
+          "shaft descent",
+          "room entry",
+          "stable control-panel removal",
+          "return through shaft",
+          "original contact extraction"
+        ],
+        "layoutOwnership": "New prose/relative blockout; no Xenogears/Strife map or assets copied."
+      },
+      "objectives": [
+        {
+          "event": "OWNER_ENTER_VOLUME_OUTSIDE_TO_INSIDE",
+          "identity": "bound world/owner + original volume"
+        },
+        {
+          "event": "OWNER_SUCCESSFUL_BREAK",
+          "identity": "expected actual original stable full-block panel; owner ray/reach/tool/permission"
+        },
+        {
+          "event": "OWNER_EXTRACT_AT_ORIGINAL_HERALD",
+          "identity": "READY cursor + same owner/site/hash"
+        }
+      ],
+      "runtimeSupport": {
+        "current": [
+          "EnclaveMissionContract ENTER_VOLUME/BREAK_BLOCK",
+          "EnclaveMissionSystem tick / AFTER-break / useHerald",
+          "FactionMemory exactly-once claim"
+        ],
+        "stillOpen": [
+          "authored actual lab/shaft geometry and protected cold-placement",
+          "mines/gravity/terraforming mechanics as optional branches",
+          "failure/abandonment UI beyond current invalidation"
+        ]
+      },
+      "failureBranches": [
+        "Breaking an unrelated or protected panel does not advance.",
+        "Destroying the original herald invalidates; repeated use cannot mint reputation.",
+        "Initial position inside the volume is not a new entry edge."
+      ],
+      "extraction": "Return to the original bound herald by a physical route; no dimension or teleport substitute.",
+      "counterplay": [
+        "side service approach",
+        "visible panel sabotage",
+        "repairable return shaft"
+      ],
+      "requiredAcceptance": [
+        "ordinary accept0 -> actual outside/inside -> successful original panel mining -> real herald claim3 -> repeated claim remains3",
+        "physical shaft route / permissions / signedY and fresh-process continuation"
+      ]
+    },
+    {
+      "designId": "reactor_boarding_contract_v1",
+      "title": "UFO Reactor Boarding",
+      "target": "One moving UFO BlockBody with a service hatch, a reactor compartment and a ControlCore, all bound to its persistent body UUID.",
+      "runtimeStatus": "UNAVAILABLE_MISSING_BODY_EVENT_ADAPTER",
+      "offer": "Future existing appropriate contact; current EXPLORE_SHAFT-only constructor must continue refusing a fake offer.",
+      "difficultyProposal": 2,
+      "originalLayout": {
+        "bodyRelativeHull": {
+          "min": [
+            -8,
+            -3,
+            -12
+          ],
+          "max": [
+            9,
+            7,
+            13
+          ]
+        },
+        "rooms": [
+          "outer service ledge",
+          "offset door/hatch",
+          "short equipment corridor",
+          "reactor service compartment",
+          "ControlCore alcove"
+        ],
+        "route": [
+          "real hull approach",
+          "physical landing/contact",
+          "normal door or destroyed opening",
+          "body-local service interaction",
+          "optional real ControlCore capture",
+          "physical escape/extraction"
+        ],
+        "layoutOwnership": "Original compact boarding route, not a copied UFO/interior map."
+      },
+      "objectives": [
+        {
+          "event": "OWNER_REAL_BODY_CONTACT",
+          "identity": "actual DynamicBodyAttachment/contact with bound hull UUID, no position-only proximity"
+        },
+        {
+          "event": "OWNER_BODY_LOCAL_SERVICE_ACTION",
+          "identity": "same hull/local panel and actual edit epoch after successful ordinary interaction or damage"
+        },
+        {
+          "event": "OWNER_CONTROL_CORE_CAPTURE_OPTIONAL_BRANCH",
+          "identity": "existing actual claimCore success; preserves body UUID/velocity"
+        },
+        {
+          "event": "OWNER_EXTRACT_WITH_BOUND_TARGET_RESULT",
+          "identity": "actual body-local exit or original contact after required actions"
+        }
+      ],
+      "runtimeSupport": {
+        "current": [
+          "BlockBodyEntity transforms/local grid",
+          "actual body-local ray/use and UfoControlSystem.claimCore",
+          "existing mission persistence/claim framework"
+        ],
+        "missing": [
+          "mission-local body identity/epoch adapter",
+          "post-success boarding/local-action/capture event bridge",
+          "typed mobile extraction and moving-body cold acceptance"
+        ]
+      },
+      "failureBranches": [
+        "Wrong hull/local cell/owner cannot advance.",
+        "Hull motion or rotation alone cannot satisfy boarding/action objectives.",
+        "Destroyed essential body/contact invalidates without reward; loss must remain recoverable."
+      ],
+      "extraction": "Leave through a real opening onto a reachable platform/contact while the target may continue moving; no static replacement/interior dimension.",
+      "counterplay": [
+        "conceal approach",
+        "open or destroy service hatch",
+        "disable specific weapon/engine module",
+        "capture rather than destroy core"
+      ],
+      "requiredAcceptance": [
+        "all actual 6DoF entry/contact/action/extraction on the same UUID",
+        "capture preserves velocity/rotation/local edits",
+        "ordinary save/new JVM preserves mission and body identity; no repeated reward"
+      ]
+    },
+    {
+      "designId": "convoy_defense_contract_v1",
+      "title": "Convoy Defense",
+      "runtimeStatus": "UNAVAILABLE_MISSING_CONVOY_EVENT_ADAPTER",
+      "offer": "Future existing appropriate contact; no fake MINERS mapping or automatic raid activation.",
+      "difficultyProposal": 2,
+      "originalLayout": {
+        "routeRelativeWaypoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            24,
+            0,
+            8
+          ],
+          [
+            48,
+            12,
+            8
+          ],
+          [
+            72,
+            12,
+            -8
+          ],
+          [
+            96,
+            0,
+            0
+          ]
+        ],
+        "clearanceIntent": "Original broad 3D corridor with cover/bypass and a separate extraction recess; actual loaded collision corridor required.",
+        "layoutOwnership": "Original short route, no imported proprietary level geometry."
+      },
+      "objectives": [
+        {
+          "event": "BOUND_CONVOY_DEPARTED_NORMALLY",
+          "identity": "actual bound cargo/body UUID and existing authorized control, not seeded pose"
+        },
+        {
+          "event": "BOUND_CONVOY_REACHED_ORDERED_ROUTE_POINTS",
+          "identity": "observed same body/owner/world, original route revision, continuous physical travel"
+        },
+        {
+          "event": "PLAYER_DEFENSE_OR_ESCAPE_BRANCH",
+          "identity": "actual owner-attributed hostile outcome or actual conceal/bypass, never invented encounter completion"
+        },
+        {
+          "event": "BOUND_CARGO_SURVIVED_AT_DESTINATION",
+          "identity": "actual current cargo/body/module state after arrival"
+        },
+        {
+          "event": "OWNER_EXTRACT_AT_ORIGINAL_CONTACT",
+          "identity": "same owner/site/definition READY receipt"
+        }
+      ],
+      "runtimeSupport": {
+        "current": [
+          "BlockBody movement/local modules",
+          "existing actual weapons/mounted defense",
+          "bounded shared Survival director and mission owner/claim ledger"
+        ],
+        "missing": [
+          "explicit convoy route/cargo identity adapter",
+          "actual departure/checkpoint/arrival/cargo-damage signals",
+          "fair finite ambush admission and full defense/escape/recovery gates"
+        ]
+      },
+      "failureBranches": [
+        "Foreign body arrival cannot complete the mission.",
+        "Teleporting/seeding a destination pose does not establish route travel.",
+        "Destroyed cargo/essential target fails without reward; repair/salvage recovery remains possible."
+      ],
+      "extraction": "After real arrival, physically reach the assigned original contact or a versioned actual extraction platform.",
+      "counterplay": [
+        "player-built manual gun/bearing/drive escort defense",
+        "use opaque cover/bypass",
+        "disable hostile launcher",
+        "repair/salvage and retreat"
+      ],
+      "encounterPolicy": "No prefab waves or automatic old siege writer. Reuse bounded real director ownership/quotas only after separately accepted fair-pressure admission.",
+      "requiredAcceptance": [
+        "actual departure->ordered3D checkpoints->surviving cargo->ordinary extraction",
+        "real damage/cover/defense/escape branches with same identities",
+        "normal save/new-process continuation, no duplicate bodies/checkpoints/rewards"
+      ]
+    }
+  ]
+}

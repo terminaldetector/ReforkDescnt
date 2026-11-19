@@ -1,0 +1,588 @@
+Picked up JAVA_TOOL_OPTIONS:  -Ddrmd.test.u07ProofDir=/tmp/ungravity-task20-union.jGv7gE/traces
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileCubiccheckJava UP-TO-DATE
+> Task :processCubiccheckResources UP-TO-DATE
+> Task :cubiccheckClasses UP-TO-DATE
+> Task :cubiccheckJar UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test UP-TO-DATE
+> Task :compileGametestJava UP-TO-DATE
+> Task :generateLog4jConfig UP-TO-DATE
+> Task :generateRemapClasspath UP-TO-DATE
+> Task :generateDLIConfig UP-TO-DATE
+> Task :configureLaunch UP-TO-DATE
+> Task :processGametestResources
+> Task :gametestClasses
+
+> Task :runGametest
+Picked up JAVA_TOOL_OPTIONS:  -Ddrmd.test.u07ProofDir=/tmp/ungravity-task20-union.jGv7gE/traces
+[12:12:57] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.21.1 with Fabric Loader 0.16.14
+[12:12:57] [main/INFO] (FabricLoader) Loading 45 mods:
+	- drmd 1.1.35-ufo-dev.1
+	- drmd_gametest 1.0.0
+	- fabric-api 0.116.15+1.21.1
+	- fabric-api-base 0.4.42+6573ed8c19
+	- fabric-api-lookup-api-v1 1.6.72+7b3d111d19
+	- fabric-biome-api-v1 13.0.31+d527f9fd19
+	- fabric-block-api-v1 1.1.0+0bc3503219
+	- fabric-block-view-api-v2 1.0.11+ebb2264e19
+	- fabric-command-api-v1 1.2.49+f71b366f19
+	- fabric-command-api-v2 2.2.28+6ced4dd919
+	- fabric-commands-v0 0.2.66+df3654b319
+	- fabric-content-registries-v0 8.0.19+b559734419
+	- fabric-convention-tags-v1 2.1.7+7f945d5b19
+	- fabric-convention-tags-v2 2.12.0+c3656daa19
+	- fabric-crash-report-info-v1 0.2.29+0af3f5a719
+	- fabric-data-attachment-api-v1 1.4.7+5b36e0f719
+	- fabric-data-generation-api-v1 20.3.0+1eb36c0719
+	- fabric-dimensions-v1 4.0.1+65213ef819
+	- fabric-entity-events-v1 1.8.0+2b27e0a419
+	- fabric-events-interaction-v0 0.7.14+ba9dae0619
+	- fabric-game-rule-api-v1 1.0.53+6ced4dd919
+	- fabric-gametest-api-v1 2.0.5+6fc22b9919
+	- fabric-item-api-v1 11.3.0+467044f319
+	- fabric-item-group-api-v1 4.1.7+def88e3a19
+	- fabric-lifecycle-events-v1 2.6.0+0865547519
+	- fabric-loot-api-v2 3.0.15+3f89f5a519
+	- fabric-loot-api-v3 1.0.3+3f89f5a519
+	- fabric-message-api-v1 6.0.14+8aaf3aca19
+	- fabric-networking-api-v1 4.3.1+d30f6a7919
+	- fabric-object-builder-api-v1 15.2.1+40875a9319
+	- fabric-particles-v1 4.0.2+6573ed8c19
+	- fabric-recipe-api-v1 5.0.16+2475392c19
+	- fabric-registry-sync-v0 5.3.2+e3eddc2119
+	- fabric-rendering-data-attachment-v1 0.3.49+73761d2e19
+	- fabric-rendering-fluids-v1 3.1.6+1daea21519
+	- fabric-resource-conditions-api-v1 4.3.0+8dc279b119
+	- fabric-resource-loader-v0 1.3.1+5b5275af19
+	- fabric-screen-handler-api-v1 1.3.91+b559734419
+	- fabric-tag-api-v1 1.3.0+1eb36c0719
+	- fabric-transfer-api-v1 5.4.4+7b3d111d19
+	- fabric-transitive-access-wideners-v1 6.2.0+45b9699719
+	- fabricloader 0.16.14
+	- java 21
+	- minecraft 1.21.1
+	- mixinextras 0.4.1
+[12:12:57] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.5+mixin.0.8.7/22f9eb729e216a091673a574a5906dc1b9027fb3/sponge-mixin-0.15.5+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[12:12:58] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[12:12:58] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_17
+[12:12:58] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_21
+[12:12:59] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubeApplier (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubeApplier)
+[12:12:59] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel)
+[12:12:59] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.4.1).
+[12:13:07] [main/INFO] (drmd) DRMD 6DOF initializing — 6DoF world mode (volume-first)
+[12:13:07] [main/INFO] (drmd) [drmd] 1.1.35-ufo-dev.1 on Minecraft 1.21.1 / loader 0.16.14 / 45 mods
+[12:13:07] [main/INFO] (drmd) [drmd] optional: immersive_portals=no, dimlib=no, sodium=no, iris=no
+[12:13:07] [main/INFO] (drmd) [drmd] access widener applied
+[12:13:07] [main/INFO] (drmd) Advanced-column pack registered, default activation=NORMAL
+[12:13:07] [main/INFO] (drmd) Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)
+[12:13:07] [main/INFO] (drmd) Registered DRMD map blocks
+[12:13:07] [main/INFO] (drmd) Registered closed Descent arsenal (41 open weapons)
+[12:13:07] [main/INFO] (drmd) Registered Phase3 world blocks & engineer tools
+[12:13:07] [main/INFO] (drmd) Registered DRMD block entities
+[12:13:07] [main/INFO] (drmd) Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)
+[12:13:07] [main/INFO] (drmd) World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)
+[12:13:07] [main/INFO] (drmd) Orbit junk / techno-ring scaffold registered
+[12:13:07] [main/INFO] (drmd) Portal complexity online — ImmPtl present=false
+[12:13:07] [main/INFO] (drmd) Registered ÆRis/Mirai step 6 density generator (drmd:aeris_test)
+[12:13:07] [main/INFO] (drmd) Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance
+[12:13:07] [main/INFO] (drmd) DRMD 6DOF ready — cubic body prototype + native portal frames + surface store
+[12:13:07] [main/ERROR] (Minecraft) Failed to load properties from file: server.properties
+java.nio.file.NoSuchFileException: server.properties
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92) ~[?:?]
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106) ~[?:?]
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111) ~[?:?]
+	at java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:261) ~[?:?]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:380) ~[?:?]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:432) ~[?:?]
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:420) ~[?:?]
+	at java.base/java.nio.file.Files.newInputStream(Files.java:160) ~[?:?]
+	at knot/net.minecraft.server.dedicated.AbstractPropertiesHandler.loadProperties(AbstractPropertiesHandler.java:62) [minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.dedicated.ServerPropertiesHandler.load(ServerPropertiesHandler.java:141) [minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.dedicated.ServerPropertiesLoader.<init>(ServerPropertiesLoader.java:12) [minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.Main.main(Main.java:114) [minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:480) [fabric-loader-0.16.14.jar:?]
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:74) [fabric-loader-0.16.14.jar:?]
+	at net.fabricmc.loader.impl.launch.knot.KnotServer.main(KnotServer.java:23) [fabric-loader-0.16.14.jar:?]
+	at net.fabricmc.devlaunchinjector.Main.main(Main.java:86) [dev-launch-injector-0.2.1+build.8.jar:?]
+[12:13:08] [main/WARN] (Minecraft) Failed to load eula.txt
+[12:13:08] [main/INFO] (Minecraft) Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[12:13:08] [main/INFO] (FabricGameTestHelper) Starting test server
+[12:13:09] [main/INFO] (Minecraft) Loaded 1379 recipes
+[12:13:10] [main/INFO] (Minecraft) Loaded 1400 advancements
+[12:13:10] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 68 new biomes in 1.581 ms
+[12:13:11] [Server thread/INFO] (Minecraft) Preparing start region for dimension minecraft:overworld
+[12:13:11] [Worker-Main-2/INFO] (Minecraft) Preparing spawn area: 8%
+[12:13:11] [Worker-Main-2/INFO] (Minecraft) Preparing spawn area: 8%
+[12:13:12] [Server thread/INFO] (Minecraft) Time elapsed: 616 ms
+[12:13:12] [Server thread/INFO] (Minecraft) Started game test server
+[12:13:12] [Server thread/INFO] (drmd) Megacity biome regions bound — megacity plate @ 3293 -3570 (4857 m) · biome drmd:megacity r=160
+[12:13:12] [Server thread/INFO] (drmd) Technogenic sea regions — drmd:technogenic_sea plate @ 4624 1395 (4830 m) · r=220
+[12:13:12] [Server thread/INFO] (drmd) Scorched lands regions — drmd:scorched_lands plate @ -1761 2627 (3163 m) · r=180
+[12:13:12] [Server thread/INFO] (drmd) Iron guild regions — drmd:iron_guild plate @ -2591 -1343 (2918 m) · r=140
+[12:13:12] [Server thread/INFO] (drmd) Surface events bound — sparse UFO/outpost rolls (≥400m from spawn)
+[12:13:12] [Server thread/INFO] (drmd) Construction registry ready (0 overrides)
+[12:13:12] [Server thread/INFO] (drmd) Restored 0 facilities from dimension sync
+[12:13:12] [Server thread/INFO] (drmd) Restored 0 meteor falls from dimension sync
+[12:13:12] [Server thread/INFO] (drmd) Dimension sync loaded — facilities=0 falls=0 lastDet=-1
+[12:13:12] [Server thread/INFO] (drmd) Surface store open at ./world/./drmd/surface
+[12:13:12] [Server thread/INFO] (Minecraft) 96 tests are now running at position 9782588, -59, 14772822!
+[12:13:13] [Yggdrasil Key Fetcher/ERROR] (Minecraft) Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 9 more
+[12:13:13] [Server thread/INFO] (Minecraft) Running test batch 'shapes-projectile-damage:0' (1 tests)...
+[12:13:13] [Server thread/INFO] (Minecraft) [                                                                                                ]
+[12:13:14] [Server thread/INFO] (Minecraft) [                                                                                                ]
+[12:13:14] [Server thread/INFO] (Minecraft) [                                                                                                ]
+[12:13:15] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 3 at (-3.5, -780.0, -2.5)
+[12:13:15] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:15] [Server thread/INFO] (Minecraft) [_                                                                                               ]
+[12:13:16] [Server thread/INFO] (Minecraft) [_                                                                                               ]
+[12:13:16] [Server thread/INFO] (Minecraft) [_                                                                                               ]
+[12:13:16] [Server thread/INFO] (Minecraft) [_                                                                                               ]
+[12:13:16] [Server thread/INFO] (Minecraft) Running test batch 'torch-native-transition-feedback:0' (1 tests)...
+[12:13:19] [Server thread/INFO] (Minecraft) [X                                                                                               ]
+[12:13:19] [Server thread/INFO] (Minecraft) gravity-notice[embedded] logged in with entity id 4 at (-7.5, -780.0, 4.5)
+[12:13:19] [Server thread/INFO] (Minecraft) gravity-notice joined the game
+[12:13:19] [Server thread/INFO] (Minecraft) Running test batch 'u07-real-hit-interrupt:0' (1 tests)...
+[12:13:19] [Server thread/INFO] (Minecraft) [X+                                                                                              ]
+[12:13:20] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 7 at (5.5, -780.0, -0.5)
+[12:13:20] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:20] [Server thread/INFO] (Minecraft) [X+_                                                                                             ]
+[12:13:20] [Server thread/INFO] (Minecraft) Running test batch 'construction-draft-authority:0' (1 tests)...
+[12:13:22] [Server thread/INFO] (Minecraft) [X++                                                                                             ]
+[12:13:22] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 9 at (-6.5, -780.0, 3.5)
+[12:13:22] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:22] [Server thread/INFO] (Minecraft) Running test batch 'u07-saved-identity:0' (1 tests)...
+[12:13:22] [Server thread/INFO] (Minecraft) [X+++                                                                                            ]
+[12:13:22] [Server thread/INFO] (Minecraft) [X+++                                                                                            ]
+[12:13:22] [Server thread/INFO] (Minecraft) Running test batch 'shapes-identity:0' (1 tests)...
+[12:13:22] [Server thread/INFO] (Minecraft) [X++++                                                                                           ]
+[12:13:22] [Server thread/INFO] (Minecraft) [X++++                                                                                           ]
+[12:13:22] [Server thread/INFO] (Minecraft) [X++++                                                                                           ]
+[12:13:22] [Server thread/INFO] (Minecraft) [X++++                                                                                           ]
+[12:13:22] [Server thread/INFO] (Minecraft) Running test batch 'u07-resource-rollback:0' (1 tests)...
+[12:13:22] [Server thread/INFO] (Minecraft) [X+++++                                                                                          ]
+[12:13:22] [Server thread/INFO] (Minecraft) [X+++++                                                                                          ]
+[12:13:22] [Server thread/INFO] (Minecraft) Running test batch 'u07-real-target-cover:0' (1 tests)...
+[12:13:22] [Server thread/INFO] (Minecraft) [X++++++                                                                                         ]
+[12:13:23] [Server thread/INFO] (Minecraft) [X++++++_                                                                                        ]
+[12:13:23] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-mixed:0' (1 tests)...
+[12:13:25] [Server thread/INFO] (Minecraft) [X+++++++                                                                                        ]
+[12:13:26] [Server thread/INFO] (Minecraft) [X+++++++                                                                                        ]
+[12:13:26] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 20 at (-0.5, -780.0, 3.5)
+[12:13:26] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:26] [Server thread/INFO] (Minecraft) Running test batch 'u07-natural-lethal-wreck:0' (1 tests)...
+[12:13:26] [Server thread/INFO] (Minecraft) [X++++++++                                                                                       ]
+[12:13:27] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 26 at (-9.5, -780.0, 5.5)
+[12:13:27] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:27] [Server thread/INFO] (Minecraft) [X++++++++_                                                                                      ]
+[12:13:27] [Server thread/INFO] (Minecraft) [X++++++++_                                                                                      ]
+[12:13:27] [Server thread/INFO] (Minecraft) [STDOUT]: U07_LETHAL_WRECK_PASS endpoint=(9995667.205449041, 85.18550107883114, 1.4798837595092855E7) death=Death[feet=(9995667.205449041, 85.18550107883114, 1.4798837595092855E7), centre=(9995667.205449041, 85.98550109075207, 1.4798837595092855E7), velocity=(0.33658511308938666, 0.0, 0.21612604288927423), yaw=25.0, pitch=0.0, bank=37.0, cause=(9995665.5, 90.0, 1.47988365E7), tick=518] corpse=fc870443-2617-4c2e-854b-604ae3bf6f12 initialAge=0 ageDelta=8 worldTickDelta=8
+[12:13:27] [Server thread/INFO] (Minecraft) Running test batch 'cluster-program-physical-hit:0' (1 tests)...
+[12:13:29] [Server thread/INFO] (Minecraft) [X+++++++++                                                                                      ]
+[12:13:29] [Server thread/INFO] (Minecraft) cluster-order[embedded] logged in with entity id 35 at (7.5, -780.0, 4.5)
+[12:13:29] [Server thread/INFO] (Minecraft) cluster-order joined the game
+[12:13:29] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-fallback:0' (1 tests)...
+[12:13:30] [Server thread/INFO] (Minecraft) [X++++++++++                                                                                     ]
+[12:13:30] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 38 at (-0.5, -780.0, 3.5)
+[12:13:30] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:30] [Server thread/INFO] (Minecraft) Running test batch 'point-defense-unprotected-control:0' (1 tests)...
+[12:13:30] [Server thread/INFO] (Minecraft) [X+++++++++++                                                                                    ]
+[12:13:31] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_LAUNCH defended=false ticks=4 worldTime=599 placedAt=595 launchAt=599 launchTick=4 impactAt=0 missileAge=0 missileAlive=true missilePos=(9871163.5, 140.5, 1.47788365E7) emitted=0 hitCount=0 hitBlock=false hitEntity=none impact=none velocity=(-1.375, 0.0, 0.0) splashRadius=3.75
+[12:13:31] [Server thread/INFO] (Minecraft) [X+++++++++++_                                                                                   ]
+[12:13:31] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_CONTROL_PASS defended=false ticks=12 worldTime=607 placedAt=595 launchAt=599 launchTick=4 impactAt=607 missileAge=8 missileAlive=false missilePos=(9871153.87884923, 140.38803359746242, 1.47788365E7) emitted=0 hitCount=1 hitBlock=true hitEntity=none impact=(9871153.0, 140.36757321869456, 1.47788365E7)
+[12:13:31] [Server thread/INFO] (Minecraft) Running test batch 'u07-unknown-exit:0' (1 tests)...
+[12:13:32] [Server thread/INFO] (Minecraft) [X++++++++++++                                                                                   ]
+[12:13:32] [Server thread/INFO] (Minecraft) Running test batch 'torch-dimension-isolation:0' (1 tests)...
+[12:13:32] [Server thread/INFO] (Minecraft) [X+++++++++++++                                                                                  ]
+[12:13:32] [Server thread/INFO] (Minecraft) [X+++++++++++++                                                                                  ]
+[12:13:32] [Server thread/INFO] (Minecraft) [X+++++++++++++                                                                                  ]
+[12:13:34] [Server thread/INFO] (Minecraft) Running test batch 'economy-personal-progression:0' (1 tests)...
+[12:13:34] [Server thread/INFO] (Minecraft) [X++++++++++++++                                                                                 ]
+[12:13:34] [Server thread/INFO] (Minecraft) [X++++++++++++++_                                                                                ]
+[12:13:34] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 44 at (8.5, -780.0, -0.5)
+[12:13:34] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:13:34] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:13:34] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:13:34] [Server thread/INFO] (Minecraft) [X++++++++++++++_                                                                                ]
+[12:13:34] [Server thread/INFO] (Minecraft) Running test batch 'cluster-program-refusal:0' (1 tests)...
+[12:13:35] [Server thread/INFO] (Minecraft) [X+++++++++++++++                                                                                ]
+[12:13:35] [Server thread/INFO] (Minecraft) cluster-order[embedded] logged in with entity id 45 at (-2.5, -780.0, 8.5)
+[12:13:35] [Server thread/INFO] (Minecraft) cluster-order joined the game
+[12:13:35] [Server thread/INFO] (Minecraft) [X+++++++++++++++_                                                                               ]
+[12:13:35] [Server thread/INFO] (Minecraft) [X+++++++++++++++_                                                                               ]
+[12:13:35] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-charged-cross-bank:0' (1 tests)...
+[12:13:36] [Server thread/INFO] (Minecraft) [X++++++++++++++++                                                                               ]
+[12:13:36] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 48 at (-0.5, -780.0, -7.5)
+[12:13:36] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:36] [Server thread/INFO] (Minecraft) Running test batch 'u07-natural-warning-commit:0' (1 tests)...
+[12:13:36] [Server thread/INFO] (Minecraft) [X+++++++++++++++++                                                                              ]
+[12:13:36] [Server thread/INFO] (Minecraft) [X+++++++++++++++++_                                                                             ]
+[12:13:36] [Server thread/INFO] (Minecraft) [X+++++++++++++++++_                                                                             ]
+[12:13:36] [Server thread/INFO] (Minecraft) [X+++++++++++++++++_                                                                             ]
+[12:13:36] [Server thread/INFO] (Minecraft) [STDOUT]: U07_NATURAL_PASS ticks=68 age=68 phase=COOLDOWN remaining=0 cooldown=53 blinks=1 pos=(9992613.671095673, 91.0380580585335, 1.4798859715080393E7) energy=100.0 shield=30.0 hp=150.0 own=true shots=4 moving=true enemyHp=1016.0 actualDamage=true relay=Stats[tick=872, pending=0, maxPending=1, submitted=6, processed=6, starts=4, commits=2, refused=0, stale=0, maxGranted=8, queries=2, maxHulls=0, maxActors=0, maxVolumes=2, lastAdmission=CLEAR] warn=852 commit=872 energyBefore=100.0 after=80.0
+[12:13:36] [Server thread/INFO] (Minecraft) Running test batch 'u07-coarse-wreck-wall:0' (1 tests)...
+[12:13:37] [Server thread/INFO] (Minecraft) [X++++++++++++++++++                                                                             ]
+[12:13:38] [Server thread/INFO] (Minecraft) [X++++++++++++++++++_                                                                            ]
+[12:13:38] [Server thread/INFO] (Minecraft) [STDOUT]: U07_COARSE_WALL_NEGATIVE observedOverlap=true finalMaxCorner=9996211.99999 worldTickDelta=8 actualBounds=[AABB[9996209.945478586, 89.51448362549483, 1.4798849481766235E7] -> [9996211.99999, 90.5902755450568, 1.4798851518233765E7]]
+[12:13:38] [Server thread/INFO] (Minecraft) Running test batch 'torch-same-block-turn:0' (1 tests)...
+[12:13:40] [Server thread/INFO] (Minecraft) [X+++++++++++++++++++                                                                            ]
+[12:13:40] [Server thread/INFO] (Minecraft) Running test batch 'flight-cover-memory:0' (1 tests)...
+[12:13:40] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++                                                                           ]
+[12:13:40] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:40] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:40] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:40] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:40] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++_                                                                          ]
+[12:13:41] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-cooldown:0' (1 tests)...
+[12:13:41] [Server thread/INFO] (Minecraft) [X+++++++++++++++++++++                                                                          ]
+[12:13:42] [Server thread/INFO] (Minecraft) [X+++++++++++++++++++++                                                                          ]
+[12:13:42] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 112 at (9.5, -780.0, 1.5)
+[12:13:42] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:43] [Server thread/INFO] (Minecraft) Running test batch 'shapes-physical-observer-cover:0' (1 tests)...
+[12:13:43] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++                                                                         ]
+[12:13:43] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:43] [Server thread/INFO] (Minecraft) [STDOUT]: SHAPES_SCOUT_OPAQUE_EDITS count=41 scout=760ff30a-3f8e-48ff-bfad-433e22165e20 retainedLiveRoundIds=[ffbd885a-4cf3-48e3-864c-1c41aec7b61a, 4e422037-c7ef-43c8-92ed-6e6186102d36] cooldown=1 health=40.0 energy=99.9
+[12:13:43] [Server thread/INFO] (Minecraft) [STDOUT]: SHAPES_PHYSICAL_RELAY_COVER tick=20 worldTick=1362 message=Message[scout=760ff30a-3f8e-48ff-bfad-433e22165e20, target=b0cf0902-2830-4f5a-893f-7b6ec7362f03, x=9900737.5, y=71.29999995231628, z=1.47868505E7, observedAt=1362, expiresAt=1422] actualVictimHealth=1015.0
+[12:13:43] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:43] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:43] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:43] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:43] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:44] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:44] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:44] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:44] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:44] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:44] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++_                                                                        ]
+[12:13:44] [Server thread/INFO] (Minecraft) Running test batch 'economy-material-repair:0' (1 tests)...
+[12:13:46] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X                                                                        ]
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 200 at (7.5, -780.0, 5.5)
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:13:46] [Server thread/INFO] (Minecraft) Running test batch 'economy-real-crafting:0' (1 tests)...
+[12:13:46] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+                                                                       ]
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 201 at (-6.5, -780.0, 5.5)
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:13:46] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:13:46] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-ttl:0' (1 tests)...
+[12:13:46] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++                                                                      ]
+[12:13:46] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 202 at (10.5, -780.0, -9.5)
+[12:13:46] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:47] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++_                                                                     ]
+[12:13:47] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-selection:0' (1 tests)...
+[12:13:47] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++                                                                     ]
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 205 at (5.5, -780.0, -2.5)
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 208 at (9.5, -780.0, -2.5)
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 211 at (3.5, -780.0, 4.5)
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 214 at (3.5, -780.0, 0.5)
+[12:13:47] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:47] [Server thread/INFO] (Minecraft) Running test batch 'shared-combat-ceiling:0' (1 tests)...
+[12:13:47] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++                                                                    ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:48] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:49] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:49] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:49] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++_                                                                   ]
+[12:13:49] [Server thread/INFO] (Minecraft) [STDOUT]: SHARED_COMBAT_RESULT targetPositions=[(0.36999999918043613, 18.769999999999996, -1.8100000005215406), (0.36999999918043613, 18.769999999999996, 3.1899999994784594), (2.869999999180436, 18.769999999999996, -1.8100000005215406), (2.869999999180436, 18.769999999999996, 3.1899999994784594), (5.369999999180436, 18.769999999999996, -1.8100000005215406), (5.369999999180436, 18.769999999999996, 3.1899999994784594)] targetHealth=[1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0] targets=[625d753f-d8a8-4ee1-aef4-68e4119f6716, b5e0505b-5711-4c49-8a45-557c8d11424a, 625d753f-d8a8-4ee1-aef4-68e4119f6716, b5e0505b-5711-4c49-8a45-557c8d11424a, 625d753f-d8a8-4ee1-aef4-68e4119f6716, 625d753f-d8a8-4ee1-aef4-68e4119f6716] vertical=true tick=290 lanes=6 damagingActors=6 coincidentTicks=0 positions=[(12.696753550320864, 26.11099904932962, -5.47126149199903), (1.1891723610460758, 10.617738361427882, 0.8872450571507215), (11.346110697835684, 25.29892106643196, -6.179796140640974), (10.18992349691689, 25.35567216487837, -4.974015060812235), (12.473224414512515, 25.008337099211687, -6.75326045230031), (12.23165942542255, 24.864139812522765, -5.534228887408972)]
+[12:13:49] [Server thread/INFO] (Minecraft) Running test batch 'u07-moving-oriented-exit:0' (1 tests)...
+[12:13:50] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++                                                                   ]
+[12:13:51] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++_                                                                  ]
+[12:13:51] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++_                                                                  ]
+[12:13:51] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-primary:0' (1 tests)...
+[12:13:52] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++                                                                  ]
+[12:13:52] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 670 at (8.5, -780.0, 4.5)
+[12:13:52] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:13:52] [Server thread/INFO] (Minecraft) Running test batch 'economy-mechanism:0' (1 tests)...
+[12:13:53] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++                                                                 ]
+[12:13:53] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 673 at (-4.5, -780.0, 1.5)
+[12:13:53] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:13:53] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:13:53] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:13:53] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++_                                                                ]
+[12:13:53] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++_                                                                ]
+[12:13:53] [Server thread/INFO] (Minecraft) Running test batch 'u07-actor-cap-exit:0' (1 tests)...
+[12:13:54] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++                                                                ]
+[12:13:54] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++_                                                               ]
+[12:13:54] [Server thread/INFO] (Minecraft) Running test batch 'cluster-program-natural-stages:0' (1 tests)...
+[12:13:55] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++                                                               ]
+[12:13:56] [Server thread/INFO] (Minecraft) cluster-order[embedded] logged in with entity id 711 at (-2.5, -780.0, 9.5)
+[12:13:56] [Server thread/INFO] (Minecraft) cluster-order joined the game
+[12:13:56] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++_                                                              ]
+[12:13:56] [Server thread/INFO] (Minecraft) [STDOUT]: CLUSTER_RESTORE uuid=57137a3f-d7df-4e0f-834a-f264d23f645b expected=57137a3f-d7df-4e0f-834a-f264d23f645b before={armed:1b,disarmed:0b,forward:{x:0.0d,y:0.0d,z:1.0d},program:{arm:6,life:160,pattern:"STAGGER",safety:3.0d,schema:1,split:16,spread:0.65d,stages:3,stagger:4},schema:1,stage:1,travelled:15.834009457270929d,up:{x:0.0d,y:1.0d,z:0.0d}} after={armed:1b,disarmed:0b,forward:{x:0.0d,y:0.0d,z:1.0d},program:{arm:6,life:160,pattern:"STAGGER",safety:3.0d,schema:1,split:16,spread:0.65d,stages:3,stagger:4},schema:1,stage:1,travelled:15.834009457270929d,up:{x:0.0d,y:1.0d,z:0.0d}}
+[12:13:56] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++_                                                              ]
+[12:13:56] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++_                                                              ]
+[12:13:56] [Server thread/INFO] (Minecraft) Running test batch 'shapes-unknown:0' (1 tests)...
+[12:13:56] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++                                                              ]
+[12:13:56] [Server thread/INFO] (Minecraft) Running test batch 'u07-material-exit:0' (1 tests)...
+[12:13:57] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++                                                             ]
+[12:13:57] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++_                                                            ]
+[12:13:57] [Server thread/INFO] (Minecraft) Running test batch 'defaultBatch:0' (46 tests)...
+[12:13:59] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++                                                            ]
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 740 at (1.5, -780.0, 7.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 741 at (-6.5, -780.0, 8.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 742 at (7.5, -780.0, 8.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 743 at (-2.5, -780.0, 1.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 744 at (7.5, -780.0, -0.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 745 at (-9.5, -780.0, 0.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 746 at (9.5, -780.0, 5.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 747 at (-0.5, -780.0, 6.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 748 at (7.5, -780.0, -6.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 749 at (-4.5, -780.0, -6.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 750 at (-2.5, -780.0, 7.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 751 at (0.5, -780.0, -4.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 753 at (10.5, -780.0, 2.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 754 at (-6.5, -780.0, -4.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 755 at (-1.5, -780.0, -8.5)
+[12:13:59] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:14:00] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++  ++++++   +++++                          ]
+[12:14:00] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++  ++++++   +++++                          ]
+[12:14:00] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 957 at (-6.5, -780.0, -5.5)
+[12:14:00] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:14:00] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 959 at (-3.5, -780.0, 5.5)
+[12:14:00] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:14:00] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++               ]
+[12:14:00] [Server thread/INFO] (Minecraft) Running test batch 'economy-local-repair:0' (1 tests)...
+[12:14:00] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++              ]
+[12:14:00] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 989 at (-4.5, -780.0, -6.5)
+[12:14:00] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:14:00] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:14:00] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:14:01] [Server thread/INFO] (Minecraft) Running test batch 'economy-salvage:0' (1 tests)...
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++             ]
+[12:14:01] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 996 at (0.5, -780.0, -9.5)
+[12:14:01] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:14:01] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:14:01] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[12:14:01] [Server thread/INFO] (Minecraft) Running test batch 'shapes-natural-fire:0' (1 tests)...
+[12:14:01] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++            ]
+[12:14:02] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_           ]
+[12:14:02] [Server thread/INFO] (Minecraft) [STDOUT]: SHAPES_NATURAL_FIRE_PASS ticks=15 pos=(9898642.791653156, 70.0, 1.4786962501367E7) age=15 target=7dcc46ae-2ce5-4e0b-8873-f4c6b9f043fb shots=7 moving=true hurt=true energy=99.9 own=true investigation=false
+[12:14:02] [Server thread/INFO] (Minecraft) Running test batch 'shapes-hull-cover:0' (1 tests)...
+[12:14:04] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++           ]
+[12:14:04] [Server thread/INFO] (Minecraft) Running test batch 'point-defense-real-interception:0' (1 tests)...
+[12:14:06] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++          ]
+[12:14:06] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_LAUNCH defended=true ticks=4 worldTime=2856 placedAt=2852 launchAt=2856 launchTick=4 impactAt=0 missileAge=0 missileAlive=true missilePos=(9870677.5, 140.5, 1.47789625E7) emitted=0 hitCount=0 hitBlock=false hitEntity=none impact=none velocity=(-1.375, 0.0, 0.0) splashRadius=3.75
+[12:14:06] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_INTERCEPTION_PASS defended=true ticks=8 worldTime=2860 placedAt=2852 launchAt=2856 launchTick=4 impactAt=2860 missileAge=4 missileAlive=false missilePos=(9870673.375824945, 140.47600400033627, 1.47789625E7) emitted=1 hitCount=1 hitBlock=false hitEntity=bf5454a4-9089-490d-9340-d528a14156d7 impact=(9870673.111744784, 140.73968973035974, 1.47789625E7)
+[12:14:06] [Server thread/INFO] (Minecraft) Running test batch 'economy-mounted-fire:0' (1 tests)...
+[12:14:06] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++         ]
+[12:14:07] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++         ]
+[12:14:07] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 1016 at (-0.5, -780.0, -8.5)
+[12:14:07] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:14:07] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:14:07] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:14:08] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_        ]
+[12:14:08] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_        ]
+[12:14:08] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_        ]
+[12:14:08] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-fusion-tap:0' (1 tests)...
+[12:14:08] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++        ]
+[12:14:08] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 1026 at (-1.5, -780.0, -6.5)
+[12:14:08] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:14:08] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-fusion-hold:0' (1 tests)...
+[12:14:08] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++       ]
+[12:14:08] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 1028 at (7.5, -780.0, -8.5)
+[12:14:08] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:14:08] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 1030 at (6.5, -780.0, 3.5)
+[12:14:08] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:14:08] [Server thread/INFO] (Minecraft) Running test batch 'cluster-program-actual-portal:0' (1 tests)...
+[12:14:08] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++      ]
+[12:14:09] [Server thread/INFO] (Minecraft) cluster-order[embedded] logged in with entity id 1031 at (9.5, -780.0, -2.5)
+[12:14:09] [Server thread/INFO] (Minecraft) cluster-order joined the game
+[12:14:09] [Server thread/INFO] (Minecraft) Running test batch 'shared-combat-wall:0' (1 tests)...
+[12:14:09] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++     ]
+[12:14:09] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++     ]
+[12:14:09] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:09] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:09] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:09] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:09] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:10] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:10] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:10] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:10] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[12:14:10] [Server thread/INFO] (Minecraft) [STDOUT]: SHARED_COMBAT_RESULT targetPositions=[(18.769999999552965, 0.36999999999999744, -1.8100000005215406), (18.769999999552965, 0.36999999999999744, 3.1899999994784594), (18.769999999552965, 2.8699999999999974, -1.8100000005215406), (18.769999999552965, 2.8699999999999974, 3.1899999994784594), (18.769999999552965, 5.369999999999997, -1.8100000005215406), (18.769999999552965, 5.369999999999997, 3.1899999994784594)] targetHealth=[1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0] targets=[d5eb3497-8f8b-4456-8f8c-a5cb73ae5dfd, 1460ddb1-11ab-4517-90cf-96bb2bb09c0f, 1460ddb1-11ab-4517-90cf-96bb2bb09c0f, d5eb3497-8f8b-4456-8f8c-a5cb73ae5dfd, 1460ddb1-11ab-4517-90cf-96bb2bb09c0f, d5eb3497-8f8b-4456-8f8c-a5cb73ae5dfd] vertical=false tick=192 lanes=6 damagingActors=6 coincidentTicks=0 positions=[(18.29919529147446, 6.994297943580548, 2.5330181010067463), (16.13363710232079, 7.4654062028227415, 0.6078059524297714), (21.025735210627317, 7.517799261278178, 1.219335999339819), (19.5801114551723, 7.836857243895324, 1.9092900566756725), (16.547567443922162, 6.150530066797074, 0.18931991793215275), (7.449999988079071, 6.544747183322819, 3.133926073089242)]
+[12:14:10] [Server thread/INFO] (Minecraft) Running test batch 'shapes-guards:0' (1 tests)...
+[12:14:11] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++    ]
+[12:14:11] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 1335 at (0.5, -780.0, -6.5)
+[12:14:11] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:14:12] [Server thread/INFO] (Minecraft) Running test batch 'cluster-program-friendly-impact:0' (1 tests)...
+[12:14:12] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   ]
+[12:14:13] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   ]
+[12:14:13] [Server thread/INFO] (Minecraft) cluster-order[embedded] logged in with entity id 1338 at (4.5, -780.0, 7.5)
+[12:14:13] [Server thread/INFO] (Minecraft) cluster-order joined the game
+[12:14:13] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[12:14:13] [Server thread/INFO] (Minecraft) Running test batch 'cluster-program-real-input:0' (1 tests)...
+[12:14:13] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  ]
+[12:14:14] [Server thread/INFO] (Minecraft) cluster-order[embedded] logged in with entity id 1345 at (6.5, -780.0, 8.5)
+[12:14:14] [Server thread/INFO] (Minecraft) cluster-order joined the game
+[12:14:14] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[12:14:14] [Server thread/INFO] (Minecraft) Running test batch 'trigger-edge-invalid-owner:0' (1 tests)...
+[12:14:14] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ]
+[12:14:14] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 1348 at (-4.5, -780.0, 8.5)
+[12:14:14] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:14:14] [Server thread/INFO] (Minecraft) trigger-fixture[embedded] logged in with entity id 1351 at (-2.5, -780.0, 1.5)
+[12:14:14] [Server thread/INFO] (Minecraft) trigger-fixture joined the game
+[12:14:14] [Server thread/INFO] (Minecraft) [X++++++++++++++++++++++X++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++]
+[12:14:14] [Server thread/INFO] (Minecraft) ========= 96 GAME TESTS COMPLETE IN 1.036 min ======================
+[12:14:14] [Server thread/INFO] (Minecraft) 2 required tests failed :(
+[12:14:14] [Server thread/INFO] (Minecraft)    - shapesinfantrygametests.arealmovingprojectilehurtsshapeswithoutvanillateleportimmunity
+[12:14:14] [Server thread/INFO] (Minecraft)    - shapesrelaygametests.livearmedscoutlosesreallosandwingmanfinishesfromanexpiringobservation
+[12:14:14] [Server thread/INFO] (Minecraft) ====================================================
+[12:14:14] [Server thread/INFO] (Minecraft) Stopping server
+[12:14:14] [Server thread/INFO] (Minecraft) Saving players
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:14:14] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:14:14] [Server thread/INFO] (Minecraft) Saving worlds
+[12:14:16] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[12:14:16] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[12:14:16] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[12:14:16] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[12:14:16] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[12:14:16] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[12:14:16] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[12:14:16] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+> Task :runGametest FAILED
+
+[Incubating] Problems report is available at: file:///workspace/ungravity-v5/ufo-body-physics/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runGametest'.
+> Process 'command '/workspace/jdk21-complete/bin/java'' finished with non-zero exit value 2
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 30s
+14 actionable tasks: 2 executed, 12 up-to-date

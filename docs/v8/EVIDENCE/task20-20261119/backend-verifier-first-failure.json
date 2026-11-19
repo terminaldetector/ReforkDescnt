@@ -1,0 +1,7 @@
+{
+  "actualToolExit": 1,
+  "scriptSha256": "fd3953501b2c986335add4eda761bbec935ee10b2d3a81b5f2be759a0721c45e",
+  "exception": "ValueError: license resource differs from metadata",
+  "cause": "case-sensitive fixture expectation All Rights Reserved versus actual All rights reserved.",
+  "scope": "CPU checker precondition, not a runtime/backend failure"
+}

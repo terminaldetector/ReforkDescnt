@@ -1,0 +1,262 @@
+Picked up JAVA_TOOL_OPTIONS:  -Ddrmd.test.u07ProofDir=/tmp/ungravity-teleporter-trace.SCDSkK
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileGametestJava UP-TO-DATE
+> Task :generateLog4jConfig UP-TO-DATE
+> Task :generateRemapClasspath UP-TO-DATE
+> Task :generateDLIConfig UP-TO-DATE
+> Task :configureLaunch UP-TO-DATE
+> Task :processGametestResources
+> Task :gametestClasses
+
+> Task :runGametest
+Picked up JAVA_TOOL_OPTIONS:  -Ddrmd.test.u07ProofDir=/tmp/ungravity-teleporter-trace.SCDSkK
+[12:10:52] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.21.1 with Fabric Loader 0.16.14
+[12:10:53] [main/INFO] (FabricLoader) Loading 45 mods:
+	- drmd 1.1.35-ufo-dev.1
+	- drmd_gametest 1.0.0
+	- fabric-api 0.116.15+1.21.1
+	- fabric-api-base 0.4.42+6573ed8c19
+	- fabric-api-lookup-api-v1 1.6.72+7b3d111d19
+	- fabric-biome-api-v1 13.0.31+d527f9fd19
+	- fabric-block-api-v1 1.1.0+0bc3503219
+	- fabric-block-view-api-v2 1.0.11+ebb2264e19
+	- fabric-command-api-v1 1.2.49+f71b366f19
+	- fabric-command-api-v2 2.2.28+6ced4dd919
+	- fabric-commands-v0 0.2.66+df3654b319
+	- fabric-content-registries-v0 8.0.19+b559734419
+	- fabric-convention-tags-v1 2.1.7+7f945d5b19
+	- fabric-convention-tags-v2 2.12.0+c3656daa19
+	- fabric-crash-report-info-v1 0.2.29+0af3f5a719
+	- fabric-data-attachment-api-v1 1.4.7+5b36e0f719
+	- fabric-data-generation-api-v1 20.3.0+1eb36c0719
+	- fabric-dimensions-v1 4.0.1+65213ef819
+	- fabric-entity-events-v1 1.8.0+2b27e0a419
+	- fabric-events-interaction-v0 0.7.14+ba9dae0619
+	- fabric-game-rule-api-v1 1.0.53+6ced4dd919
+	- fabric-gametest-api-v1 2.0.5+6fc22b9919
+	- fabric-item-api-v1 11.3.0+467044f319
+	- fabric-item-group-api-v1 4.1.7+def88e3a19
+	- fabric-lifecycle-events-v1 2.6.0+0865547519
+	- fabric-loot-api-v2 3.0.15+3f89f5a519
+	- fabric-loot-api-v3 1.0.3+3f89f5a519
+	- fabric-message-api-v1 6.0.14+8aaf3aca19
+	- fabric-networking-api-v1 4.3.1+d30f6a7919
+	- fabric-object-builder-api-v1 15.2.1+40875a9319
+	- fabric-particles-v1 4.0.2+6573ed8c19
+	- fabric-recipe-api-v1 5.0.16+2475392c19
+	- fabric-registry-sync-v0 5.3.2+e3eddc2119
+	- fabric-rendering-data-attachment-v1 0.3.49+73761d2e19
+	- fabric-rendering-fluids-v1 3.1.6+1daea21519
+	- fabric-resource-conditions-api-v1 4.3.0+8dc279b119
+	- fabric-resource-loader-v0 1.3.1+5b5275af19
+	- fabric-screen-handler-api-v1 1.3.91+b559734419
+	- fabric-tag-api-v1 1.3.0+1eb36c0719
+	- fabric-transfer-api-v1 5.4.4+7b3d111d19
+	- fabric-transitive-access-wideners-v1 6.2.0+45b9699719
+	- fabricloader 0.16.14
+	- java 21
+	- minecraft 1.21.1
+	- mixinextras 0.4.1
+[12:10:53] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.5+mixin.0.8.7/22f9eb729e216a091673a574a5906dc1b9027fb3/sponge-mixin-0.15.5+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[12:10:53] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[12:10:53] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_17
+[12:10:53] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_21
+[12:10:54] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubeApplier (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubeApplier)
+[12:10:54] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel)
+[12:10:54] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.4.1).
+[12:11:03] [main/INFO] (drmd) DRMD 6DOF initializing — 6DoF world mode (volume-first)
+[12:11:03] [main/INFO] (drmd) [drmd] 1.1.35-ufo-dev.1 on Minecraft 1.21.1 / loader 0.16.14 / 45 mods
+[12:11:03] [main/INFO] (drmd) [drmd] optional: immersive_portals=no, dimlib=no, sodium=no, iris=no
+[12:11:03] [main/INFO] (drmd) [drmd] access widener applied
+[12:11:03] [main/INFO] (drmd) DRMD server config — worldKind=STOCK worldModLevel=VANILLA netherBand=false endBand=false klondikeIslands=false macroWorldgen=false surfaceDistricts=false orbitJunk=false
+[12:11:03] [main/INFO] (drmd) Advanced-column pack registered, default activation=NORMAL
+[12:11:04] [main/INFO] (drmd) Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)
+[12:11:04] [main/INFO] (drmd) Registered DRMD map blocks
+[12:11:04] [main/INFO] (drmd) Registered closed Descent arsenal (41 open weapons)
+[12:11:04] [main/INFO] (drmd) Registered Phase3 world blocks & engineer tools
+[12:11:04] [main/INFO] (drmd) Registered DRMD block entities
+[12:11:04] [main/INFO] (drmd) Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)
+[12:11:04] [main/INFO] (drmd) World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)
+[12:11:04] [main/INFO] (drmd) Orbit junk / techno-ring scaffold registered
+[12:11:04] [main/INFO] (drmd) Portal complexity online — ImmPtl present=false
+[12:11:04] [main/INFO] (drmd) Registered ÆRis/Mirai step 6 density generator (drmd:aeris_test)
+[12:11:04] [main/INFO] (drmd) Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance
+[12:11:04] [main/INFO] (drmd) DRMD 6DOF ready — cubic body prototype + native portal frames + surface store
+[12:11:04] [main/INFO] (Minecraft) Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[12:11:04] [main/INFO] (FabricGameTestHelper) Starting test server
+[12:11:04] [Yggdrasil Key Fetcher/ERROR] (Minecraft) Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 9 more
+[12:11:06] [main/INFO] (Minecraft) Loaded 1379 recipes
+[12:11:06] [main/INFO] (Minecraft) Loaded 1400 advancements
+[12:11:07] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 68 new biomes in 2.037 ms
+[12:11:08] [Server thread/INFO] (Minecraft) Preparing start region for dimension minecraft:overworld
+[12:11:08] [Worker-Main-1/INFO] (Minecraft) Preparing spawn area: 8%
+[12:11:08] [Worker-Main-1/INFO] (Minecraft) Preparing spawn area: 22%
+[12:11:08] [Server thread/INFO] (Minecraft) Time elapsed: 590 ms
+[12:11:08] [Server thread/INFO] (Minecraft) Started game test server
+[12:11:08] [Server thread/INFO] (drmd) Megacity biome regions bound — megacity plate @ 3293 -3570 (4857 m) · biome drmd:megacity r=160
+[12:11:08] [Server thread/INFO] (drmd) Technogenic sea regions — drmd:technogenic_sea plate @ 4624 1395 (4830 m) · r=220
+[12:11:08] [Server thread/INFO] (drmd) Scorched lands regions — drmd:scorched_lands plate @ -1761 2627 (3163 m) · r=180
+[12:11:08] [Server thread/INFO] (drmd) Iron guild regions — drmd:iron_guild plate @ -2591 -1343 (2918 m) · r=140
+[12:11:08] [Server thread/INFO] (drmd) Surface events bound — sparse UFO/outpost rolls (≥400m from spawn)
+[12:11:08] [Server thread/INFO] (drmd) Construction registry ready (0 overrides)
+[12:11:08] [Server thread/INFO] (drmd) Restored 0 facilities from dimension sync
+[12:11:08] [Server thread/INFO] (drmd) Restored 0 meteor falls from dimension sync
+[12:11:08] [Server thread/INFO] (drmd) Dimension sync loaded — facilities=0 falls=0 lastDet=-1
+[12:11:08] [Server thread/INFO] (drmd) Surface store open at ./world/./drmd/surface
+[12:11:08] [Server thread/INFO] (Minecraft) 11 tests are now running at position 13437543, -59, -2390829!
+[12:11:10] [Server thread/INFO] (Minecraft) Running test batch 'u07-unknown-exit:0' (1 tests)...
+[12:11:10] [Server thread/INFO] (Minecraft) [           ]
+[12:11:10] [Server thread/INFO] (Minecraft) [           ]
+[12:11:10] [Server thread/INFO] (Minecraft) [           ]
+[12:11:11] [Server thread/INFO] (Minecraft) Running test batch 'u07-actor-cap-exit:0' (1 tests)...
+[12:11:11] [Server thread/INFO] (Minecraft) [+          ]
+[12:11:11] [Server thread/INFO] (Minecraft) [+          ]
+[12:11:11] [Server thread/INFO] (Minecraft) [+          ]
+[12:11:12] [Server thread/INFO] (Minecraft) [+_         ]
+[12:11:12] [Server thread/INFO] (Minecraft) Running test batch 'u07-coarse-wreck-wall:0' (1 tests)...
+[12:11:15] [Server thread/INFO] (Minecraft) [++         ]
+[12:11:16] [Server thread/INFO] (Minecraft) [++_        ]
+[12:11:16] [Server thread/INFO] (Minecraft) [STDOUT]: U07_COARSE_WALL_NEGATIVE observedOverlap=true finalMaxCorner=1.365115399999E7 worldTickDelta=8 actualBounds=[AABB[1.3651151945478586E7, 89.51448362549483, -2364829.518233765] -> [1.365115399999E7, 90.5902755450568, -2364827.481766235]]
+[12:11:16] [Server thread/INFO] (Minecraft) Running test batch 'u07-resource-rollback:0' (1 tests)...
+[12:11:18] [Server thread/INFO] (Minecraft) [+++        ]
+[12:11:19] [Server thread/INFO] (Minecraft) Running test batch 'u07-material-exit:0' (1 tests)...
+[12:11:19] [Server thread/INFO] (Minecraft) [++++       ]
+[12:11:19] [Server thread/INFO] (Minecraft) [++++       ]
+[12:11:20] [Server thread/INFO] (Minecraft) [++++_      ]
+[12:11:20] [Server thread/INFO] (Minecraft) Running test batch 'u07-real-target-cover:0' (1 tests)...
+[12:11:22] [Server thread/INFO] (Minecraft) [+++++      ]
+[12:11:22] [Server thread/INFO] (Minecraft) [+++++_     ]
+[12:11:22] [Server thread/INFO] (Minecraft) Running test batch 'u07-moving-oriented-exit:0' (1 tests)...
+[12:11:24] [Server thread/INFO] (Minecraft) [++++++     ]
+[12:11:25] [Server thread/INFO] (Minecraft) [++++++_    ]
+[12:11:25] [Server thread/INFO] (Minecraft) Running test batch 'u07-real-hit-interrupt:0' (1 tests)...
+[12:11:26] [Server thread/INFO] (Minecraft) [+++++++    ]
+[12:11:28] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 50 at (-6.5, -780.0, 3.5)
+[12:11:28] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:11:28] [Server thread/INFO] (Minecraft) [+++++++_   ]
+[12:11:28] [Server thread/INFO] (Minecraft) Running test batch 'u07-saved-identity:0' (1 tests)...
+[12:11:28] [Server thread/INFO] (Minecraft) [++++++++   ]
+[12:11:29] [Server thread/INFO] (Minecraft) [++++++++   ]
+[12:11:29] [Server thread/INFO] (Minecraft) Running test batch 'u07-natural-lethal-wreck:0' (1 tests)...
+[12:11:30] [Server thread/INFO] (Minecraft) [+++++++++  ]
+[12:11:31] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 58 at (2.5, -780.0, 10.5)
+[12:11:31] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:11:31] [Server thread/INFO] (Minecraft) [+++++++++_ ]
+[12:11:31] [Server thread/INFO] (Minecraft) [+++++++++_ ]
+[12:11:31] [Server thread/INFO] (Minecraft) [STDOUT]: U07_LETHAL_WRECK_PASS endpoint=(1.3650622205449041E7, 85.18550107883114, -2364813.404907144) death=Death[feet=(1.3650622205449041E7, 85.18550107883114, -2364813.404907144), centre=(1.3650622205449041E7, 85.98550109075207, -2364813.404907144), velocity=(0.33658511304760286, 0.0, 0.2161260429543465), yaw=25.0, pitch=0.0, bank=37.0, cause=(1.36506205E7, 90.0, -2364814.5), tick=484] corpse=7f17236a-49ac-4564-b2d7-ae405e63d8b0 initialAge=0 ageDelta=8 worldTickDelta=8
+[12:11:31] [Server thread/INFO] (Minecraft) Running test batch 'u07-natural-warning-commit:0' (1 tests)...
+[12:11:33] [Server thread/INFO] (Minecraft) [++++++++++ ]
+[12:11:33] [Server thread/INFO] (Minecraft) [++++++++++ ]
+[12:11:34] [Server thread/INFO] (Minecraft) [++++++++++_]
+[12:11:34] [Server thread/INFO] (Minecraft) [++++++++++_]
+[12:11:34] [Server thread/INFO] (Minecraft) [++++++++++_]
+[12:11:34] [Server thread/INFO] (Minecraft) [STDOUT]: U07_NATURAL_PASS ticks=70 age=70 phase=COOLDOWN remaining=0 cooldown=55 blinks=1 pos=(1.3647568591043724E7, 90.99604771791108, -2364805.026997984) energy=100.0 shield=30.0 hp=150.0 own=true shots=4 moving=true enemyHp=1016.0 actualDamage=true relay=Stats[tick=549, pending=0, maxPending=1, submitted=12, processed=12, starts=7, commits=2, refused=3, stale=0, maxGranted=8, queries=2, maxHulls=1, maxActors=33, maxVolumes=2, lastAdmission=CLEAR] warn=529 commit=549 energyBefore=100.0 after=80.0
+[12:11:34] [Server thread/INFO] (Minecraft) [+++++++++++]
+[12:11:34] [Server thread/INFO] (Minecraft) ========= 11 GAME TESTS COMPLETE IN 25.65 s ======================
+[12:11:34] [Server thread/INFO] (Minecraft) All 11 required tests passed :)
+[12:11:34] [Server thread/INFO] (Minecraft) ====================================================
+[12:11:34] [Server thread/INFO] (Minecraft) Stopping server
+[12:11:34] [Server thread/INFO] (Minecraft) Saving players
+[12:11:34] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:11:34] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:11:34] [Server thread/INFO] (Minecraft) Saving worlds
+[12:11:38] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[12:11:38] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[12:11:38] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[12:11:38] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[12:11:38] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[12:11:38] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[12:11:38] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13331,column,-2310] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13328,column,-2310] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13330,column,-2310] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L5 [820,column,-146] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L5 [833,column,-145] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L2 [6561,column,-1168] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L2 [6665,column,-1155] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L2 [6664,column,-1155] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26245,column,-4670] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26662,column,-4619] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26657,column,-4619] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26660,column,-4619] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L4 [1640,column,-292] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L4 [1666,column,-289] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L6 [410,column,-73] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L6 [416,column,-73] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L3 [3280,column,-584] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L3 [3332,column,-578] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13122,column,-2335] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13331,column,-2310] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13328,column,-2310] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13330,column,-2310] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L5 [820,column,-146] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L5 [833,column,-145] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L2 [6561,column,-1168] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L2 [6665,column,-1155] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L2 [6664,column,-1155] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26245,column,-4670] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26662,column,-4619] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26657,column,-4619] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L0 [26660,column,-4619] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L4 [1640,column,-292] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L4 [1666,column,-289] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L6 [410,column,-73] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L6 [416,column,-73] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L3 [3280,column,-584] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L3 [3332,column,-578] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/WARN] (drmd) Section L1 [13122,column,-2335] not written: java.nio.file.FileSystemException: /workspace/ungravity-v5/ufo-body-physics/build/gametest/./world/./drmd: No space left on device
+[12:11:38] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+[Incubating] Problems report is available at: file:///workspace/ungravity-v5/ufo-body-physics/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 56s
+8 actionable tasks: 2 executed, 6 up-to-date

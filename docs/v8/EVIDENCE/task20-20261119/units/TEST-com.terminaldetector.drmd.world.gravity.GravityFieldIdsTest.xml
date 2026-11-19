@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.terminaldetector.drmd.world.gravity.GravityFieldIdsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-19T12:07:53" hostname="98699ae39d96" time="0.754">
+  <properties/>
+  <testcase name="ordinarySavedCoordinatesKeepTheirHistoricalSourceIdentity()" classname="com.terminaldetector.drmd.world.gravity.GravityFieldIdsTest" time="0.751"/>
+  <testcase name="cubicLayersThatShareVanillaPackedYKeepSeparateStableSourceIdentities()" classname="com.terminaldetector.drmd.world.gravity.GravityFieldIdsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

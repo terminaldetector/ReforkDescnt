@@ -4216,5 +4216,36 @@
     "telegramPhotosRecompressedToJPEG": true,
     "noSourcesOrObserverPublished": true,
     "githubPublication": false
+  },
+  "task20Round20261119": {
+    "report": "TASK20_RESULT_2026-11-19.md",
+    "evidence": "EVIDENCE/task20-20261119/receipt.json",
+    "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+    "completedIds": [
+      "S02-T01",
+      "S02-T02",
+      "S02-T03",
+      "S02-T04",
+      "S05-T01",
+      "S05-T02",
+      "S05-T04",
+      "S05-T05",
+      "S05-T06",
+      "S06-T04",
+      "S06-T05",
+      "S10-T03",
+      "S10-T05",
+      "S11-T02",
+      "S12-T03",
+      "S13-T01",
+      "S14-T01",
+      "S14-T02",
+      "S14-T03",
+      "S14-T05"
+    ],
+    "unitTests": 33,
+    "ordinaryGameTests": 96,
+    "wholePacketsAccepted": 0,
+    "freshFinalClient": false
   }
 }

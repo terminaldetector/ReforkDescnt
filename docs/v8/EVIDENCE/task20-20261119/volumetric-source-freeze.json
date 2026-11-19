@@ -1,0 +1,52 @@
+{
+  "base": "f1cdb19153fd70050531d166000f0e5017e84951",
+  "files": [
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/VolumetricWorldAccess.java",
+      "bytes": 2369,
+      "sha256": "7b6abed24f330f39cceac41456a209289186214c1fbe8b522c50cb502216b9de"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicWorldAccess.java",
+      "bytes": 199,
+      "sha256": "577b5d56cf532d5cfddfe7a3f6189aaae86ba194a1556cc9a0391333307ef14b"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicAvailability.java",
+      "bytes": 6312,
+      "sha256": "7db554acf301f3a0e49ef2465aa2136849c6cf9a9b04da79bd10b358a6651276"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java",
+      "bytes": 2538,
+      "sha256": "29898c072042b73ec16b26429ed51a9ee44b7a886c2125b222d12368f72cc64c"
+    },
+    {
+      "path": "src/test/java/com/terminaldetector/drmd/VolumetricBoundsTest.java",
+      "bytes": 1688,
+      "sha256": "d34061bef37964c8dbc4249770af799a552494b4717ee782007007420b402a48"
+    },
+    {
+      "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessReadGameTests.java",
+      "bytes": 5151,
+      "sha256": "2499af039e358527a2524cddb654c4885101b8afe25a4552c40d1e338fb66d3d"
+    },
+    {
+      "path": "scripts/v8/verify_cubic_backend_evidence.py",
+      "bytes": 9079,
+      "sha256": "ea4a49205f9c5962a01f2e1e0ec389961a4dde7afb1afd58db6507f847ce0ff1"
+    }
+  ],
+  "workerJavaRuns": 0,
+  "requiredGate": {
+    "unit": [
+      "com.terminaldetector.drmd.VolumetricBoundsTest",
+      "com.terminaldetector.drmd.D6ChunkPosTest"
+    ],
+    "gametest": [
+      "com.terminaldetector.drmd.WorldAccessReadGameTests",
+      "com.terminaldetector.drmd.WorldAccessBatchGameTests",
+      "com.terminaldetector.drmd.CubeLifecycleGameTests"
+    ]
+  }
+}

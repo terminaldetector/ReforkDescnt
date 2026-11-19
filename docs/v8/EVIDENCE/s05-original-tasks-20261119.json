@@ -1,0 +1,525 @@
+{
+  "reviewedAtUtc": "2026-11-19T11:56:26.675950+00:00",
+  "currentCanonicalSource": "f1cdb19153fd70050531d166000f0e5017e84951",
+  "reviewType": "CPU-only evidence and exact component source parity; no new Java/native run",
+  "componentParity": {
+    "corePresentation": {
+      "nativeSource": "0107bd85e028b8aa0c035206848caf63f6c78632",
+      "nativeJars": {
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "ddfd49e5d9ba838de5e5835e6b1da6d0f63c773398c600c048c96902deec5387",
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "86e0227e87eb8c07edfeeadfff1fc633fdd9ed0aae90d3192e97ed411a1ff1aa"
+      },
+      "currentSourceMatches": true,
+      "files": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/PresentationOptions.java",
+          "sha256": "c55213bca5a2c46af4aa580f2e0ab876609dc55a64c3fdc3b12c576d9b453dc9",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/PresentationProfile.java",
+          "sha256": "9fbd792edbf964f89b2f7112e0269eeaa7dec518e6d813bd6682a80c507ced97",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/PresentationSize.java",
+          "sha256": "8162bafb1f0f06ed20e0ac56351fd897eb566448da279f660a1a0e9a8f288853",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/ScenePresentation.java",
+          "sha256": "504740ce8e302e8cd2c21d18f155667dd01bd62f76a5db0450fcd88c41cb745e",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/SceneTargets.java",
+          "sha256": "f512bdc2df2c8c1fedc2627eee7fd220a63c4e9bb072ebbd30d9d71003602fa2",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/OverlayContext.java",
+          "sha256": "cbde7576fd4b78d06d5cc0e12a260c401817d0a26299a1f737aed70a4004b82c",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1ColorOptions.java",
+          "sha256": "9afb97b12083bf879f063c5c8102e14017d5c2fdf4552f024333f453ac021d42",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1ColorPass.java",
+          "sha256": "88966e01d71c3ff7bf7b8e6dabce21fa1045863cd16567a29bdab7e45eea8fee",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/client/PresentationRendererMixin.java",
+          "sha256": "034c1352cefa691099a8c56b85eef9d444146e2a9c9bb41092b629ea79f85537",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/client/DebugWorldRasterMixin.java",
+          "sha256": "5033afe2bdbd35323dc4b1207d84080b235bdf65bf2d331bb47b1a6a26f705e9",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/client/ViewFramebufferAccess.java",
+          "sha256": "7318307d5587b340452b9d6e14636d748aa6774bebb5ef87a5f2b443c6886398",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/client/WorldViewTargetsAccess.java",
+          "sha256": "2a0ab677ade78d7c1b27bf1a041f9ddcf882ccd272cf06bdbefbdad5786630f4",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/resources/assets/drmd/shaders/core/ps1_colour.vsh",
+          "sha256": "26ce62d6e60d359b2ff1597b7312e8c85061b842d2e02ad188b23031d2179b8b",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/resources/assets/drmd/shaders/core/ps1_colour.fsh",
+          "sha256": "43f26d3ae28df818ec5e1c8c9d7dfcb49f9204e8afedf2cd3c987dbb060c42ff",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/resources/assets/drmd/shaders/core/ps1_colour.json",
+          "sha256": "0eb9987d34df80f813922dc10fc972d6d63c8bc2dceea245fd4ce694b6097fb8",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        }
+      ],
+      "buildStamp": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/integrated-0107bd8/verified-build.json",
+      "buildStampSha256": "2b89b5f297274bf751337638d0bbf538ca348cc68c1c4fe13a20f954d1d75f2d"
+    },
+    "authoredMobGeometry": {
+      "nativeSource": "c72ead5469510851308425063690c820750c5386",
+      "nativeJars": {
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "e129ea2768dc7d4232d74b7cfe7bdfb4ddeab808bc1e79227eaa925979d33bc3",
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "da7cd8eea42b81d826835c4470d84d2875df90b49083b9b1bda7822057d9eed3"
+      },
+      "currentSourceMatches": true,
+      "files": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1GeometryOptions.java",
+          "sha256": "02cd8b41fe84457d223ca5b60d7d5feaef9c3cab540238bd2a29dc708e62d3ec",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1BodyGeometryLayer.java",
+          "sha256": "57bfc857ef3bb10b28422401e180901f56dcd6eb7a217e99bf2adb3ceb863f64",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/DroneRenderer.java",
+          "sha256": "3c29aabb493557ce5a87a93116ccc727f1cb75b1d98fb798e29c381718a81a10",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/SpiderTurretRenderer.java",
+          "sha256": "eee5a8a1f81abcad9f67200acc78712841c75b9dbfd014a1822c7448091b6ff3",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/resources/assets/drmd/shaders/core/ps1_body_cutout.vsh",
+          "sha256": "050710440eaf4457749d9884682eb13aeaccadf7eb4c56b0a9c759e008148820",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/resources/assets/drmd/shaders/core/ps1_body_cutout.fsh",
+          "sha256": "871d9586e2ca33442351eec9a37df3ec18d5fdb8f537ca2222d8d5e06a195151",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        },
+        {
+          "path": "src/main/resources/assets/drmd/shaders/core/ps1_body_cutout.json",
+          "sha256": "fb275299006a84f83e6ee652e2b220ce0eb4981d019a7c67528f3bd78a7b2b0d",
+          "matchesActualNativeBuildInputAndCurrentSource": true
+        }
+      ],
+      "buildStamp": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/native-mob-geometry-c72ead54-first/verified-build.json",
+      "buildStampSha256": "54e3652157a1a21b4d02a3cb070e424c0662b3ceaac61d15163360da9a1c1bdb"
+    }
+  },
+  "archives": [
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/ps1-target-703ea85.zip",
+      "bytes": 3716496,
+      "sha256": "a9617e1d7bc36ec7889a8ccf0c26b37ed834531f02e327420270cd0372aea38b",
+      "members": 238,
+      "manifestPayloads": 237,
+      "verifiedPayloadBytes": 6045517,
+      "everyMemberSha256AndFullCrcVerifiedNow": true
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/ps1-debug-7df89aa.zip",
+      "bytes": 5277799,
+      "sha256": "2f09ff695b858f72dc0973b30c040c911a5812efe0f4a77e10ef67d8301e4d6a",
+      "members": 108,
+      "manifestPayloads": 107,
+      "verifiedPayloadBytes": 6855943,
+      "everyMemberSha256AndFullCrcVerifiedNow": true
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/ps1-color-8f1b3b1.zip",
+      "bytes": 8272491,
+      "sha256": "7fc5bbc6e6e2ed6a77dbb8a4d106188ebfa3606a59454e84e1a65baeb431ef77",
+      "members": 174,
+      "manifestPayloads": 173,
+      "verifiedPayloadBytes": 51326723,
+      "everyMemberSha256AndFullCrcVerifiedNow": true
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/ps1-viewmodel-b147534.zip",
+      "bytes": 7142040,
+      "sha256": "b1bb5d8cb03adc58ae7e161602e83237cf89238c7d84040a3f8b1198e1e60125",
+      "members": 132,
+      "manifestPayloads": 131,
+      "verifiedPayloadBytes": 9273939,
+      "everyMemberSha256AndFullCrcVerifiedNow": true
+    },
+    {
+      "path": "/workspace/ungravity-v5/ps1-geometry/docs/v8/EVIDENCE/ps1-body-geometry-b6666f9-first-sodium-positive.zip",
+      "bytes": 5354610,
+      "sha256": "f42311f79b1afce1cc03c028940621fd88f545d522d61564fd03531f666ae715",
+      "members": 208,
+      "manifestPayloads": 207,
+      "verifiedPayloadBytes": 133733175,
+      "everyMemberSha256AndFullCrcVerifiedNow": true
+    },
+    {
+      "path": "/workspace/ungravity-v5/ps1-geometry/docs/v8/EVIDENCE/ps1-body-geometry-faf1d46-first-actual-gl32-positive.zip",
+      "bytes": 5048613,
+      "sha256": "7bf6f65f1144d72d2626e60f402f916fcd5fc68229da9f8993d87779e0fce814",
+      "members": 221,
+      "manifestPayloads": 220,
+      "verifiedPayloadBytes": 133495068,
+      "everyMemberSha256AndFullCrcVerifiedNow": true
+    }
+  ],
+  "currentEquivalentCoreNative": {
+    "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+    "presentation": {
+      "runtimeToggleWithoutReload": true,
+      "actualWindowResizeAndRestore": true,
+      "exceptionTargetsRestored": true,
+      "debugPostprocessExceptionRestored": true,
+      "blockstoreHashUnchanged": true,
+      "independentHybridChoiceUnchanged": true,
+      "scenes": [
+        {
+          "scene": "native-baseline",
+          "profile": "HYBRID_NATIVE",
+          "sceneWidth": 1280,
+          "sceneHeight": 720,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "deferredOverlayPasses": 0,
+          "worldNearestGridRatio": 1.0,
+          "finalCompositeGridRatio": 1.0,
+          "nativeHudPixel": true,
+          "mirror": "drawing 1 of 1",
+          "reflectedGoldPixels": 28558,
+          "mergedMirrorSurfaces": 1,
+          "projectedMirrorPanes": 8,
+          "frameEpoch": 245,
+          "mirrorEpoch": 245,
+          "sampleEpoch": -1,
+          "glError": 0
+        },
+        {
+          "scene": "ps1-360",
+          "profile": "PS1_HYBRID",
+          "sceneWidth": 640,
+          "sceneHeight": 360,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "deferredOverlayPasses": 2,
+          "worldNearestGridRatio": 1.0,
+          "finalCompositeGridRatio": 0.9777083333333333,
+          "nativeHudPixel": true,
+          "mirror": "drawing 1 of 1",
+          "reflectedGoldPixels": 27772,
+          "mergedMirrorSurfaces": 1,
+          "projectedMirrorPanes": 8,
+          "frameEpoch": 260,
+          "mirrorEpoch": 260,
+          "sampleEpoch": 260,
+          "glError": 0
+        },
+        {
+          "scene": "native-restored",
+          "profile": "HYBRID_NATIVE",
+          "sceneWidth": 1280,
+          "sceneHeight": 720,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "deferredOverlayPasses": 0,
+          "worldNearestGridRatio": 1.0,
+          "finalCompositeGridRatio": 1.0,
+          "nativeHudPixel": true,
+          "mirror": "drawing 1 of 1",
+          "reflectedGoldPixels": 28558,
+          "mergedMirrorSurfaces": 1,
+          "projectedMirrorPanes": 8,
+          "frameEpoch": 263,
+          "mirrorEpoch": 263,
+          "sampleEpoch": -1,
+          "glError": 0
+        },
+        {
+          "scene": "debug-wireframe",
+          "profile": "RENDER_DEBUG",
+          "sceneWidth": 1280,
+          "sceneHeight": 720,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "deferredOverlayPasses": 2,
+          "worldNearestGridRatio": 1.0,
+          "finalCompositeGridRatio": 1.0,
+          "nativeHudPixel": true,
+          "mirror": "drawing 1 of 1",
+          "reflectedGoldPixels": 15,
+          "mergedMirrorSurfaces": 1,
+          "projectedMirrorPanes": 8,
+          "frameEpoch": 266,
+          "mirrorEpoch": 266,
+          "sampleEpoch": 266,
+          "glError": 0,
+          "debugWorldEdges": {
+            "hits": 327,
+            "horizontalBins": [
+              104,
+              118,
+              105
+            ],
+            "samples": 346,
+            "projectionEpoch": 266,
+            "sampleEpoch": 266,
+            "ratio": 0.9450867052023122,
+            "frameEpoch": 266
+          }
+        },
+        {
+          "scene": "ps1-180-resized",
+          "profile": "PS1_HYBRID",
+          "sceneWidth": 320,
+          "sceneHeight": 180,
+          "outputWidth": 960,
+          "outputHeight": 540,
+          "deferredOverlayPasses": 2,
+          "worldNearestGridRatio": 1.0,
+          "finalCompositeGridRatio": 0.95,
+          "nativeHudPixel": true,
+          "mirror": "drawing 1 of 1",
+          "reflectedGoldPixels": 15837,
+          "mergedMirrorSurfaces": 1,
+          "projectedMirrorPanes": 8,
+          "frameEpoch": 271,
+          "mirrorEpoch": 271,
+          "sampleEpoch": 271,
+          "glError": 0
+        },
+        {
+          "scene": "native-window-restored",
+          "profile": "HYBRID_NATIVE",
+          "sceneWidth": 1280,
+          "sceneHeight": 720,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "deferredOverlayPasses": 0,
+          "worldNearestGridRatio": 1.0,
+          "finalCompositeGridRatio": 1.0,
+          "nativeHudPixel": true,
+          "mirror": "drawing 1 of 1",
+          "reflectedGoldPixels": 28558,
+          "mergedMirrorSurfaces": 1,
+          "projectedMirrorPanes": 8,
+          "frameEpoch": 274,
+          "mirrorEpoch": 274,
+          "sampleEpoch": -1,
+          "glError": 0
+        }
+      ]
+    },
+    "colourStates": [
+      {
+        "scene": "raw256",
+        "requestedLevels": 256,
+        "requestedDither": 0.0,
+        "sourceSize": [
+          640,
+          360
+        ],
+        "mainSize": [
+          1280,
+          720
+        ],
+        "rgbAgreement": 1.0,
+        "badRgbSamples": 0,
+        "maximumNearestDepthDelta": 5.960464477539063e-08,
+        "worldNearestGridRatio": 1.0,
+        "glError": 0
+      },
+      {
+        "scene": "palette32",
+        "requestedLevels": 32,
+        "requestedDither": 0.0,
+        "sourceSize": [
+          640,
+          360
+        ],
+        "mainSize": [
+          1280,
+          720
+        ],
+        "rgbAgreement": 1.0,
+        "badRgbSamples": 0,
+        "maximumNearestDepthDelta": 5.960464477539063e-08,
+        "worldNearestGridRatio": 1.0,
+        "glError": 0
+      },
+      {
+        "scene": "dither32",
+        "requestedLevels": 32,
+        "requestedDither": 0.5,
+        "sourceSize": [
+          640,
+          360
+        ],
+        "mainSize": [
+          1280,
+          720
+        ],
+        "rgbAgreement": 1.0,
+        "badRgbSamples": 0,
+        "maximumNearestDepthDelta": 5.960464477539063e-08,
+        "worldNearestGridRatio": 1.0,
+        "glError": 0
+      },
+      {
+        "scene": "raw256-restored",
+        "requestedLevels": 256,
+        "requestedDither": 0.0,
+        "sourceSize": [
+          640,
+          360
+        ],
+        "mainSize": [
+          1280,
+          720
+        ],
+        "rgbAgreement": 1.0,
+        "badRgbSamples": 0,
+        "maximumNearestDepthDelta": 5.960464477539063e-08,
+        "worldNearestGridRatio": 1.0,
+        "glError": 0
+      },
+      {
+        "scene": "dither32-resized",
+        "requestedLevels": 32,
+        "requestedDither": 0.5,
+        "sourceSize": [
+          320,
+          180
+        ],
+        "mainSize": [
+          960,
+          540
+        ],
+        "rgbAgreement": 1.0,
+        "badRgbSamples": 0,
+        "maximumNearestDepthDelta": 5.960464477539063e-08,
+        "worldNearestGridRatio": 1.0,
+        "glError": 0
+      }
+    ],
+    "viewmodel": {
+      "nativePixels": 166,
+      "ps1Pixels": 166,
+      "requiredPixels": 125,
+      "sameCamera": true,
+      "sameModules": true,
+      "maximumProjectedVertexDeltaPixels": 0.0
+    }
+  },
+  "actualReceipts": [
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/integrated-0107bd8/native-pair-first/presentation/observed/presentation-ok.json",
+      "sha256": "a99293649fb25bdc3afa68e97731d6d63a255cce24dc9101162fc3de509ea10a"
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/integrated-0107bd8/native-pair-first/presentation/observed/ps1-color-ok.json",
+      "sha256": "6387c2b21de183701319b50537ce9966569c68b314e3701fc54db194b3343e9b"
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/integrated-0107bd8/native-pair-first/presentation/observed/viewmodel-proof/viewmodel-visibility.json",
+      "sha256": "c956ea2b4a86e1e5c4657995dcc670cb701f0d217e24dfd3a6275b4caa134487"
+    }
+  ],
+  "actualUiOrder": {
+    "namedJarSha256": "54090cdb9845087fe23841f50212eb6abbcd1833630b448ef0a6f2e2da50900b",
+    "gameRendererClassSha256": "0a7c26161c70ec4f968fd7bc58a59c7e1506646f3f3923830fc71c13ad14588a",
+    "calls": [
+      {
+        "caller": "render",
+        "callerDescriptor": "(Lnet/minecraft/client/render/RenderTickCounter;Z)V",
+        "offset": 244,
+        "opcode": 182,
+        "owner": "net/minecraft/client/render/GameRenderer",
+        "member": "renderWorld",
+        "descriptor": "(Lnet/minecraft/client/render/RenderTickCounter;)V"
+      },
+      {
+        "caller": "render",
+        "callerDescriptor": "(Lnet/minecraft/client/render/RenderTickCounter;Z)V",
+        "offset": 602,
+        "opcode": 182,
+        "owner": "net/minecraft/client/gui/hud/InGameHud",
+        "member": "render",
+        "descriptor": "(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/client/render/RenderTickCounter;)V"
+      },
+      {
+        "caller": "render",
+        "callerDescriptor": "(Lnet/minecraft/client/render/RenderTickCounter;Z)V",
+        "offset": 741,
+        "opcode": 182,
+        "owner": "net/minecraft/client/gui/screen/Screen",
+        "member": "renderWithTooltip",
+        "descriptor": "(Lnet/minecraft/client/gui/DrawContext;IIF)V"
+      },
+      {
+        "caller": "renderWorld",
+        "callerDescriptor": "(Lnet/minecraft/client/render/RenderTickCounter;)V",
+        "offset": 580,
+        "opcode": 182,
+        "owner": "net/minecraft/client/render/WorldRenderer",
+        "member": "render",
+        "descriptor": "(Lnet/minecraft/client/render/RenderTickCounter;ZLnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/GameRenderer;Lnet/minecraft/client/render/LightmapTextureManager;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"
+      },
+      {
+        "caller": "renderWorld",
+        "callerDescriptor": "(Lnet/minecraft/client/render/RenderTickCounter;)V",
+        "offset": 620,
+        "opcode": 182,
+        "owner": "net/minecraft/client/render/GameRenderer",
+        "member": "renderHand",
+        "descriptor": "(Lnet/minecraft/client/render/Camera;FLorg/joml/Matrix4f;)V"
+      }
+    ]
+  },
+  "recommendCompleteOriginalTaskIds": [
+    "S05-T01",
+    "S05-T02",
+    "S05-T04",
+    "S05-T05",
+    "S05-T06"
+  ],
+  "stillOpen": [
+    "S05-T03 altitude-dependent sky-ground/asteroid fade continuity",
+    "S04-T06 high-altitude smoothly decaying LOD",
+    "S15-T03 separate portal FBO current combined matrix not independently reviewed in this packet",
+    "full ENGINE B / U16 / U17 / U21",
+    "physical Intel GPU/performance",
+    "smooth/translucent/near chunk snap/affine",
+    "normals/LOD/collision Debug visualizers",
+    "full S04 dependency and both master specifications"
+  ]
+}

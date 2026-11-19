@@ -1,0 +1,234 @@
+{
+  "upstream": {
+    "status": "PASS",
+    "artifact": {
+      "path": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+      "bytes": 806910,
+      "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+      "zipCrc": "PASS",
+      "entries": 465
+    },
+    "metadata": {
+      "schemaVersion": 1,
+      "id": "bettercubicchunks",
+      "version": "0.1.1+mc1.21.1",
+      "name": "Better Cubic Chunks",
+      "description": "Cubic chunks for Minecraft 1.21.1: worlds that stream vertically as well as horizontally, with a new altitude-layered world generator.",
+      "authors": [
+        "fallingcloud"
+      ],
+      "contact": {
+        "sources": "https://github.com/rainerileon-cmyk/Better-Cubic-Chunks",
+        "issues": "https://github.com/rainerileon-cmyk/Better-Cubic-Chunks/issues"
+      },
+      "license": "All-Rights-Reserved",
+      "icon": "assets/bettercubicchunks/icon.png",
+      "environment": "*",
+      "entrypoints": {
+        "main": [
+          "dev.fallingcloud.bettercubicchunks.fabric.BetterCubicChunksFabric"
+        ],
+        "client": [
+          "dev.fallingcloud.bettercubicchunks.fabric.client.BetterCubicChunksFabricClient"
+        ]
+      },
+      "mixins": [
+        "bettercubicchunks.mixins.json",
+        "bettercubicchunks.fabric.mixins.json"
+      ],
+      "depends": {
+        "fabricloader": ">=0.19.5",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*"
+      },
+      "custom": {
+        "modmenu": {
+          "links": {
+            "modmenu.github_releases": "https://github.com/rainerileon-cmyk/Better-Cubic-Chunks/releases"
+          }
+        }
+      }
+    },
+    "licenseResourceSha256": "bd7d7bc9fa19d09cc61f706a679c822dbfdf19e3e908dfd9f77f37ba5ae59adc",
+    "buildManifest": "Manifest-Version: 1.0\r\nSpecification-Title: Better Cubic Chunks\r\nSpecification-Vendor: fallingcloud\r\nSpecification-Version: 0.1.1\r\nImplementation-Title: Better Cubic Chunks (fabric)\r\nImplementation-Version: 0.1.1+mc1.21.1\r\nImplementation-Vendor: fallingcloud\r\nBuilt-On-Minecraft: 1.21.1\r\nFabric-Jar-Type: classes\r\nFabric-Loom-Mixin-Remap-Type: static\r\nFabric-Gradle-Version: 9.8.0\r\nFabric-Loom-Version: 1.17.21\r\nFabric-Mixin-Compile-Extensions-Version: 0.6.0\r\nFabric-Minecraft-Version: 1.21.1\r\nFabric-Tiny-Remapper-Version: 0.14.0\r\nFabric-Loader-Version: 0.19.5\r\nFabric-Mixin-Version: 0.17.4+mixin.0.8.7\r\nFabric-Mixin-Group: net.fabricmc\r\nFabric-Mapping-Namespace: intermediary\r\n\r\n",
+    "nativeHeight": {
+      "bottomY": -16384,
+      "topYExclusive": 16384,
+      "sections": 2048
+    },
+    "preset": "bettercubicchunks:cubic_default",
+    "implementationSourceCopied": false
+  },
+  "historical": {
+    "status": "HISTORICAL_EVIDENCE_REVERIFIED",
+    "archives": [
+      {
+        "path": "/workspace/ungravity-v5/checkpoints/gate0-server/evidence.zip",
+        "bytes": 608420,
+        "sha256": "a8e62b0e5f93e0ebf95652789e9b21990e981ccd440b80121c7c28e530b173e5",
+        "zipCrc": "PASS",
+        "entries": 106
+      },
+      {
+        "path": "/workspace/ungravity-v5/checkpoints/cubic-lighting-1.1.18/native-evidence.zip",
+        "bytes": 11998102,
+        "sha256": "12a8c9eaf586173a9222f148e0fd74d3db12a80cba589e1ba3e9b390a9d31f0c",
+        "zipCrc": "PASS",
+        "entries": 356
+      },
+      {
+        "path": "/workspace/ungravity-v5/checkpoints/world-access-1.1.19/native-evidence.zip",
+        "bytes": 5741542,
+        "sha256": "416d9181bee2e98e50ad97bb152ca3fa30a96de591902580761ed78d48a663f2",
+        "zipCrc": "PASS",
+        "entries": 77
+      }
+    ],
+    "newSaves": [
+      {
+        "seed": 261026,
+        "sourceSha": "3da4231510eabb350916530258d55f6326c0f6f0",
+        "game": {
+          "path": "/workspace/ungravity-v5/checkpoints/gate0-server/drmd-6dof-1.1.16-physics.1.jar",
+          "bytes": 1801546,
+          "sha256": "b7626c1faeb2c55ca844029775ba6fdfe6f3ca0820fdfb16e8e5b7792601fe57"
+        },
+        "logEntry": "server-fixed.log",
+        "logSha256": "51363e81ad5c403670f0318349d485033e3cf5c6754d6147621e0f54d3e3cd26",
+        "witnesses": [
+          {
+            "pattern": "No existing world data, creating new world",
+            "line": 88,
+            "text": "[17:25:18] [main/INFO]: No existing world data, creating new world"
+          },
+          {
+            "pattern": "Cubic streaming enabled for minecraft:overworld",
+            "line": 106,
+            "text": "[17:25:19] [Server thread/INFO]: Cubic streaming enabled for minecraft:overworld (1 worker threads, vertical load distance 8 cubes, cubes more than 3 below the ground wait to be seen)"
+          },
+          {
+            "pattern": "Stamped world with position packing TALL",
+            "line": 143,
+            "text": "[17:25:27] [Server thread/INFO]: Stamped world with position packing TALL"
+          },
+          {
+            "pattern": "Done \\(",
+            "line": 146,
+            "text": "[17:25:27] [Server thread/INFO]: Done (7.913s)! For help, type \"help\""
+          },
+          {
+            "pattern": "Starting minecraft server version 1\\.21\\.1",
+            "line": 93,
+            "text": "[17:25:19] [Server thread/INFO]: Starting minecraft server version 1.21.1"
+          },
+          {
+            "pattern": "Seed: \\[261026\\]",
+            "line": 158,
+            "text": "[17:25:36] [Server thread/INFO]: Seed: [261026]"
+          },
+          {
+            "pattern": "y=\\s+2144\\.\\.\\s+2159\\s+FULL",
+            "line": 277,
+            "text": "[17:28:33] [Server thread/INFO]:   y=  2144..  2159  FULL      M-G  [air]"
+          },
+          {
+            "pattern": "\\.mcr3d",
+            "line": 352,
+            "text": "          \"path\": \"./gate-v5-cubic-fixed/cubes/r.0.0.0.mcr3d\","
+          }
+        ]
+      },
+      {
+        "seed": 271026,
+        "sourceSha": "cbf275e8444a02d11b8fe256cf210d7ad52b06a7",
+        "game": {
+          "path": "/workspace/ungravity-v5/world/build/cubic-seed2-gate/mods/drmd-6dof-1.1.18-cubic.1.jar",
+          "bytes": 1867209,
+          "sha256": "c7cf1bfbc5f02d2f752abb89a74b85040034b237c9d47103e053fe1b867ac550"
+        },
+        "logEntry": "work/gate0/server-seed2.log",
+        "logSha256": "e7805e0fc5f1dadeb06821378d0ba1b9ba0b228d72ec3e8df10304374e723c6a",
+        "witnesses": [
+          {
+            "pattern": "No existing world data, creating new world",
+            "line": 74,
+            "text": "[01:40:14] [main/INFO]: No existing world data, creating new world"
+          },
+          {
+            "pattern": "Cubic streaming enabled for minecraft:overworld",
+            "line": 92,
+            "text": "[01:40:16] [Server thread/INFO]: Cubic streaming enabled for minecraft:overworld (1 worker threads, vertical load distance 8 cubes, cubes more than 3 below the ground wait to be seen)"
+          },
+          {
+            "pattern": "Stamped world with position packing TALL",
+            "line": 130,
+            "text": "[01:40:24] [Server thread/INFO]: Stamped world with position packing TALL"
+          },
+          {
+            "pattern": "Done \\(",
+            "line": 133,
+            "text": "[01:40:24] [Server thread/INFO]: Done (8.405s)! For help, type \"help\""
+          },
+          {
+            "pattern": "Starting minecraft server version 1\\.21\\.1",
+            "line": 79,
+            "text": "[01:40:15] [Server thread/INFO]: Starting minecraft server version 1.21.1"
+          },
+          {
+            "pattern": "Seed: \\[271026\\]",
+            "line": 145,
+            "text": "[01:41:11] [Server thread/INFO]: Seed: [271026]"
+          }
+        ]
+      }
+    ],
+    "nativeLifecycle": {
+      "status": "OBSERVED_NATIVE_LOAD_UNLOAD_PASS",
+      "cube": [
+        0,
+        143,
+        0
+      ],
+      "parentColumnRetained": true,
+      "singleExternalTicket": true,
+      "observerTickets": 0,
+      "ticks": 1300,
+      "events": 4
+    },
+    "lifecycleWitness": [
+      {
+        "pattern": "CUBIC_LIFECYCLE_PASS ticks=1300.*change=UNAVAILABLE.*change=AVAILABLE.*change=UNAVAILABLE.*change=CLOSED",
+        "line": 244,
+        "text": "[05:41:46] [Server thread/INFO]: [STDOUT]: CUBIC_LIFECYCLE_PASS ticks=1300 events=[Event[dimension=ResourceKey[minecraft:dimension / minecraft:overworld], session=1, cube=D6ChunkPos[0, 143, 0], change=UNAVAILABLE, available=false], Event[dimension=ResourceKey[minecraft:dimension / minecraft:overworld], session=1, cube=D6ChunkPos[0, 143, 0], change=AVAILABLE, available=true], Event[dimension=ResourceKey[minecraft:dimension / minecraft:overworld], session=1, cube=D6ChunkPos[0, 143, 0], change=UNAVAILABLE, available=false], Event[dimension=ResourceKey[minecraft:dimension / minecraft:overworld], session=1, cube=D6ChunkPos[0, 143, 0], change=CLOSED, available=false]]"
+      }
+    ],
+    "clientSourceSha": "0f76a0789fe8cb62ff98c3e08d6232f222d72cb8",
+    "clientGame": {
+      "path": "/workspace/ungravity-v5/checkpoints/world-access-1.1.19/drmd-6dof-1.1.19-world.1-fabric-1.21.1.jar",
+      "bytes": 1899678,
+      "sha256": "3df5cfcbd41c03af0df44c28e2f11fd18f9754c0571ca7895bea0e4d38319298"
+    },
+    "testedObserverSources": {
+      "src/cubiccheck/java/com/terminaldetector/drmd/gate/CubicClientGate.java": "eaf3e11fb3a3f0b0fe82b636e39af148f1b3db4935f417e95d074cf98f7b0445",
+      "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeCubeLifecycleGate.java": "a6f0c50bf02ede2658fba989eee8c607a05cae117b11fcfae3c22a0e7cd5ac12"
+    },
+    "clientChecks": [
+      "native_client_world_access_distinguishes_unknown_from_air",
+      "high_container_type_and_synced_sign_nbt",
+      "six_dof_vertical_seam",
+      "native_water_cross_xyz_cube_boundaries",
+      "native_blocklight_cross_xy_boundary",
+      "native_blocklight_removal",
+      "native_skylight_occlusion",
+      "native_skylight_restoration",
+      "native_skylight_restoration_two_lower_cubes",
+      "native_negative_blocklight_synced",
+      "negative_container_type_and_synced_sign_nbt",
+      "independent_vertical_be_unload",
+      "native_skylight_after_vertical_reload",
+      "native_chunk_mesh_uses_warped_hybrid_terrain"
+    ],
+    "scope": "Isolated historical Fabric+BCC+DRMD new saves, native bounds and independent 16^3 unload; not an upstream-only or current-candidate runtime rerun"
+  }
+}

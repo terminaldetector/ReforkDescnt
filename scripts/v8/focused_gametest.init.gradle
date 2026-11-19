@@ -1,0 +1,34 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+// Select existing ordinary entrypoints for a fresh disposable GameTest world.
+gradle.projectsEvaluated {
+    def root = rootProject
+    def requested = root.providers.gradleProperty('drmdGameTests').getOrElse('')
+        .split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+    if (requested.isEmpty() || requested.size() != requested.toSet().size()) {
+        throw new GradleException('Set -PdrmdGameTests to distinct registered GameTest class names')
+    }
+    def sourceManifest = new JsonSlurper().parse(root.file('src/gametest/resources/fabric.mod.json'))
+    def unknown = requested.findAll { !sourceManifest.entrypoints['fabric-gametest'].contains(it) }
+    if (!unknown.isEmpty()) {
+        throw new GradleException("Unregistered GameTest classes: ${unknown.join(', ')}")
+    }
+    root.tasks.named('processGametestResources') {
+        inputs.property('drmdFocusedGameTests', requested)
+        outputs.upToDateWhen { false }
+        doLast {
+            def generated = new File(destinationDir, 'fabric.mod.json')
+            def manifest = new JsonSlurper().parse(generated)
+            manifest.entrypoints['fabric-gametest'] = requested
+            generated.text = JsonOutput.prettyPrint(JsonOutput.toJson(manifest)) + '\n'
+        }
+    }
+    root.tasks.named('runGametest') {
+        doFirst {
+            if (root.file('build/gametest/world').exists()) {
+                throw new GradleException('Move the closed GameTest fixture to the evidence directory before running again')
+            }
+        }
+    }
+}

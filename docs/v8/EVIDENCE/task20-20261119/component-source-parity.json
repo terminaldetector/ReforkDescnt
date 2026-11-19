@@ -1,0 +1,47 @@
+{
+  "corePresentation": {
+    "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+    "nativeSource": "0107bd85e028b8aa0c035206848caf63f6c78632",
+    "sha256ByPath": {
+      "src/main/java/com/terminaldetector/drmd/client/presentation/PresentationOptions.java": "c55213bca5a2c46af4aa580f2e0ab876609dc55a64c3fdc3b12c576d9b453dc9",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/PresentationProfile.java": "9fbd792edbf964f89b2f7112e0269eeaa7dec518e6d813bd6682a80c507ced97",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/PresentationSize.java": "8162bafb1f0f06ed20e0ac56351fd897eb566448da279f660a1a0e9a8f288853",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/ScenePresentation.java": "504740ce8e302e8cd2c21d18f155667dd01bd62f76a5db0450fcd88c41cb745e",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/SceneTargets.java": "f512bdc2df2c8c1fedc2627eee7fd220a63c4e9bb072ebbd30d9d71003602fa2",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/OverlayContext.java": "cbde7576fd4b78d06d5cc0e12a260c401817d0a26299a1f737aed70a4004b82c",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1ColorOptions.java": "9afb97b12083bf879f063c5c8102e14017d5c2fdf4552f024333f453ac021d42",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1ColorPass.java": "88966e01d71c3ff7bf7b8e6dabce21fa1045863cd16567a29bdab7e45eea8fee",
+      "src/main/java/com/terminaldetector/drmd/mixin/client/PresentationRendererMixin.java": "034c1352cefa691099a8c56b85eef9d444146e2a9c9bb41092b629ea79f85537",
+      "src/main/java/com/terminaldetector/drmd/mixin/client/DebugWorldRasterMixin.java": "5033afe2bdbd35323dc4b1207d84080b235bdf65bf2d331bb47b1a6a26f705e9",
+      "src/main/java/com/terminaldetector/drmd/mixin/client/ViewFramebufferAccess.java": "7318307d5587b340452b9d6e14636d748aa6774bebb5ef87a5f2b443c6886398",
+      "src/main/java/com/terminaldetector/drmd/mixin/client/WorldViewTargetsAccess.java": "2a0ab677ade78d7c1b27bf1a041f9ddcf882ccd272cf06bdbefbdad5786630f4",
+      "src/main/resources/assets/drmd/shaders/core/ps1_colour.vsh": "26ce62d6e60d359b2ff1597b7312e8c85061b842d2e02ad188b23031d2179b8b",
+      "src/main/resources/assets/drmd/shaders/core/ps1_colour.fsh": "43f26d3ae28df818ec5e1c8c9d7dfcb49f9204e8afedf2cd3c987dbb060c42ff",
+      "src/main/resources/assets/drmd/shaders/core/ps1_colour.json": "0eb9987d34df80f813922dc10fc972d6d63c8bc2dceea245fd4ce694b6097fb8"
+    }
+  },
+  "authoredMobGeometry": {
+    "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+    "nativeSource": "c72ead5469510851308425063690c820750c5386",
+    "sha256ByPath": {
+      "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1GeometryOptions.java": "02cd8b41fe84457d223ca5b60d7d5feaef9c3cab540238bd2a29dc708e62d3ec",
+      "src/main/java/com/terminaldetector/drmd/client/presentation/Ps1BodyGeometryLayer.java": "57bfc857ef3bb10b28422401e180901f56dcd6eb7a217e99bf2adb3ceb863f64",
+      "src/main/java/com/terminaldetector/drmd/client/render/DroneRenderer.java": "3c29aabb493557ce5a87a93116ccc727f1cb75b1d98fb798e29c381718a81a10",
+      "src/main/java/com/terminaldetector/drmd/client/render/SpiderTurretRenderer.java": "eee5a8a1f81abcad9f67200acc78712841c75b9dbfd014a1822c7448091b6ff3",
+      "src/main/resources/assets/drmd/shaders/core/ps1_body_cutout.vsh": "050710440eaf4457749d9884682eb13aeaccadf7eb4c56b0a9c759e008148820",
+      "src/main/resources/assets/drmd/shaders/core/ps1_body_cutout.fsh": "871d9586e2ca33442351eec9a37df3ec18d5fdb8f537ca2222d8d5e06a195151",
+      "src/main/resources/assets/drmd/shaders/core/ps1_body_cutout.json": "fb275299006a84f83e6ee652e2b220ce0eb4981d019a7c67528f3bd78a7b2b0d"
+    }
+  },
+  "clusterPrimaryFiles": {
+    "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+    "nativeSource": "6d932620c39ad78d1efc050eca9b96a1f05530e4",
+    "sha256ByPath": {
+      "src/main/java/com/terminaldetector/drmd/client/render/AerialBombRenderer.java": "b44aac61dfdddb09e84de53dc45fdf05276ce5aaf550920dbbb59eb982fb1943",
+      "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java": "0c7947e45afc8879bf2031ddf5fdc0192e35e0ad2a4f8ad1af5d5ce80b08b9c1",
+      "src/main/java/com/terminaldetector/drmd/world/bombardment/AerialBombEntity.java": "ff759fd0e86f5d213e8f18dff0ab489fffb4eb796f1f50cb126f89e8b6e9227f",
+      "src/main/java/com/terminaldetector/drmd/world/bombardment/ClusterFlight.java": "45e670c428ddd7e1eff16b35eaf8559cbd7fe5e7a196ef8c4a8a855cf41200b0",
+      "src/main/java/com/terminaldetector/drmd/world/bombardment/ClusterProgram.java": "86ea47fabac8ad94a232f5c8d0da449a9a43fa214f2f64871b15b9687e8d6173"
+    }
+  }
+}

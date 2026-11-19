@@ -1,0 +1,1 @@
+com.terminaldetector.drmd.TeleportFlyerGameTests,com.terminaldetector.drmd.TeleportFlyerDataGameTests,com.terminaldetector.drmd.TeleportFlyerWreckGameTests

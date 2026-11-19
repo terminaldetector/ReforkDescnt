@@ -1,0 +1,68 @@
+{
+  "canonicalBase": "f1cdb19153fd70050531d166000f0e5017e84951",
+  "native": {
+    "artifactSha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+    "registryBounds": [
+      -16384,
+      16384
+    ],
+    "sectionEdge": 16,
+    "sectionsPerColumn": 2048,
+    "rawBoundsAssertion": "src/cubiccheck/java/com/terminaldetector/drmd/gate/CubicClientGate.java:124",
+    "rawIndependentLifecycle": "backend-evidence-corrected.json/historical/nativeLifecycle",
+    "nativeStorage": ".mcr3d",
+    "authority": "real current native FULL metadata; client ClientCubes.isCubeLoaded"
+  },
+  "supplementalSnapshots": {
+    "authority": false,
+    "default": "opt-in drmd.cubicSnapshots, JVM Boolean.getBoolean defaults false",
+    "storage": "drmd/cubes/<dimension>/<cx>_<cy>_<cz>.nbt",
+    "behavior": "bounded 512 observed snapshots, two captured per tick from already loaded parent column; does not establish independent vertical streaming or native light/ticking/networking",
+    "source": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/cubic/CubicWorldSystem.java",
+      "bytes": 8935,
+      "sha256": "6f14f360564b70d570767451f11e5e6ff42c2a6081d23c14c5b59050c1293b5c"
+    },
+    "configSource": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/DrmdServerConfig.java",
+      "bytes": 14449,
+      "sha256": "6d912062883d4f51328098ab177c4ce86ae08c46ff8a6bc625fab4a7119643c1"
+    }
+  },
+  "retiredAdvancedRegistry": {
+    "source": {
+      "path": "src/main/resources/resourcepacks/advanced_column/data/minecraft/dimension_type/overworld.json",
+      "bytes": 548,
+      "sha256": "8414ddf07c5e3900ca32c5f544449bd8f72a631ebd73d4697af913b8e2ac0629"
+    },
+    "dimension": {
+      "ultrawarm": false,
+      "natural": true,
+      "piglin_safe": false,
+      "respawn_anchor_works": false,
+      "bed_works": true,
+      "has_raids": true,
+      "has_skylight": true,
+      "has_ceiling": false,
+      "coordinate_scale": 1.0,
+      "ambient_light": 0.0,
+      "logical_height": 2672,
+      "effects": "minecraft:overworld",
+      "infiniburn": "#minecraft:infiniburn_overworld",
+      "min_y": -784,
+      "height": 2672,
+      "monster_spawn_block_light_limit": 0,
+      "monster_spawn_light_level": {
+        "type": "minecraft:uniform",
+        "min_inclusive": 0,
+        "max_inclusive": 7
+      }
+    },
+    "authority": "registry-height override only; not native16cube streaming"
+  },
+  "limitations": [
+    "Existing optional snapshot unknown-Y resample risk remains unrun; no corruption claim from opt-in cache presence.",
+    "Bounds, native packing limits, FULL and BLOCK_TICKING are different contracts.",
+    "Historical runtime is not a current candidate rerun or the complete S02-T05 parity matrix."
+  ]
+}

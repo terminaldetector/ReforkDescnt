@@ -1,0 +1,87 @@
+{
+  "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+  "passed": 96,
+  "unitPassed": 33,
+  "requiredGameTests": 96,
+  "gradleExit": 0,
+  "artifacts": {
+    "observer": {
+      "path": "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+      "bytes": 741536,
+      "sha256": "5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd",
+      "id": "drmd_cubiccheck",
+      "version": "0.0.1",
+      "zipCRC": true
+    },
+    "game": {
+      "path": "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "bytes": 3221672,
+      "sha256": "4092dce3df4a8e5a7c98595b96697e68cc6bb6bed158332aac7f83bffa15fc4b",
+      "id": "drmd",
+      "version": "1.1.35-ufo-dev.1",
+      "zipCRC": true
+    }
+  },
+  "testClasses": 19,
+  "freshFinalClient": false,
+  "identicalEarlierProductionArtifacts": "f40dfa564edaf94982f971e88db07a09bfb8cac4",
+  "fixtureFilesOnlyChangedSinceFirstBuild": true,
+  "teleporterTraces": [
+    {
+      "name": "actual-corpse-7b54e1a4-621a-4f5c-9f3a-0be95c411065.dat",
+      "bytes": 467,
+      "sha256": "3031215a58fcc22c25e7f35a60b31be367ca7f1b2e7a62836a14c002052e43d1"
+    },
+    {
+      "name": "pending-flyer-fd8f1919-adff-4269-a7d8-9b56f7c90916.dat",
+      "bytes": 584,
+      "sha256": "f3927310c71d1d94b9cd5a3a81ec8426c5c4591cfb3c97d4b52a07c16381f228"
+    },
+    {
+      "name": "u07-1a7e29c0-a848-4c89-92cd-4b8173caf8b0.jsonl",
+      "bytes": 21365,
+      "sha256": "b869f056b83db6236062897244449b8de626fa0aa86f43f588491a6164f61d29"
+    },
+    {
+      "name": "u07-3d8b81a7-c9c9-4c6b-873f-ed641ef214cf.jsonl",
+      "bytes": 2669,
+      "sha256": "7995efa09aa33ecf290239ccebeb70e2ab004b51ff3cf80c13d3fdcba0b1ca98"
+    },
+    {
+      "name": "u07-5071bddd-b25b-4cd1-923a-f001da3b053f.jsonl",
+      "bytes": 22574,
+      "sha256": "7618c4e2d99a911025de67b7164ed64aa46450032b6222b4dc1f9a3e1b534a18"
+    },
+    {
+      "name": "u07-611b9b1f-4685-4179-b1fa-0503d15f644f.jsonl",
+      "bytes": 35708,
+      "sha256": "65e7a88d3625ab44ed2847d7440a5f2b8a5292d3854096c32544c71f54889155"
+    },
+    {
+      "name": "u07-a937ae09-ccc1-4e9e-a696-cdaed232410f.jsonl",
+      "bytes": 6617,
+      "sha256": "bd854bab009007b29a30580796e035a1eca451af2c0121836c6ab9451cd8b827"
+    },
+    {
+      "name": "u07-ac2cd1a5-2022-46f2-9ab8-063fd4f06de1.jsonl",
+      "bytes": 16529,
+      "sha256": "4d376fe1e370aa5c9c70ad5653050dcccae731789587fe911173cca86bd047dc"
+    },
+    {
+      "name": "u07-d411b27e-8504-4365-84eb-afc68384ddfb.jsonl",
+      "bytes": 5404,
+      "sha256": "3d0ec3970e3919e0e6547661a0a5b8e1f34027be1c801d34f3416129cd7656a9"
+    },
+    {
+      "name": "u07-edc88f70-b743-4d8b-82d2-b970a329593f.jsonl",
+      "bytes": 11028,
+      "sha256": "0bc4b732d2257fe5835c5752beb0560c89141cb09a7e6c548c164b68d173a3cf"
+    }
+  ],
+  "teleporterTraceArchive": {
+    "path": "union-teleporter-traces.zip",
+    "bytes": 12422,
+    "sha256": "f7c3d0e1e6a88e83c1042d6efa4979c11b3f20a7af8d49fdc90b0f20eb478c7d",
+    "fullCRCAndMemberSHA256": true
+  }
+}

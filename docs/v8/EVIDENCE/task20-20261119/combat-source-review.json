@@ -1,0 +1,121 @@
+{
+  "canonical_base": "f1cdb19153fd70050531d166000f0e5017e84951",
+  "worker_source": "8fa2be22accc6447585ea21d835d9154be9affbc",
+  "not_a_task_ledger_change": true,
+  "not_new_runtime_proof": true,
+  "candidates": [
+    {
+      "id": "S10-T03",
+      "title": "Implement first-person cluster carrier/staged structured spread/impact and cleanup",
+      "assessment": "Literal implementation satisfied by current canonical; root may close after current union acceptance.",
+      "implementation": [
+        "world/bombardment/ClusterProgram.java",
+        "world/bombardment/ClusterFlight.java",
+        "world/bombardment/AerialBombEntity.java",
+        "client/render/AerialBombRenderer.java",
+        "client/render/WeaponViewRenderer.java"
+      ],
+      "evidence": [
+        "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md: corrected ba30 seven unit and21 ordinary tests",
+        "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md: native6d932 actual primary/secondary7/14 input+roll+offflight inventory; final9226 eighteen-class parity"
+      ],
+      "ordinary_classes": [
+        "ProgrammedClusterGameTests",
+        "ClusterLifecycleGameTests",
+        "BombBayVelocityGameTests",
+        "DroneTriggerEdgeGameTests"
+      ],
+      "open_outside_literal_title": [
+        "Separate-process cold restart of a programmed live carrier",
+        "All arbitrary modded protection/remote client/display profiles"
+      ]
+    },
+    {
+      "id": "S11-T02",
+      "title": "Verify spatial-hash bounded neighbours, group steering and collision avoidance",
+      "assessment": "Current bounded implementation already real. Four independent spatial tests + actual192-actor query and six-actor wall/ceiling movement tests directly match title.",
+      "limits": {
+        "boid_neighbours": 32,
+        "candidates": 96,
+        "actual_dense_query_actors": 192,
+        "real_shared_combat_actors": 6,
+        "max_merged_ticks": 19,
+        "pure_2048_query_only": true
+      },
+      "unit_classes": [
+        "ai.BoundedSpatialIndexTest"
+      ],
+      "ordinary_classes": [
+        "DroneSwarmGameTests",
+        "SharedCombatPassageGameTests"
+      ],
+      "evidence": [
+        "docs/v8/MULTI_AGENT_INTEGRATION_0107BD8_2026-11-18.md",
+        "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md: current quiet-route focused regressions"
+      ],
+      "open_outside_literal_title": [
+        "2048 actual actors full simulation performance",
+        "Every moving/rotating hull and mixed species contact case",
+        "Universal world-local-frame navigation"
+      ]
+    },
+    {
+      "id": "S14-T02",
+      "title": "Prototype Shapes as armed physical infantry with squad AI and no vanilla teleport",
+      "assessment": "Actual missing canonical actor now imported exact3c015953+8fa2be22; current normal-runtime seven-case union must pass before closure.",
+      "ordinary_classes": [
+        "ShapesInfantryGameTests",
+        "ShapesRelayGameTests"
+      ],
+      "properties": [],
+      "optional_properties": [
+        "drmd.test.shapesTrace=true",
+        "drmd.test.shapesTraceDir=FRESH_UNIQUE_PATH"
+      ],
+      "evidence": [
+        "Shapes source7fc4dbe4, original809bd3c first26/27 including17 retained controls",
+        "Strict364093dc physical relay actualPASS; distinct from original failing flat fixture"
+      ],
+      "known_negative": "Original flat same-victim two-shooter criterion remainsFAIL due equal-damage vanilla hurt-window starvation; no damage type/cadence/health fix was made. Source retained in original branch and immutable evidence; no purposefully red ordinary entrypoint introduced.",
+      "open_outside_literal_title": [
+        "Concurrent same-target per-shooter damage fairness",
+        "Native authored model/held item image matrix",
+        "Local wall/ceiling AI",
+        "Spawn weights and faction balance canon"
+      ]
+    },
+    {
+      "id": "S14-T03",
+      "title": "Assign teleport ability to a distinct flying enemy archetype and validate counter-play",
+      "assessment": "Current canonical distinct TELEPORT_FLYER and eleven actual normal-runtime scenarios satisfy literal archetype/counterplay title.",
+      "ordinary_classes": [
+        "TeleportFlyerGameTests",
+        "TeleportFlyerDataGameTests",
+        "TeleportFlyerWreckGameTests"
+      ],
+      "scenarios": [
+        "Natural20tick warning/locked endpoint\u2192one commit\u2192same energy/current velocity\u2192ordinary owned moving shot and HP loss",
+        "Real moving incoming projectile consumes defense and interrupts; no teleport immunity",
+        "Blocked material exit and actor33 sentinel refuse before charge/pose",
+        "Fresh moving/rotating compound hull checked atEND",
+        "Lost own LOS cancels without hidden XYZ updates",
+        "Unknown full-volume no load; opaque saved pending never auto-teleports; bounded resource refund",
+        "Actual lethal projectile\u2192one matching corpse; saved identity/ticked sameUUIDrestore; whole coarse collider wall clearance"
+      ],
+      "evidence": [
+        "docs/v8/MULTI_AGENT_INTEGRATION_0107BD8_2026-11-18.md",
+        "docs/v8/EVIDENCE/integrated-0107bd8.json: actual1013unit/513GT/87entrypoints and2same-JAR clients"
+      ],
+      "open_outside_literal_title": [
+        "New-role native rendered image/first warning/cold process matrix (prepared unrun observer explicitly not inherited from general nativepair)",
+        "Repeated waves, every mass/localframe, canonical balance/spawn weights",
+        "Same-END mounted-hit-before-COMMIT particular matrix"
+      ]
+    }
+  ],
+  "deliberately_open": [
+    "S10-T01 full held/inventory visibility matrix",
+    "S10-T02 gravity-compensated/material-hit ballistic accuracy",
+    "S11-T05 complete projectile/path/destruction roles"
+  ]
+}

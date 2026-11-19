@@ -1,0 +1,527 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :compileCubiccheckJava UP-TO-DATE
+> Task :processCubiccheckResources UP-TO-DATE
+> Task :cubiccheckClasses UP-TO-DATE
+> Task :cubiccheckJar UP-TO-DATE
+> Task :jar
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+> Task :test
+
+> Task :compileGametestJava
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/DroneInventoryGameTests.java:17: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();p.getInventory().clear();p.setPosition(Vec3d.ofCenter(at));var ship=ModEntities.PYRO_SHIP.create(w);ship.setPosition(p.getPos());ship.setOwnerUuid(p.getUuid());w.spawnEntity(ship);
+         ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FootGravityRecoveryGameTests.java:48: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FootGravityRecoveryGameTests.java:64: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:21: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player = context.createMockCreativeServerPlayerInWorld();
+                            ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:65: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:79: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:94: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:104: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:114: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:127: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:138: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:155: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:163: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:170: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:195: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:204: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:237: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:252: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyHatchGameTests.java:39: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            if(player==null){player=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(player).setEnabled(false);
+                                     ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BombBayVelocityGameTests.java:16: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:19: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:208: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:219: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:269: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);d.setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:279: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);try {
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/GenericControlCoreGameTests.java:56: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var p=c.createMockCreativeServerPlayerInWorld();players.add(p);
+                   ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:18: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,4096,4096);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(4222,152,4096);
+                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:27: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,8192,8192);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(8318,152,8192);
+                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:36: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,12288,12288);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(12414,152,12288);
+                                         ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:65: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();p.getAbilities().flying=true;p.setPosition(x+.5,182,z+.5);
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:109: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,28000,28000);var p=c.createMockCreativeServerPlayerInWorld();p.getAbilities().flying=true;p.setPosition(28127,152,28000);
+                                         ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FlightBodyPlayerGameTests.java:26: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);d.setEnabled(true);d.setFlightVelocity(new Vec3d(0,-80,0));
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:45: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var root=BlockBodyEntity.createLocal(w,cells,origin,q,Vec3d.ZERO,Vec3d.ZERO);var p=c.createMockCreativeServerPlayerInWorld();
+                                                                                            ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:82: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:154: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:209: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var other=c.createMockCreativeServerPlayerInWorld();
+                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ShipGravityGameTests.java:35: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/UfoReactorEscapeGameTests.java:110: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        f.player=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(f.player).setEnabled(false);
+                  ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/LinearMechanismGameTests.java:46: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+    private ServerPlayerEntity player(Pair f){var p=f.c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(f.a.localToWorld(new Vec3d(.5,-1,2)));p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.MECHANISM_WRENCH));return p;}
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/legacy/LegacyRetirementGameTests.java:55: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        fixture(c);var world=c.getWorld();var player=c.createMockCreativeServerPlayerInWorld();
+                                                      ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/legacy/LegacyRetirementGameTests.java:80: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        fixture(c);var player=c.createMockCreativeServerPlayerInWorld();
+                               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/legacy/LegacyRetirementGameTests.java:94: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();var dragon=EntityType.ENDER_DRAGON.create(end);
+                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/TeleportFlyerGameTests.java:43: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var rig=new TeleportFlyerFixture(c,512,false);var player=c.createMockCreativeServerPlayerInWorld();player.setPosition(rig.start.add(-8,0,0));rig.extra.add(player);
+                                                                  ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:17: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:38: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:53: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:65: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:77: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:90: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:104: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:115: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:166: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();try {
+         ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:177: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();p.changeGameMode(GameMode.SURVIVAL);DescentPlayerData.get(p).setEnabled(false);
+         ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:214: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/TeleportFlyerWreckGameTests.java:23: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var owner=c.createMockCreativeServerPlayerInWorld();owner.setPosition(rig.start.add(-8,0,0));rig.extra.add(owner);
+                   ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/MechanismGameTests.java:43: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+    private ServerPlayerEntity player(TestContext c,Vec3d at){var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(at);p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.MECHANISM_WRENCH));return p;}
+                                                                     ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/LowerWorldRecoveryGameTests.java:16: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PortalExitSafetyGameTests.java:111: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PortalExitSafetyGameTests.java:120: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();
+                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/MountedMechanismGameTests.java:44: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+    private ServerPlayerEntity player(TestContext c,BlockBodyEntity b){var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(.5,-1,-2)));return p;}
+                                                                              ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/GravityGunBehaviorGameTests.java:36: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            this.c=c;this.chunks=chunks;player=c.createMockCreativeServerPlayerInWorld();
+                                                ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FusionPortalGameTests.java:89: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();
+                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ThermalDrillGameTests.java:31: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            }else{p=c.createMockCreativeServerPlayerInWorld();channel=null;}
+                     ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/HullContactGameTests.java:25: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();player.setPosition(at.add(0,3,5));player.setNoGravity(true);player.getAbilities().flying=true;
+                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/UfoWeaponGameTests.java:62: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(3.5,.1,-1)));c.assertTrue(UfoControlSystem.claim(p,b),"actual console capture");return p;
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/UfoWeaponGameTests.java:90: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c);var p=pilot(c,b);var other=c.createMockCreativeServerPlayerInWorld();try {
+                                                  ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/UfoTurretAiGameTests.java:102: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var installer=c.createMockCreativeServerPlayerInWorld();installer.setPosition(b.localToWorld(new Vec3d(3.5,.1,.5)));DescentPlayerData.get(installer).setEnabled(false);installer.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));
+                           ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/UfoTurretAiGameTests.java:104: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var target=c.createMockCreativeServerPlayerInWorld();target.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);target.getAbilities().flying=false;target.setNoGravity(true);DescentPlayerData.get(target).setEnabled(false);target.setPosition(b.localToWorld(new Vec3d(30,12,12)));target.setVelocity(Vec3d.ZERO);
+                        ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/FragmentBoardingGameTests.java:37: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(player).setEnabled(false);player.getAbilities().flying=false;
+                    ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/UfoAiGameTests.java:59: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var p=c.createMockCreativeServerPlayerInWorld();p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);p.getAbilities().flying=false;p.setNoGravity(true);DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(-2.5,-.4,44)));p.setVelocity(Vec3d.ZERO);
+                   ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:127: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=player(c);var q=c.createMockCreativeServerPlayerInWorld();BlockPos a=at(c,8,8),b=a.east(3);
+                               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:142: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(Vec3d.ofCenter(at.up(4)));return p;
+               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:214: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=player(c);var q=c.createMockCreativeServerPlayerInWorld();BlockPos a=at(c,8,8),b=at(c,24,8);
+                               ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/world/portal/PortalTransferGameTests.java:78: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var w=c.getWorld();var source=origin(c);var exit=source.east(24);room(c,source,4,5,4);room(c,exit,4,6,4);var player=c.createMockCreativeServerPlayerInWorld();
+                                                                                                                             ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/world/portal/PortalTransferGameTests.java:92: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var w=c.getWorld();var source=origin(c);var exit=source.east(36);room(c,source,4,4,4);room(c,source.south(22),4,4,25);room(c,exit.east(23),26,4,4);var player=c.createMockCreativeServerPlayerInWorld();
+                                                                                                                                                                       ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/world/portal/PortalTransferGameTests.java:137: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var w=c.getWorld();var at=origin(c);room(c,at,5,5,5);room(c,at.east(24),5,5,5);var player=c.createMockCreativeServerPlayerInWorld();
+                                                                                                   ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ShapesInfantryGameTests.java:63: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var rig=new ShapesFixture(c,512,true,false);var player=c.createMockCreativeServerPlayerInWorld();rig.extra.add(player);player.setPosition(rig.start.add(2,0,0));
+                                                                ^
+/workspace/ungravity-v5/ufo-body-physics/src/gametest/java/com/terminaldetector/drmd/ShapesInfantryGameTests.java:92: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var rig=new ShapesFixture(c,1536,false,false);rig.infantry.setAiDisabled(true);var owner=c.createMockCreativeServerPlayerInWorld();rig.extra.add(owner);owner.setPosition(rig.start.add(-8,0,0));
+                                                                                                  ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+78 warnings
+
+> Task :generateLog4jConfig UP-TO-DATE
+> Task :generateRemapClasspath UP-TO-DATE
+> Task :generateDLIConfig UP-TO-DATE
+> Task :configureLaunch UP-TO-DATE
+> Task :processGametestResources
+> Task :gametestClasses
+
+> Task :runGametest
+[12:08:00] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.21.1 with Fabric Loader 0.16.14
+[12:08:00] [main/INFO] (FabricLoader) Loading 45 mods:
+	- drmd 1.1.35-ufo-dev.1
+	- drmd_gametest 1.0.0
+	- fabric-api 0.116.15+1.21.1
+	- fabric-api-base 0.4.42+6573ed8c19
+	- fabric-api-lookup-api-v1 1.6.72+7b3d111d19
+	- fabric-biome-api-v1 13.0.31+d527f9fd19
+	- fabric-block-api-v1 1.1.0+0bc3503219
+	- fabric-block-view-api-v2 1.0.11+ebb2264e19
+	- fabric-command-api-v1 1.2.49+f71b366f19
+	- fabric-command-api-v2 2.2.28+6ced4dd919
+	- fabric-commands-v0 0.2.66+df3654b319
+	- fabric-content-registries-v0 8.0.19+b559734419
+	- fabric-convention-tags-v1 2.1.7+7f945d5b19
+	- fabric-convention-tags-v2 2.12.0+c3656daa19
+	- fabric-crash-report-info-v1 0.2.29+0af3f5a719
+	- fabric-data-attachment-api-v1 1.4.7+5b36e0f719
+	- fabric-data-generation-api-v1 20.3.0+1eb36c0719
+	- fabric-dimensions-v1 4.0.1+65213ef819
+	- fabric-entity-events-v1 1.8.0+2b27e0a419
+	- fabric-events-interaction-v0 0.7.14+ba9dae0619
+	- fabric-game-rule-api-v1 1.0.53+6ced4dd919
+	- fabric-gametest-api-v1 2.0.5+6fc22b9919
+	- fabric-item-api-v1 11.3.0+467044f319
+	- fabric-item-group-api-v1 4.1.7+def88e3a19
+	- fabric-lifecycle-events-v1 2.6.0+0865547519
+	- fabric-loot-api-v2 3.0.15+3f89f5a519
+	- fabric-loot-api-v3 1.0.3+3f89f5a519
+	- fabric-message-api-v1 6.0.14+8aaf3aca19
+	- fabric-networking-api-v1 4.3.1+d30f6a7919
+	- fabric-object-builder-api-v1 15.2.1+40875a9319
+	- fabric-particles-v1 4.0.2+6573ed8c19
+	- fabric-recipe-api-v1 5.0.16+2475392c19
+	- fabric-registry-sync-v0 5.3.2+e3eddc2119
+	- fabric-rendering-data-attachment-v1 0.3.49+73761d2e19
+	- fabric-rendering-fluids-v1 3.1.6+1daea21519
+	- fabric-resource-conditions-api-v1 4.3.0+8dc279b119
+	- fabric-resource-loader-v0 1.3.1+5b5275af19
+	- fabric-screen-handler-api-v1 1.3.91+b559734419
+	- fabric-tag-api-v1 1.3.0+1eb36c0719
+	- fabric-transfer-api-v1 5.4.4+7b3d111d19
+	- fabric-transitive-access-wideners-v1 6.2.0+45b9699719
+	- fabricloader 0.16.14
+	- java 21
+	- minecraft 1.21.1
+	- mixinextras 0.4.1
+[12:08:00] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.5+mixin.0.8.7/22f9eb729e216a091673a574a5906dc1b9027fb3/sponge-mixin-0.15.5+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[12:08:01] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[12:08:01] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_17
+[12:08:01] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_21
+[12:08:02] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubeApplier (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubeApplier)
+[12:08:02] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel)
+[12:08:02] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.4.1).
+[12:08:11] [main/INFO] (drmd) DRMD 6DOF initializing — 6DoF world mode (volume-first)
+[12:08:11] [main/INFO] (drmd) [drmd] 1.1.35-ufo-dev.1 on Minecraft 1.21.1 / loader 0.16.14 / 45 mods
+[12:08:11] [main/INFO] (drmd) [drmd] optional: immersive_portals=no, dimlib=no, sodium=no, iris=no
+[12:08:11] [main/INFO] (drmd) [drmd] access widener applied
+[12:08:11] [main/INFO] (drmd) DRMD server config — worldKind=STOCK worldModLevel=VANILLA netherBand=false endBand=false klondikeIslands=false macroWorldgen=false surfaceDistricts=false orbitJunk=false
+[12:08:11] [main/INFO] (drmd) Advanced-column pack registered, default activation=NORMAL
+[12:08:11] [main/INFO] (drmd) Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)
+[12:08:11] [main/INFO] (drmd) Registered DRMD map blocks
+[12:08:11] [main/INFO] (drmd) Registered closed Descent arsenal (41 open weapons)
+[12:08:12] [main/INFO] (drmd) Registered Phase3 world blocks & engineer tools
+[12:08:12] [main/INFO] (drmd) Registered DRMD block entities
+[12:08:12] [main/INFO] (drmd) Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)
+[12:08:12] [main/INFO] (drmd) World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)
+[12:08:12] [main/INFO] (drmd) Orbit junk / techno-ring scaffold registered
+[12:08:12] [main/INFO] (drmd) Portal complexity online — ImmPtl present=false
+[12:08:12] [main/INFO] (drmd) Registered ÆRis/Mirai step 6 density generator (drmd:aeris_test)
+[12:08:12] [main/INFO] (drmd) Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance
+[12:08:12] [main/INFO] (drmd) DRMD 6DOF ready — cubic body prototype + native portal frames + surface store
+[12:08:12] [main/INFO] (Minecraft) Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[12:08:12] [main/INFO] (FabricGameTestHelper) Starting test server
+[12:08:14] [main/INFO] (Minecraft) Loaded 1379 recipes
+[12:08:15] [main/INFO] (Minecraft) Loaded 1400 advancements
+[12:08:15] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 68 new biomes in 1.926 ms
+[12:08:16] [Server thread/INFO] (Minecraft) Preparing start region for dimension minecraft:overworld
+[12:08:16] [Worker-Main-1/INFO] (Minecraft) Preparing spawn area: 8%
+[12:08:17] [Server thread/INFO] (Minecraft) Time elapsed: 463 ms
+[12:08:17] [Server thread/INFO] (Minecraft) Started game test server
+[12:08:17] [Server thread/INFO] (drmd) Megacity biome regions bound — megacity plate @ 3293 -3570 (4857 m) · biome drmd:megacity r=160
+[12:08:17] [Server thread/INFO] (drmd) Technogenic sea regions — drmd:technogenic_sea plate @ 4624 1395 (4830 m) · r=220
+[12:08:17] [Server thread/INFO] (drmd) Scorched lands regions — drmd:scorched_lands plate @ -1761 2627 (3163 m) · r=180
+[12:08:17] [Server thread/INFO] (drmd) Iron guild regions — drmd:iron_guild plate @ -2591 -1343 (2918 m) · r=140
+[12:08:17] [Server thread/INFO] (drmd) Surface events bound — sparse UFO/outpost rolls (≥400m from spawn)
+[12:08:17] [Server thread/INFO] (drmd) Construction registry ready (0 overrides)
+[12:08:17] [Server thread/INFO] (drmd) Restored 0 facilities from dimension sync
+[12:08:17] [Server thread/INFO] (drmd) Restored 0 meteor falls from dimension sync
+[12:08:17] [Server thread/INFO] (drmd) Dimension sync loaded — facilities=0 falls=0 lastDet=-1
+[12:08:17] [Server thread/INFO] (drmd) Surface store open at ./world/./drmd/surface
+[12:08:17] [Server thread/INFO] (Minecraft) 17 tests are now running at position 1536972, -59, 11249621!
+[12:08:17] [Yggdrasil Key Fetcher/ERROR] (Minecraft) Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 9 more
+[12:08:18] [Server thread/INFO] (Minecraft) Running test batch 'point-defense-unprotected-control:0' (1 tests)...
+[12:08:18] [Server thread/INFO] (Minecraft) [                 ]
+[12:08:20] [Server thread/INFO] (Minecraft) [_                ]
+[12:08:20] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_LAUNCH defended=false ticks=4 worldTime=41 placedAt=37 launchAt=41 launchTick=4 impactAt=0 missileAge=0 missileAlive=true missilePos=(1625495.5, 140.5, 1.12556215E7) emitted=0 hitCount=0 hitBlock=false hitEntity=none impact=none velocity=(-1.375, 0.0, 0.0) splashRadius=3.75
+[12:08:20] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_CONTROL_PASS defended=false ticks=12 worldTime=49 placedAt=37 launchAt=41 launchTick=4 impactAt=49 missileAge=8 missileAlive=false missilePos=(1625485.87884923, 140.38803359746242, 1.12556215E7) emitted=0 hitCount=1 hitBlock=true hitEntity=none impact=(1625485.0, 140.36757321870041, 1.12556215E7)
+[12:08:20] [Server thread/INFO] (Minecraft) Running test batch 'economy-material-repair:0' (1 tests)...
+[12:08:20] [Server thread/INFO] (Minecraft) [+                ]
+[12:08:21] [Server thread/INFO] (Minecraft) [+                ]
+[12:08:22] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 4 at (0.5, -780.0, 7.5)
+[12:08:23] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:08:23] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:08:23] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:08:23] [Server thread/INFO] (Minecraft) Running test batch 'torch-dimension-isolation:0' (1 tests)...
+[12:08:23] [Server thread/INFO] (Minecraft) [++               ]
+[12:08:24] [Server thread/INFO] (Minecraft) Running test batch 'torch-native-transition-feedback:0' (1 tests)...
+[12:08:24] [Server thread/INFO] (Minecraft) [+++              ]
+[12:08:24] [Server thread/INFO] (Minecraft) gravity-notice[embedded] logged in with entity id 5 at (-6.5, -780.0, 9.5)
+[12:08:24] [Server thread/INFO] (Minecraft) gravity-notice joined the game
+[12:08:24] [Server thread/INFO] (Minecraft) Running test batch 'economy-personal-progression:0' (1 tests)...
+[12:08:24] [Server thread/INFO] (Minecraft) [++++             ]
+[12:08:25] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 6 at (-5.5, -780.0, 8.5)
+[12:08:25] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:08:25] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:08:25] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:08:25] [Server thread/INFO] (Minecraft) [++++_            ]
+[12:08:26] [Server thread/INFO] (Minecraft) [++++_            ]
+[12:08:26] [Server thread/INFO] (Minecraft) Running test batch 'economy-real-crafting:0' (1 tests)...
+[12:08:27] [Server thread/INFO] (Minecraft) [+++++            ]
+[12:08:28] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 7 at (-8.5, -780.0, -8.5)
+[12:08:28] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:08:28] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:08:28] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:08:28] [Server thread/INFO] (Minecraft) Running test batch 'torch-same-block-turn:0' (1 tests)...
+[12:08:28] [Server thread/INFO] (Minecraft) [++++++           ]
+[12:08:28] [Server thread/INFO] (Minecraft) Running test batch 'defaultBatch:0' (5 tests)...
+[12:08:29] [Server thread/INFO] (Minecraft) [+++++++          ]
+[12:08:29] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 8 at (-6.5, -780.0, 5.5)
+[12:08:29] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:08:29] [Server thread/INFO] (Minecraft) test-mock-player[embedded] logged in with entity id 9 at (-5.5, -780.0, -1.5)
+[12:08:29] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[12:08:29] [Server thread/INFO] (Minecraft) Running test batch 'economy-local-repair:0' (1 tests)...
+[12:08:29] [Server thread/INFO] (Minecraft) [++++++++++++     ]
+[12:08:29] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 10 at (1.5, -780.0, -1.5)
+[12:08:29] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:08:29] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:08:29] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:08:30] [Server thread/INFO] (Minecraft) Running test batch 'economy-salvage:0' (1 tests)...
+[12:08:30] [Server thread/INFO] (Minecraft) [+++++++++++++    ]
+[12:08:30] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:30] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 17 at (-8.5, -780.0, 4.5)
+[12:08:30] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:08:30] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:08:30] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:08:30] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:30] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:30] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [+++++++++++++_   ]
+[12:08:31] [Server thread/INFO] (Minecraft) Running test batch 'economy-mechanism:0' (1 tests)...
+[12:08:31] [Server thread/INFO] (Minecraft) [++++++++++++++   ]
+[12:08:31] [Server thread/INFO] (Minecraft) [++++++++++++++_  ]
+[12:08:31] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 22 at (6.5, -780.0, 3.5)
+[12:08:31] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:08:31] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:08:31] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:08:31] [Server thread/INFO] (Minecraft) [++++++++++++++_  ]
+[12:08:32] [Server thread/INFO] (Minecraft) Running test batch 'point-defense-real-interception:0' (1 tests)...
+[12:08:32] [Server thread/INFO] (Minecraft) [+++++++++++++++  ]
+[12:08:33] [Server thread/INFO] (Minecraft) [+++++++++++++++_ ]
+[12:08:33] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_LAUNCH defended=true ticks=4 worldTime=721 placedAt=717 launchAt=721 launchTick=4 impactAt=0 missileAge=0 missileAlive=true missilePos=(1625074.5, 140.5, 1.12556355E7) emitted=0 hitCount=0 hitBlock=false hitEntity=none impact=none velocity=(-1.375, 0.0, 0.0) splashRadius=3.75
+[12:08:33] [Server thread/INFO] (Minecraft) [STDOUT]: POINT_DEFENSE_INTERCEPTION_PASS defended=true ticks=8 worldTime=725 placedAt=717 launchAt=721 launchTick=4 impactAt=725 missileAge=4 missileAlive=false missilePos=(1625070.375824945, 140.47600400033627, 1.12556355E7) emitted=1 hitCount=1 hitBlock=false hitEntity=f5c52aad-785e-4e57-ba4e-1dd94a8c9cd8 impact=(1625070.1117447836, 140.7396897303443, 1.12556355E7)
+[12:08:33] [Server thread/INFO] (Minecraft) Running test batch 'economy-mounted-fire:0' (1 tests)...
+[12:08:35] [Server thread/INFO] (Minecraft) [++++++++++++++++ ]
+[12:08:35] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 28 at (-8.5, -780.0, 8.5)
+[12:08:35] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[12:08:35] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[12:08:35] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[12:08:36] [Server thread/INFO] (Minecraft) [++++++++++++++++_]
+[12:08:36] [Server thread/INFO] (Minecraft) [++++++++++++++++_]
+[12:08:36] [Server thread/INFO] (Minecraft) [++++++++++++++++_]
+[12:08:36] [Server thread/INFO] (Minecraft) [+++++++++++++++++]
+[12:08:36] [Server thread/INFO] (Minecraft) ========= 17 GAME TESTS COMPLETE IN 18.92 s ======================
+[12:08:36] [Server thread/INFO] (Minecraft) All 17 required tests passed :)
+[12:08:36] [Server thread/INFO] (Minecraft) ====================================================
+[12:08:36] [Server thread/INFO] (Minecraft) Stopping server
+[12:08:36] [Server thread/INFO] (Minecraft) Saving players
+[12:08:36] [Server thread/INFO] (Minecraft) test-mock-player lost connection: Server closed
+[12:08:36] [Server thread/INFO] (Minecraft) test-mock-player left the game
+[12:08:36] [Server thread/INFO] (Minecraft) Saving worlds
+[12:08:39] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[12:08:40] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[12:08:40] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[12:08:40] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[12:08:40] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[12:08:40] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[12:08:40] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[12:08:40] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+> Task :compileBoardingcheckJava
+> Task :compileRendercheckJava
+
+> Task :compileShootcheckJava
+Note: /workspace/ungravity-v5/ufo-body-physics/src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processIncludeJars UP-TO-DATE
+> Task :remapCubiccheckJar
+> Task :remapJar
+
+[Incubating] Problems report is available at: file:///workspace/ungravity-v5/ufo-body-physics/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 28s
+20 actionable tasks: 12 executed, 8 up-to-date

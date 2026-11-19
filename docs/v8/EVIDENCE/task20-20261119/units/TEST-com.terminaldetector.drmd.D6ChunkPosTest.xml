@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.terminaldetector.drmd.D6ChunkPosTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-19T12:07:53" hostname="98699ae39d96" time="0.107">
+  <properties/>
+  <testcase name="distance is measured in three dimensions, not around a column" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.033"/>
+  <testcase name="packing survives a round trip at the axis limits and below zero" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.03"/>
+  <testcase name="distinct positions pack to distinct longs" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.002"/>
+  <testcase name="Y reaches exactly as far as X and Z, which is the entire point" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.001"/>
+  <testcase name="a coordinate that will not fit is refused, not wrapped" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.002"/>
+  <testcase name="packing survives a round trip over twenty thousand random positions" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.029"/>
+  <testcase name="the position inside a chunk is always 0 to 15, below zero included" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.003"/>
+  <testcase name="the invalid value cannot be a real position, unlike in the donor" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.001"/>
+  <testcase name="block to chunk rounds down, not toward zero" classname="com.terminaldetector.drmd.D6ChunkPosTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

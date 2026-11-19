@@ -1,0 +1,1 @@
+com.terminaldetector.drmd.world.economy.SurvivalEconomyGameTests,com.terminaldetector.drmd.PointDefenseInterceptionGameTests,com.terminaldetector.drmd.FootGravityRecoveryGameTests

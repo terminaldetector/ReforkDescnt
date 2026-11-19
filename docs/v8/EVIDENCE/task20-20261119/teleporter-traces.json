@@ -1,0 +1,65 @@
+{
+  "source": "f40dfa564edaf94982f971e88db07a09bfb8cac4",
+  "passed": 11,
+  "gradleExit": 0,
+  "requiredGameTests": 11,
+  "fixtureShutdownHadDiskPressure": true,
+  "traces": [
+    {
+      "name": "actual-corpse-7f17236a-49ac-4564-b2d7-ae405e63d8b0.dat",
+      "bytes": 469,
+      "sha256": "8751000be7ea013d96231d096910ffa6d1872e2fd14bc2f4fc36d5d99fe78887"
+    },
+    {
+      "name": "pending-flyer-a00c8520-7c58-4b91-b7c8-f52302443a62.dat",
+      "bytes": 582,
+      "sha256": "aaa4d6ef75b80982ae748af2c4a17e8e3b335bebf4292a34882ef4e668593a1b"
+    },
+    {
+      "name": "u07-2ce89d64-32e0-4854-a1cf-e31a4d7c90f8.jsonl",
+      "bytes": 10885,
+      "sha256": "9deee5423010888aa3445cb45f3313c6f2b7a33ac123da2d65b9f5fc76db0c73"
+    },
+    {
+      "name": "u07-350e0d13-1ce2-44e0-be61-3ebe04d00623.jsonl",
+      "bytes": 16659,
+      "sha256": "a3875a7bea033557a52dac1fc350650db71416bb42aca29395540c29d1ca89b0"
+    },
+    {
+      "name": "u07-3e342327-1090-4b61-b4c2-3d25fb73ad89.jsonl",
+      "bytes": 25237,
+      "sha256": "a79becfa51e8c3b8e1cb5d68ca9ccde1ff815dde2acc667344bfd17cbeb507b8"
+    },
+    {
+      "name": "u07-68a03a63-6c11-4751-b4a7-d0e18442645f.jsonl",
+      "bytes": 35084,
+      "sha256": "fc9b32e0206c692d99fd714432c60c39c07e9d5b24f06c106a8ba4ce81944be4"
+    },
+    {
+      "name": "u07-a94955ce-4c2f-42d7-9e1f-d322f55b6ffb.jsonl",
+      "bytes": 1543,
+      "sha256": "42dcf41811eafbdff7ceb84e9fe633eb6d4ddcc914172fa88f7cdf48bab93a17"
+    },
+    {
+      "name": "u07-e67656e6-0917-46b8-8f6c-d05ab6231228.jsonl",
+      "bytes": 6587,
+      "sha256": "d395be2f2bd0d2055f59ab8871d36eac73e0b15c79967e44dfca55273be27d17"
+    },
+    {
+      "name": "u07-f8f9ecd2-57e1-42eb-b4bb-95267de9713e.jsonl",
+      "bytes": 1842,
+      "sha256": "e21d13596ec6b5745b7977f6ca22db5605b336c01369a9f235f55394fc46808a"
+    },
+    {
+      "name": "u07-febda7d8-2955-47c7-9977-d1d96544601b.jsonl",
+      "bytes": 11680,
+      "sha256": "387a211cb1dda56f4c39690f2f0e03e0d24ce6729d977878e64cd7159bb7eae0"
+    }
+  ],
+  "teleporterTraceArchive": {
+    "path": "teleporter-traces.zip",
+    "bytes": 12100,
+    "sha256": "4100b1491d767574c032cb3482daa3146605eddc5939f97d624596f00d39d51a",
+    "fullCRCAndMemberSHA256": true
+  }
+}
