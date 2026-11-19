@@ -11,6 +11,9 @@ flat in int authoredOrbital;
 uniform float FieldOuterRadius;
 out vec4 fragColor;
 void main() {
+    // Certified station/asteroid solids are opaque closed boxes. Ground and legacy
+    // skirts retain their existing two-sided policy; native foreground depth stays authoritative.
+    if (authoredOrbital == 1 && !gl_FrontFacing) discard;
     // Source weights use the original perspective, not the compressed per-vertex clip W.
     vec3 sourceEyeVector = trueEyeVector / max(sourceScale, 0.0000001);
     float opacity = sourceOpacity * ColorModulator.a * (1.0 - smoothstep(FieldOuterRadius * 0.55, FieldOuterRadius, (authoredOrbital == 1 ? length(sourceEyeVector) : length(sourceEyeVector.xz))));

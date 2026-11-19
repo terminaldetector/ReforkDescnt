@@ -310,12 +310,14 @@ public final class PlanetSurfaceMesh {
         private void orbitalBox(HorizonOrbitalProxy.Box b) {
             double x0=b.minX(),y0=b.minY(),z0=b.minZ(),x1=b.maxX(),y1=b.maxY(),z1=b.maxZ();
             int top=argb(b.colour(),1,1),side=argb(b.colour(),.72f,1),dark=argb(b.colour(),.55f,1);
-            quad(x0,y1,z0,x1,y1,z0,x1,y1,z1,x0,y1,z1,top);
-            quad(x0,y0,z0,x0,y0,z1,x1,y0,z1,x1,y0,z0,dark);
-            quad(x0,y0,z0,x1,y0,z0,x1,y1,z0,x0,y1,z0,side);
+            // Outward winding for every closed solid; the authored-only shader policy can
+            // reject rear walls without enabling culling on ground/legacy single-sided geometry.
+            quad(x0,y1,z0,x0,y1,z1,x1,y1,z1,x1,y1,z0,top);
+            quad(x0,y0,z0,x1,y0,z0,x1,y0,z1,x0,y0,z1,dark);
+            quad(x0,y0,z0,x0,y1,z0,x1,y1,z0,x1,y0,z0,side);
             quad(x0,y0,z1,x1,y0,z1,x1,y1,z1,x0,y1,z1,side);
             quad(x0,y0,z0,x0,y0,z1,x0,y1,z1,x0,y1,z0,dark);
-            quad(x1,y0,z0,x1,y0,z1,x1,y1,z1,x1,y1,z0,dark);
+            quad(x1,y0,z0,x1,y1,z0,x1,y1,z1,x1,y0,z1,dark);
         }
 
 		/** Five faces of an upright box — the bottom is never seen from outside the field. */

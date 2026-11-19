@@ -95,4 +95,26 @@ class HorizonOrbitalHandoffTest {
         }
         assertTrue(tagged>0);assertTrue(ground>0);
     }
+    @Test void everyActualAuthoredStationAndAsteroidFaceHasOutwardWinding() {
+        for(var kind:List.of(MacroEntry.Kind.ORBITAL_STATION,MacroEntry.Kind.ASTEROID)) {
+            int sx=kind==MacroEntry.Kind.ASTEROID?12:24,sy=kind==MacroEntry.Kind.ASTEROID?12:16,sz=kind==MacroEntry.Kind.ASTEROID?12:20;
+            var mark=new HorizonLandmark(8,3000,8,sx,sy,sz,0xabcdef,kind);
+            var pieces=HorizonOrbitalProxy.boxes(mark,8,3000,-128).stream()
+                .flatMap(b->HorizonOrbitalHandoff.split(b).stream()).map(HorizonOrbitalHandoff.Piece::box).toList();
+            var mesh=PlanetSurfaceMesh.build(714,8,3000,-128,64,400,Set.of(),List.of(mark));
+            int face=0;
+            for(int q=0;q<mesh.quads;q++) {
+                if(mesh.orbitalMasks[q]<0)continue;
+                var b=pieces.get(face/6);int offset=q*12;
+                double[] v0={mesh.originX+mesh.positions[offset],mesh.originY+mesh.positions[offset+1],mesh.originZ+mesh.positions[offset+2]};
+                double[] a={mesh.positions[offset+3]-mesh.positions[offset],mesh.positions[offset+4]-mesh.positions[offset+1],mesh.positions[offset+5]-mesh.positions[offset+2]};
+                double[] c={mesh.positions[offset+6]-mesh.positions[offset],mesh.positions[offset+7]-mesh.positions[offset+1],mesh.positions[offset+8]-mesh.positions[offset+2]};
+                double nx=a[1]*c[2]-a[2]*c[1],ny=a[2]*c[0]-a[0]*c[2],nz=a[0]*c[1]-a[1]*c[0];
+                double outward=nx*(v0[0]-(b.minX()+b.maxX())*.5)+ny*(v0[1]-(b.minY()+b.maxY())*.5)+nz*(v0[2]-(b.minZ()+b.maxZ())*.5);
+                assertTrue(outward>0,"actual emitted "+kind+" box face "+(face%6)+" must point out of its own solid");face++;
+            }
+            assertEquals(pieces.size()*6,face);
+        }
+    }
+
 }
