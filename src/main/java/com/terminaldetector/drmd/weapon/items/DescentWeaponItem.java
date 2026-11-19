@@ -226,12 +226,14 @@ public class DescentWeaponItem extends Item {
 
 	protected boolean firePlasma(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
+		Vec3d aimPoint=plasmaAimPoint(user);
 		// Prefer construction muzzles 1+2 (SideLeft/SideRight); fallback dual offset
 		var muzzles = WeaponCore.allMuzzles(user, def.id);
 		if (muzzles.size() >= 2) {
 			for (int i = 0; i < 2; i++) {
 				WeaponCore.FireConfig cfg = baseCfg(user);
 				cfg.pos = muzzles.get(i);
+				cfg.dir=plasmaDirection(user,cfg.pos,aimPoint);
 				cfg.directDamage = def.damage;
 				cfg.splashDamage = def.splashDamage;
 				cfg.splashRadius = def.splashRadius;
@@ -246,6 +248,7 @@ public class DescentWeaponItem extends Item {
 			for (float side : new float[]{-0.25f, 0.25f}) {
 				WeaponCore.FireConfig cfg = baseCfg(user);
 				cfg.pos = WeaponCore.muzzle(user, 0.8f, side, -0.1f);
+				cfg.dir=plasmaDirection(user,cfg.pos,aimPoint);
 				cfg.directDamage = def.damage;
 				cfg.splashDamage = def.splashDamage;
 				cfg.splashRadius = def.splashRadius;
@@ -259,6 +262,35 @@ public class DescentWeaponItem extends Item {
 		}
 		return true;
 	}
+
+    /** Aim the two physical barrels at the nearest contact on the authoritative eye ray.
+     * An unavailable or overcrowded ray uses the laser's symmetric convergence distance. */
+    private static Vec3d plasmaAimPoint(PlayerEntity user){
+        Vec3d start=user.getEyePos(),forward=WeaponCore.aimDir(user).normalize();
+        double fallback=com.terminaldetector.drmd.DescentMod.su(DescentLaserFire.CONVERGE_SU);
+        Vec3d far=start.add(forward.multiply(fallback));
+        if(!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld world))return far;
+        Vec3d end=WorldEditSafety.loadedEnd(world,start,start.add(forward.multiply(com.terminaldetector.drmd.DescentMod.su(DescentLaserFire.AIM_PROBE_SU))));
+        if(start.squaredDistanceTo(end)<1e-10)return far;
+        var terrain=world.raycast(new RaycastContext(start,end,RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,user));
+        Vec3d hit=terrain.getType()==HitResult.Type.MISS?null:terrain.getPos();
+        if(hit!=null)end=hit;
+        var line=new net.minecraft.util.math.Box(start,end).expand(.01);
+        var bodies=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(world,line);
+        if(bodies.size()>32)return far;
+        for(var body:bodies){var point=body.physicsRaycast(start,end);if(point.isPresent()&&(hit==null||start.squaredDistanceTo(point.get())<start.squaredDistanceTo(hit))){hit=point.get();end=hit;}}
+        var actors=new ArrayList<LivingEntity>();
+        world.collectEntitiesByType(net.minecraft.util.TypeFilter.instanceOf(LivingEntity.class),line,e->e!=user&&e.isAlive()&&!e.isSpectator(),actors,33);
+        if(actors.size()>32)return far;
+        for(var actor:actors){var point=actor.getBoundingBox().raycast(start,end);if(point.isPresent()&&(hit==null||start.squaredDistanceTo(point.get())<start.squaredDistanceTo(hit))){hit=point.get();end=hit;}}
+        if(hit==null)return far;
+        double min=com.terminaldetector.drmd.DescentMod.su(DescentLaserFire.MIN_CONVERGE_SU);
+        return start.distanceTo(hit)<min?start.add(forward.multiply(min)):hit;
+    }
+    private static Vec3d plasmaDirection(PlayerEntity user,Vec3d muzzle,Vec3d aimPoint){
+        Vec3d delta=aimPoint.subtract(muzzle),forward=WeaponCore.aimDir(user).normalize();
+        return delta.lengthSquared()>1e-10&&delta.dotProduct(forward)>0?delta.normalize():forward;
+    }
 
 	protected boolean fireFlak(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
