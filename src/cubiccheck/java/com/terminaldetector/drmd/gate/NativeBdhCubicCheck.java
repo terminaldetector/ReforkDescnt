@@ -1,0 +1,200 @@
+package com.terminaldetector.drmd.gate;
+
+import com.google.gson.GsonBuilder;
+import com.terminaldetector.drmd.client.DescentClient;
+import com.terminaldetector.drmd.client.config.DescentConfig;
+import com.terminaldetector.drmd.flight.FlightSystem;
+import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.compat.DistantHorizonsCompat;
+import com.terminaldetector.drmd.world.contraption.BodyVolumeLeases;
+import com.terminaldetector.drmd.world.contraption.BodyVolumePlan;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
+
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/** Isolated upstream LOD proof using only ordinary writes to real cubic-world blocks. */
+public final class NativeBdhCubicCheck {
+    public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.bdhCubic");
+    private static final BlockPos LOWER = new BlockPos(8, 2146, 120);
+    private static final BlockPos UPPER = new BlockPos(8, 2226, 120);
+    private static final BodyVolumePlan.Column TEST_COLUMN = new BodyVolumePlan.Column(0, 7, 134, 139);
+    private static final Object INTEREST = new Object();
+    private static final List<Map<String, Object>> frames = new ArrayList<>();
+    private static boolean started, loading, done;
+    private static volatile boolean committed, writing;
+    private static volatile String serverStatus = "awaiting world";
+    private static Method describe;
+    private static int ticks, stable, phase, lowerMax, upperMax;
+    private static long deadline;
+    private static String lower = "", upper = "";
+
+    private NativeBdhCubicCheck() {}
+
+    public static void register() {
+        deadline = System.nanoTime() + 260_000_000_000L;
+        ClientTickEvents.END_CLIENT_TICK.register(NativeBdhCubicCheck::tick);
+    }
+
+    private static void tick(MinecraftClient client) {
+        if (done) return;
+        if (System.nanoTime() > deadline) {
+            finish(client, "FAIL", "deadline: " + serverStatus);
+            return;
+        }
+        if (client.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen prompt) {
+            for (var child : prompt.children()) {
+                if (child instanceof net.minecraft.client.gui.widget.ButtonWidget button
+                        && button.getMessage().getString().equals("I know what I'm doing!")) button.onPress();
+            }
+        }
+        if (client.world == null || client.player == null || client.getServer() == null) return;
+        DescentClient.markUserFlightChoice();
+        try {
+            if (!started) {
+                if (!client.runDirectory.getName().equals("cubic-client-automation")
+                        || !DistantHorizonsCompat.isPresent()) {
+                    finish(client, "FAIL", "isolated upstream client required");
+                    return;
+                }
+                describe = Class.forName("com.seibel.distanthorizons.core.level.CubicDebugProbe")
+                    .getMethod("describe", int.class, int.class, int.class);
+                started = true;
+                client.options.hudHidden = true;
+                client.getToastManager().clear();
+                client.options.getViewDistance().setValue(4);
+                client.options.getCloudRenderMode().setValue(net.minecraft.client.option.CloudRenderMode.OFF);
+                DescentConfig.hud = false;
+                DescentConfig.planetFloor = false; // External LOD visibility must stand on its own.
+                var uuid = client.player.getUuid();
+                client.getServer().execute(() -> {
+                    var player = client.getServer().getPlayerManager().getPlayer(uuid);
+                    FlightSystem.disable(player, DescentPlayerData.get(player));
+                    player.changeGameMode(GameMode.CREATIVE);
+                    player.getAbilities().flying = true;
+                    player.sendAbilitiesUpdate();
+                    player.teleport(player.getServerWorld(), 8.5, 2183, 8.5, Set.of(), 0, 0);
+                    var world = player.getServerWorld();
+                    world.setChunkForced(0, 7, true);
+                    if (!BodyVolumeLeases.requestNativeInterest(world, INTEREST, TEST_COLUMN)) {
+                        serverStatus = "native test interest refused";
+                        return;
+                    }
+                    serverStatus = "awaiting both FULL cubic cells";
+                    writing = true;
+                });
+                return;
+            }
+            ticks++;
+            if (!committed && writing && !loading && ticks % 20 == 0) {
+                loading = true;
+                client.getServer().execute(() -> {
+                    try {
+                        var world = client.getServer().getOverworld();
+                        var access = WorldAccess.of(world);
+                        if (access.readIfLoaded(LOWER).isEmpty() || access.readIfLoaded(UPPER).isEmpty()) return;
+                        for (var pos : List.of(LOWER, UPPER)) {
+                            var state = (pos.equals(LOWER) ? Blocks.RED_WOOL : Blocks.LIME_WOOL).getDefaultState();
+                            for (int x = -5; x <= 5; x++) for (int y = -3; y <= 3; y++) for (int z = -1; z <= 1; z++) {
+                                world.setBlockState(pos.add(x, y, z), state, Block.NOTIFY_ALL);
+                            }
+                            if (!access.readIfLoaded(pos).orElseThrow().equals(state)) {
+                                serverStatus = "authored voxel did not persist in its native cube";
+                                return;
+                            }
+                        }
+                        BodyVolumeLeases.releaseNativeInterest(world, INTEREST);
+                        world.setChunkForced(0, 7, false);
+                        serverStatus = "462 real cells written with separate cubic Y addresses";
+                        committed = true;
+                    } finally {
+                        loading = false;
+                    }
+                });
+                return;
+            }
+            if (!committed || Math.abs(client.player.getY() - 2183) > 2) return;
+            client.player.setYaw(0);
+            client.player.setPitch(phase == 0 ? 0 : (phase == 1 ? 12 : -12));
+            if (ticks % 40 != 0) return;
+            lower = describe(LOWER);
+            upper = describe(UPPER);
+            System.out.println("BDH_LOWER " + lower.replace('\n', ' '));
+            System.out.println("BDH_UPPER " + upper.replace('\n', ' '));
+        } catch (ReflectiveOperationException failure) {
+            finish(client, "FAIL", failure.toString());
+        }
+    }
+
+    private static String describe(BlockPos pos) throws ReflectiveOperationException {
+        return (String) describe.invoke(null, pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    private static boolean drawn(String sample) {
+        return sample.startsWith("cubic=true") && sample.lines().anyMatch(line ->
+            line.contains("rendering=true") && line.contains("uploaded=true") && line.contains("noData=false"));
+    }
+
+    public static void rendered() {
+        if (!ENABLED || done || !committed || !drawn(lower) || !drawn(upper)) return;
+        var client = MinecraftClient.getInstance();
+        if (client.world == null || client.player == null || client.currentScreen != null || client.options.getClampedViewDistance() != 4) return;
+        var access = WorldAccess.of(client.world);
+        if (access.readIfLoaded(LOWER).isPresent() || access.readIfLoaded(UPPER).isPresent()) return;
+        var camera = client.gameRenderer.getCamera();
+        if (Math.abs(camera.getPos().y - 2184.62) > 2 || Math.abs(camera.getPos().z - 8.5) > 2) return;
+        float pitch = phase == 0 ? 0 : (phase == 1 ? 12 : -12);
+        if (Math.abs(camera.getPitch() - pitch) > 0.1 || Math.abs(camera.getYaw()) > 0.1) return;
+        try (var image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
+            int red = 0, green = 0;
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = image.getWidth() / 3; x < image.getWidth() * 2 / 3; x++) {
+                    int color = image.getColor(x, y);
+                    int r = color & 255, g = color >>> 8 & 255, b = color >>> 16 & 255;
+                    if (y > image.getHeight() / 3 && r > 75 && r > g * 1.8 && r > b * 1.6) red++;
+                    if (y < image.getHeight() * 2 / 3 && g > 64 && g > r * 1.3 && g > b * 1.35) green++;
+                }
+            }
+            lowerMax = Math.max(lowerMax, red);
+            upperMax = Math.max(upperMax, green);
+            if ((phase != 2 && red < 25) || (phase != 1 && green < 25)) {
+                stable = 0;
+                return;
+            }
+            if (++stable < 3) return;
+            String name = List.of("both-cubic-lods", "lower-cube", "upper-cube").get(phase);
+            image.writeTo(client.runDirectory.toPath().resolve(name + ".png"));
+            frames.add(Map.of("name", name, "lowerRed", red, "upperGreen", green,
+                "yaw", camera.getYaw(), "pitch", camera.getPitch(), "nativeView", 4));
+            if (++phase == 3) finish(client, "PASS", "separate native cube uploads and rendered markers beyond the vanilla view");
+            else stable = 0;
+        } catch (Exception failure) {
+            finish(client, "FAIL", failure.toString());
+        }
+    }
+
+    private static void finish(MinecraftClient client, String outcome, String reason) {
+        if (done) return;
+        done = true;
+        try {
+            var result = Map.of("status", outcome, "reason", reason, "server", serverStatus, "lower", lower,
+                "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax);
+            Files.writeString(client.runDirectory.toPath().resolve("bdh-cubic-outcome.json"),
+                new GsonBuilder().setPrettyPrinting().create().toJson(result) + "\n");
+        } catch (Exception failure) {
+            throw new IllegalStateException(failure);
+        }
+        client.scheduleStop();
+    }
+}

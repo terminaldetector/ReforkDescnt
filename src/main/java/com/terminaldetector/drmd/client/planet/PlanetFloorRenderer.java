@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.client.planet;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.terminaldetector.drmd.client.config.DescentConfig;
+import com.terminaldetector.drmd.world.compat.DistantHorizonsCompat;
 import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.planet.PlanetMap;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -59,11 +60,11 @@ public final class PlanetFloorRenderer {
 		boolean endDim = mc.world.getRegistryKey() == World.END;
 		boolean overworld = mc.world.getRegistryKey() == World.OVERWORLD;
 		if (!endDim && !overworld) return;
-		// DH owns actual distant Overworld terrain. The procedural map is an explicit fallback,
-		// not another terrain layer to composite over the real LOD at altitude.
-		if (overworld && !DescentConfig.planetFloorWithDistantHorizons && com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent()) return;
-
 		Vec3d cam = ctx.camera().getPos();
+        double backdrop = overworld && !DescentConfig.planetFloorWithDistantHorizons
+            ? DistantHorizonsCompat.horizonShare(mc.world, cam.y, PlanetMap.SEA_LEVEL) : 1;
+        if (backdrop <= 0) return;
+
 		float alpha = 1f;
 		if (overworld) {
 			double into = cam.y - FADE_START;
@@ -122,7 +123,7 @@ public final class PlanetFloorRenderer {
 		// The climb's fade as a uniform rather than per-vertex alpha, which is what lets the geometry
 		// stay on the GPU across frames — see HorizonVertexBuffer. Each quad's own alpha is already
 		// baked in there; this multiplies the whole field by how far the map has faded in.
-		RenderSystem.setShaderColor(1f, 1f, 1f, opacity);
+		RenderSystem.setShaderColor(1f, 1f, 1f, (float) (opacity * backdrop));
 
 		if (HorizonVertexBuffer.prepare(mesh)) {
 			HorizonVertexBuffer.draw(mat);
