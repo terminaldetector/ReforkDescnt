@@ -229,12 +229,19 @@ public final class HeavyOperatorSystem {
     private static BlockPos selectGun(Assembly a,Frame f,Vec3d point,Vec3d targetVelocity,long now){
         var old=f.aimSlots.get(a.base.getUuid());var visible=f.visibleSlots.get(a.base.getUuid());
         if(old!=null&&gun(a.barrel,old)&&(visible==null||visible.contains(old))&&a.barrel.mountedWeapons().readyAt(old)<=now)return old;
-        BlockPos best=null;double score=-Double.MAX_VALUE;long soonest=Long.MAX_VALUE;
+        BlockPos best=null;
+        double alignment=-Double.MAX_VALUE;
+        long earliest=Long.MAX_VALUE;
         for(var slot:List.of(LASER,LEFT,RIGHT))if(gun(a.barrel,slot)&&(visible==null||visible.contains(slot))){
             var direction=aimDirection(a.barrel,slot,point,targetVelocity);if(direction==null)continue;
             long ready=a.barrel.mountedWeapons().readyAt(slot);double dot=MountedWeaponEmitter.direction(a.barrel,slot).dotProduct(direction);
-            boolean due=ready<=now,bestDue=best!=null&&soonest<=now;
-            if(best==null||due&&!bestDue||due==bestDue&&(due?dot>score:ready<soonest||ready==soonest&&dot>score)){best=slot;score=dot;soonest=ready;}
+            // A bank can be physically farther off-axis and still be next in line.
+            // Alignment breaks ties between equally ready banks without starving one.
+            if(best==null||ready<earliest||ready==earliest&&dot>alignment){
+                best=slot;
+                alignment=dot;
+                earliest=ready;
+            }
         }
         if(best!=null&&(f.aimSlots.size()<MAX_ASSEMBLIES||f.aimSlots.containsKey(a.base.getUuid())))f.aimSlots.put(a.base.getUuid(),best);return best;
     }
