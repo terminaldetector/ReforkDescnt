@@ -8,7 +8,9 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
-public class LocalActorLivingMixin {
+public abstract class LocalActorLivingMixin implements com.terminaldetector.drmd.world.gravity.LocalActorTargetAccess {
+    @org.spongepowered.asm.mixin.gen.Invoker("getHitbox")
+    public abstract net.minecraft.util.math.Box drmd$targetHitbox();
     @Inject(method="canSee",at=@At("HEAD"),cancellable=true)
     private void localSight(Entity target,CallbackInfoReturnable<Boolean> cir){var actor=(LivingEntity)(Object)this;if(LocalActorTargeting.framed(actor)||LocalActorTargeting.framed(target))cir.setReturnValue(LocalActorTargeting.canSee(actor,target));}
     @Redirect(method="takeKnockback",at=@At(value="INVOKE",target="Lnet/minecraft/entity/LivingEntity;getVelocity()Lnet/minecraft/util/math/Vec3d;"),require=1,allow=1)

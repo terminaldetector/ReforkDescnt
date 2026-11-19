@@ -27,7 +27,7 @@ public final class LocalActorTargeting {
         var a=new com.terminaldetector.drmd.physics.collision.OrientedBox(
             new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(centre.x,centre.y,centre.z),
             new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(actor.getWidth()/2+range,actor.getHeight()/2,actor.getWidth()/2+range),OrientationFrame.fromUp(up));
-        var box=target.getHitbox();
+        var box=((LocalActorTargetAccess)target).drmd$targetHitbox();
         var b=com.terminaldetector.drmd.physics.collision.OrientedBox.axisAligned(new com.terminaldetector.drmd.physics.collision.BodyBounds(
             new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(box.minX,box.minY,box.minZ),
             new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(box.maxX,box.maxY,box.maxZ)));
