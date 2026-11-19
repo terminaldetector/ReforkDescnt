@@ -43,7 +43,8 @@ public final class NativeWeaponPresentationCheck {
     private record View(long tick,boolean nativeWorld,boolean flight,int selected,String hand,List<String> hotbar,List<Integer> hotbarCounts,List<String> banks,List<Integer> bankCounts,String cursor){}
     private record Click(int slot,String cursor,String cell){}
     private static volatile View view;private static volatile boolean setup,background;private static volatile String serverFailure;private static UUID player;
-    private static boolean done,sent,selected,rolling,focusRequested;private static long boot,entered,settled;private static int age,phase,profile,frames,previewBank;
+    private static boolean done,sent,selected,rolling,focusRequested;private static long boot,entered,settled;private static int age,phase,profile,frames,previewBank,lastPointerBank=-1;
+    private static final boolean NATIVE_POINTER=Boolean.getBoolean("drmd.gate.weaponPresentationNativePointer");
     private static final ArrayDeque<Click> clicks=new ArrayDeque<>();private static Click pending;
     private static KeyBinding pressed;private static int pressedAt;
     private static NativeImage flightBackground,beforeHand;
@@ -78,7 +79,7 @@ public final class NativeWeaponPresentationCheck {
             var hotbar=new ArrayList<String>();var hotbarCounts=new ArrayList<Integer>();for(int i=0;i<9;i++){var stack=p.getInventory().getStack(i);hotbar.add(id(stack));hotbarCounts.add(stack.getCount());}var banks=new ArrayList<String>();var bankCounts=new ArrayList<Integer>();var load=DroneLoadout.of(p);for(int i=0;i<5;i++){var stack=load.getStack(i);banks.add(id(stack));bankCounts.add(stack.getCount());}
             view=new View(server.getTicks(),nativeWorld,DescentPlayerData.get(p).isEnabled(),p.getInventory().selectedSlot,id(p.getMainHandStack()),List.copyOf(hotbar),List.copyOf(hotbarCounts),List.copyOf(banks),List.copyOf(bankCounts),id(p.currentScreenHandler.getCursorStack()));
         }catch(Throwable e){serverFailure=e.toString();}});ClientTickEvents.START_CLIENT_TICK.register(NativeWeaponPresentationCheck::tick);}
-    private static void enter(int next){phase=next;sent=selected=focusRequested=false;frames=0;settled=0;entered=age;lastProjection=List.of();clicks.clear();pending=null;}
+    private static void enter(int next){phase=next;sent=selected=focusRequested=false;frames=0;settled=0;entered=age;lastPointerBank=-1;lastProjection=List.of();clicks.clear();pending=null;}
     private static void pulse(KeyBinding key){require(pressed==null,"one physical key pulse at a time");key.setPressed(true);KeyBinding.onKeyPressed(KeyBindingHelper.getBoundKeyOf(key));pressed=key;pressedAt=age;INPUTS.add(Map.of("tick",age,"phase",phase,"binding",key.getTranslationKey(),"down",true));}
     private static boolean hotbar(MinecraftClient c,int slot){if(!selected){pulse(c.options.hotbarKeys[slot]);selected=true;return false;}return c.player.getInventory().selectedSlot==slot&&view.selected==slot;}
     private static boolean flight(MinecraftClient c,boolean enabled){if(view.flight==enabled&&DescentClientState.enabled==enabled)return true;if(!sent){pulse(DescentKeybinds.toggle);sent=true;}return false;}
@@ -96,14 +97,27 @@ public final class NativeWeaponPresentationCheck {
         if(pending!=null){String actual=id(menu.getScreenHandler().getSlot(pending.slot).getStack());if(!actual.equals(pending.cell)||!view.cursor.equals(pending.cursor))return false;pending=null;}
         if(!clicks.isEmpty()){pending=clicks.removeFirst();click(menu,pending.slot);return false;}return true;
     }
-    private static void hover(MinecraftClient c,int bank){
+    private static void hover(MinecraftClient c,int bank)throws java.io.IOException{
         long window=c.getWindow().getHandle();
         if(GLFW.glfwGetWindowAttrib(window,GLFW.GLFW_FOCUSED)==GLFW.GLFW_FALSE){
             if(!focusRequested){GLFW.glfwFocusWindow(window);focusRequested=true;}
             return;
         }
-        var menu=(HandledScreen<?>)c.currentScreen;var s=menu.getScreenHandler().getSlot(bank);double x=(menu.width-176)/2.0+s.x+8,y=(menu.height-212)/2.0+s.y+8;
-        GLFW.glfwSetCursorPos(window,x*c.getWindow().getWidth()/menu.width,y*c.getWindow().getHeight()/menu.height);
+        var menu=(HandledScreen<?>)c.currentScreen;var s=menu.getScreenHandler().getSlot(bank);
+        int x=(int)(((menu.width-176)/2.0+s.x+8)*c.getWindow().getWidth()/menu.width);
+        int y=(int)(((menu.height-212)/2.0+s.y+8)*c.getWindow().getHeight()/menu.height);
+        if(!NATIVE_POINTER){GLFW.glfwSetCursorPos(window,x,y);return;}
+        if(bank==lastPointerBank)return;
+        // glfwSetCursorPos can move the native cursor without delivering a MotionNotify
+        // to the game's Mouse callback. The isolated X11 driver sends the actual event.
+        long child=org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Window(window);
+        require(child!=0,"native pointer profile needs this actual X11 game window");
+        var directory=c.runDirectory.toPath();var pending=directory.resolve("weapon-native-pointer.tmp");
+        var receipt=Map.of("x11Window",child,"x",x,"y",y,"phase",phase,"profile",profile,"bank",bank);
+        Files.writeString(pending,new GsonBuilder().create().toJson(receipt));
+        Files.move(pending,directory.resolve("weapon-native-pointer.json"),java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        lastPointerBank=bank;
     }
     private static void closeMenu(MinecraftClient c){if(c.currentScreen!=null)c.currentScreen.keyPressed(GLFW.GLFW_KEY_ESCAPE,0,0);}
     private static void tick(MinecraftClient c){
