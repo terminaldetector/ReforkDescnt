@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.mega.*;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.minecraft.block.Blocks;
 import net.minecraft.nbt.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.test.*;
