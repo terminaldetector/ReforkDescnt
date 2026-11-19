@@ -1,7 +1,10 @@
 package com.terminaldetector.drmd.world.fire;
 
+import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -9,7 +12,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +37,8 @@ public final class FireSystem {
 		}
 	}
 
-	private static final Map<Long, Focus> FOCI = new ConcurrentHashMap<>();
+	private record Key(net.minecraft.registry.RegistryKey<net.minecraft.world.World> world, BlockPos pos) {}
+	private static final Map<Key, Focus> FOCI = new ConcurrentHashMap<>();
 
 	private FireSystem() {}
 
@@ -44,8 +47,12 @@ public final class FireSystem {
 	}
 
 	public static void ignite(ServerWorld world, BlockPos pos, int intensity) {
-		FOCI.put(pos.asLong(), new Focus(world.getRegistryKey(), pos, intensity, 100 + intensity * 20));
-		if (world.getBlockState(pos).isAir() || world.getBlockState(pos).isReplaceable()) {
+		if (!world.getServer().isOnThread() || !WorldEditSafety.mayChange(world, pos, null)) return;
+		var state = WorldAccess.of(world).readIfLoaded(pos).orElse(null);
+		if (state == null || !state.getFluidState().isEmpty()) return;
+		var focus = new Focus(world.getRegistryKey(), pos, intensity, 100 + intensity * 20);
+		FOCI.put(new Key(focus.worldKey, focus.pos), focus);
+		if (state.isAir() || state.isReplaceable()) {
 			world.setBlockState(pos, Blocks.FIRE.getDefaultState(), Block.NOTIFY_ALL);
 		}
 		SmokeSystem.emit(Vec3d.ofCenter(pos), SmokeSystem.Source.FIRE, 1.2f, 0.7f, 80);
@@ -58,23 +65,26 @@ public final class FireSystem {
 			int dy = world.getRandom().nextInt(Math.max(1, radius)) - radius / 2;
 			int dz = world.getRandom().nextInt(radius * 2 + 1) - radius;
 			BlockPos p = center.add(dx, dy, dz);
-			if (isFlammable(world, p) || world.getBlockState(p).isAir()) {
+			var state = WorldAccess.of(world).readIfLoaded(p).orElse(null);
+			if (state != null && (state.isAir() || isFlammable(state))) {
 				ignite(world, p, 2 + world.getRandom().nextInt(3));
 			}
 		}
 	}
 
 	public static void tick(ServerWorld world) {
-		List<Long> dead = new ArrayList<>();
+		List<Key> dead = new ArrayList<>();
 		List<Focus> spread = new ArrayList<>();
 		for (Focus f : FOCI.values()) {
 			// One global map, many worlds: only age and spread the ones burning in this one.
 			if (f.worldKey != world.getRegistryKey()) continue;
 			f.life--;
 			if (f.life <= 0) {
-				dead.add(f.pos.asLong());
+				dead.add(new Key(f.worldKey, f.pos));
 				continue;
 			}
+			var access = WorldAccess.of(world);
+			if (access.readIfLoaded(f.pos).isEmpty()) continue;
 			if (world.getTime() % 10 == 0) {
 				SmokeSystem.emit(Vec3d.ofCenter(f.pos).add(0, 0.5, 0),
 						SmokeSystem.Source.FIRE, 0.8f + f.intensity * 0.3f, 0.5f, 40);
@@ -83,8 +93,9 @@ public final class FireSystem {
 			if (world.getRandom().nextInt(12) == 0) {
 				Direction dir = Direction.random(world.getRandom());
 				BlockPos next = f.pos.offset(dir);
-				if (isFlammable(world, next) || (dir == Direction.UP && world.getBlockState(next).isAir()
-						&& isFlammable(world, next.up()))) {
+				var state = access.readIfLoaded(next).orElse(null);
+				if (state != null && (isFlammable(state) || dir == Direction.UP && state.isAir()
+						&& access.readIfLoaded(next.up()).map(FireSystem::isFlammable).orElse(false))) {
 					spread.add(new Focus(world.getRegistryKey(), next,
 							Math.max(1, f.intensity - 1), 60 + f.intensity * 10));
 				}
@@ -103,8 +114,7 @@ public final class FireSystem {
 	 * old {@code blastResistance < 1.5} catch-all matched dirt, grass, sand, gravel and netherrack,
 	 * so a single energy hit on open ground could chain across the terrain until it hit the focus cap.
 	 */
-	private static boolean isFlammable(ServerWorld world, BlockPos pos) {
-		var st = world.getBlockState(pos);
+	private static boolean isFlammable(BlockState st) {
 		if (st.isAir() || !st.getFluidState().isEmpty()) return false;
 		return st.isBurnable()
 				|| st.isIn(net.minecraft.registry.tag.BlockTags.LOGS)

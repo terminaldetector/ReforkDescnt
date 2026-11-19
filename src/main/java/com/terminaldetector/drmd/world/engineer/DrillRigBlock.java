@@ -1,4 +1,6 @@
 package com.terminaldetector.drmd.world.engineer;
+import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
@@ -14,7 +16,6 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
@@ -87,7 +88,9 @@ public class DrillRigBlock extends Block {
 			for (int dz = -SHAFT_RADIUS; dz <= SHAFT_RADIUS; dz++) {
 				if (dx * dx + dz * dz > SHAFT_RADIUS * SHAFT_RADIUS + 1) continue;
 				probe.set(target.getX() + dx, target.getY(), target.getZ() + dz);
-				BlockState st = world.getBlockState(probe);
+				if (!WorldEditSafety.mayChange(world, probe, null)) continue;
+				BlockState st = WorldAccess.of(world).readIfLoaded(probe).orElse(null);
+				if (st == null || !st.getFluidState().isEmpty()) continue;
 				float h = st.getHardness(world, probe);
 				if (st.isAir() || h < 0) continue;
 				world.breakBlock(probe.toImmutable(), true);
@@ -123,7 +126,8 @@ public class DrillRigBlock extends Block {
 		for (int d = 1; d <= MAX_DEPTH; d++) {
 			probe.set(rig.getX(), rig.getY() - d, rig.getZ());
 			if (world.isOutOfHeightLimit(probe)) return null;
-			BlockState st = world.getBlockState(probe);
+			BlockState st = WorldAccess.of(world).readIfLoaded(probe).orElse(null);
+			if (st == null) return null;
 			if (st.isAir()) continue;
 			float hardness = st.getHardness(world, probe);
 			if (hardness < 0) return null;
@@ -164,7 +168,7 @@ public class DrillRigBlock extends Block {
 	}
 
 	public static boolean canOperate(World world, BlockPos pos) {
-		float h = world.getBlockState(pos.offset(Direction.DOWN)).getHardness(world, pos.down());
-		return h >= 0; // plasma granite / mantle are diggable
+		return WorldAccess.of(world).readIfLoaded(pos.down())
+			.map(state -> state.getHardness(world, pos.down()) >= 0).orElse(false);
 	}
 }

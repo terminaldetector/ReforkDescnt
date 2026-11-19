@@ -14,6 +14,11 @@ public final class HybridTerrain {
     public record Data(BlockState source,long mask,boolean organic,java.util.List<com.terminaldetector.drmd.world.micro.ThermalBore> bores,int heat) {
         public Data(BlockState source,long mask,boolean organic){this(source,mask,organic,java.util.List.of(),0);}
         public Data {bores=java.util.List.copyOf(bores);if(bores.size()>2||heat<0||heat>3)throw new IllegalArgumentException("thermal render bounds");}
+        public HybridMaterialPolicy material(){return HybridMaterialPolicy.of(organic,mask,heat,!bores.isEmpty(),false);}
+        private HybridMesh.Block meshBlock(boolean occludes,boolean anchorEmpty){
+            var policy=HybridMaterialPolicy.of(organic,mask,heat,!bores.isEmpty(),anchorEmpty);
+            return new HybridMesh.Block(mask,policy.smooth(),policy.anchor(),occludes,bores,NaturalGeometry.logAxis(source));
+        }
     }
 
     public static HybridMesh.Neighbourhood snapshot(BlockView world, BlockPos origin, Data self) {
@@ -22,17 +27,17 @@ public final class HybridTerrain {
             BlockPos p=origin.add(x,y,z);
             BlockState state=world.getBlockState(p);
             if (x==0 && y==0 && z==0) {
-                blocks.add(new HybridMesh.Block(self.mask,self.organic,!self.organic,self.source.isOpaque(),self.bores,NaturalGeometry.logAxis(self.source)));
+                blocks.add(self.meshBlock(self.source.isOpaque(),true));
             } else if (state.getBlock() instanceof OrganicBlock organic) {
-                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,organic.source().isOpaque(),java.util.List.of(),NaturalGeometry.logAxis(organic.source())));
+                blocks.add(new Data(organic.source(),MicroGrid.FULL,true).meshBlock(organic.source().isOpaque(),false));
             } else if (state.getBlock() instanceof CarvedBlock) {
                 Object attachment=world.getBlockEntityRenderData(p);
                 if (attachment instanceof Data data) {
                     boolean hides=data.source.isOpaque() || data.source.equals(self.source);
-                    blocks.add(new HybridMesh.Block(data.mask,data.organic,!data.organic && data.mask!=0,hides,data.bores,NaturalGeometry.logAxis(data.source)));
+                    blocks.add(data.meshBlock(hides,false));
                 } else blocks.add(new HybridMesh.Block(MicroGrid.FULL,false,true,true));
             } else if (NaturalGeometry.applies(state)) {
-                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,state.isOpaque() || state.equals(self.source),java.util.List.of(),NaturalGeometry.logAxis(state)));
+                blocks.add(new Data(state,MicroGrid.FULL,true).meshBlock(state.isOpaque() || state.equals(self.source),false));
             } else if (state.isAir()) blocks.add(HybridMesh.Block.AIR);
             else {
                 boolean full=state.isFullCube(world,p);

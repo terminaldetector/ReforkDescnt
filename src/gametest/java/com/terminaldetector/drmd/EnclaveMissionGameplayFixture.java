@@ -28,7 +28,7 @@ import java.util.*;
 
 /** Test-owned actors and arena. Mission state is observed only through read-only NBT snapshots. */
 final class EnclaveMissionGameplayFixture {
-    enum Case { LAB,SIDE,FOREIGN,RIGHTS,INVALIDATE }
+    enum Case { LAB,SIDE,FOREIGN,RIGHTS,INVALIDATE,PROTOTYPE }
     record Actor(ServerPlayerEntity player,EmbeddedChannel channel,OperatorEntry operatorBefore){}
     final TestContext c;final ServerWorld w;final Case scenario;final BlockPos herald,anchor,otherHerald,panel;
     final String definition;final Map<BlockPos,BlockState> previous=new LinkedHashMap<>();
@@ -96,11 +96,21 @@ final class EnclaveMissionGameplayFixture {
     private void admit(){
         c.assertTrue(EnclaveMissionCatalog.snapshot().valid()&&EnclaveMissionCatalog.find(definition).isPresent(),"production main registered actual server-data mission resource before gameplay");
         for(var item:items())preexistingItems.add(item.getUuid());
-        for(int x=-2;x<=16;x++)for(int z=-3;z<=7;z++){
-            put(herald.add(x,-1,z),Blocks.STONE.getDefaultState());
-            for(int y=0;y<3;y++)put(herald.add(x,y,z),Blocks.AIR.getDefaultState());
+        if (scenario == Case.PROTOTYPE) {
+            for (int x = -9; x <= 2; x++)
+                for (int y = -1; y <= 9; y++)
+                    for (int z = -2; z <= 2; z++) put(anchor.add(x, y, z), Blocks.STONE.getDefaultState());
+            put(herald.down(), Blocks.STONE.getDefaultState());
+            put(herald.north(2).down(), Blocks.STONE.getDefaultState());
+        } else {
+            for(int x=-2;x<=16;x++)for(int z=-3;z<=7;z++){
+                put(herald.add(x,-1,z),Blocks.STONE.getDefaultState());
+                for(int y=0;y<3;y++)put(herald.add(x,y,z),Blocks.AIR.getDefaultState());
+            }
+            put(otherHerald, ModWorldBlocks.ENCLAVE_HERALD.getDefaultState());
+            put(panel, Blocks.IRON_BLOCK.getDefaultState());
         }
-        put(herald,ModWorldBlocks.ENCLAVE_HERALD.getDefaultState());put(otherHerald,ModWorldBlocks.ENCLAVE_HERALD.getDefaultState());put(panel,Blocks.IRON_BLOCK.getDefaultState());
+        put(herald, ModWorldBlocks.ENCLAVE_HERALD.getDefaultState());
         author=connect(GameMode.CREATIVE,true);owner=connect(GameMode.SURVIVAL,false);foreign=connect(GameMode.SURVIVAL,false);
         author.player.setPosition(herald.getX()-1+.5,herald.getY(),herald.getZ()+6+.5);
         foreign.player.setPosition(herald.getX()+2+.5,herald.getY(),herald.getZ()+6+.5);
@@ -216,6 +226,13 @@ final class EnclaveMissionGameplayFixture {
     }
     private void next(int phase){this.phase=phase;phaseTicks=0;record("phase:"+phase);}
     private void step(){
+        if (scenario == Case.PROTOTYPE) {
+            buildPrototype();
+            finished = true;
+            close(null);
+            c.complete();
+            return;
+        }
         switch(phase){
             case 0->{if(scenario==Case.RIGHTS)deniedAuthoring();bind();next(1);}
             case 1->{use(owner,herald,true);expect(owner,0,"ACTIVE",0,"actual acceptance grants no objective or reward");next(2);}
@@ -284,6 +301,34 @@ final class EnclaveMissionGameplayFixture {
             default->throw new IllegalStateException("unknown fixture phase "+phase);
         }
     }
+    private void buildPrototype() {
+        var command = "ungravitylab " + xyz(anchor);
+        var before = fingerprint();
+        command(owner.player.getCommandSource(), command);
+        c.assertTrue(fingerprint().equals(before), "ordinary Survival cannot excavate a lab");
+        var blocked = anchor.add(2, 3, 2);
+        put(blocked, Blocks.OBSIDIAN.getDefaultState());
+        var obstruction = fingerprint();
+        command(author.player.getCommandSource(), command);
+        c.assertTrue(fingerprint().equals(obstruction), "late engineered obstruction refuses all edits");
+        put(blocked, Blocks.STONE.getDefaultState());
+        command(author.player.getCommandSource(), command);
+        c.assertTrue(w.getBlockState(panel).isOf(Blocks.IRON_BLOCK)
+            && w.getBlockState(anchor.up(3)).isOf(Blocks.SEA_LANTERN), "real dispatcher builds a lit room and actual mission panel");
+        for (int step = 0; step <= 7; step++) {
+            var feet = anchor.add(-2-step, step, 0);
+            var probe = owner.player.getBoundingBox().offset(standing(feet).subtract(owner.player.getPos()));
+            c.assertTrue(w.isSpaceEmpty(owner.player, probe)
+                && w.getBlockState(feet.down()).isOf(Blocks.POLISHED_DEEPSLATE),
+                "real player collision shape fits on each connected landing: " + feet);
+        }
+        var built = fingerprint();
+        command(author.player.getCommandSource(), command);
+        c.assertTrue(fingerprint().equals(built), "replaying intact blueprint is idempotent");
+        bind();
+        c.assertTrue(rep(owner) == 0 && instance(owner).isEmpty(), "building and binding award no progress or reputation");
+    }
+
     private void deniedAuthoring(){
         String before=snapshot().toString(),blocks=fingerprint();
         command(owner.player.getCommandSource(),bindCommand());

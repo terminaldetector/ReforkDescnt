@@ -1,4 +1,5 @@
 package com.terminaldetector.drmd.world.engineer;
+import com.terminaldetector.drmd.world.access.WorldAccess;
 
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
@@ -84,7 +85,8 @@ public class TunnelDrillRigBlock extends Block {
 		for (int d = 1; d <= MAX_LENGTH; d++) {
 			BlockPos probe = pos.offset(face, d);
 			if (world.isOutOfHeightLimit(probe)) break;
-			BlockState st = world.getBlockState(probe);
+			BlockState st = WorldAccess.of(world).readIfLoaded(probe).orElse(null);
+			if (st == null) break;
 			if (st.isAir() || !st.getFluidState().isEmpty()) continue;
 			// Plasma granite is diggable; only truly unbreakable (hardness < 0) stops the head.
 			if (st.getHardness(world, probe) < 0) break;

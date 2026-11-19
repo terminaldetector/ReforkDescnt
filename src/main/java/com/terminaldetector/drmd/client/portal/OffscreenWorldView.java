@@ -99,7 +99,11 @@ public final class OffscreenWorldView {
 			Matrix4f outerProjection, Vec3d viewPos, float viewYaw, float viewPitch,
 			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box, Matrix4f viewMatrix, boolean reflected,
             java.util.List<PortalTransform.Vec3[]> apertures) {
-		if (!box.valid()) return false;
+		if (!box.valid() || apertures.isEmpty()) return false;
+        if (!SurfaceComposite.ready()) {
+            DiagProblems.record("portal", "surface composite shader is unavailable");
+            return false;
+        }
 		Framebuffer target = MirrorFramebuffer.get();
 		if (target == null) {
 			// Ordinarily a minimised window, but it is also one of the ways a mirror shows nothing at
@@ -170,14 +174,11 @@ public final class OffscreenWorldView {
             depth--;
 		}
 
-        SurfaceComposite.draw(target, outerProjection, framePosition, originalPos, apertures);
-		DiagTrace.count("view.drawn");
-		// draw() leaves the depth test disabled (it restores the depth *mask* and the colour mask, but
-		// not this), and we are still inside the world render — anything drawn after us in the same frame
-		// would lose its depth sorting. Cheap to put back, and the alternative is a bug that reads as
-		// "the mirror broke some unrelated renderer".
+        boolean composited = SurfaceComposite.draw(target, outerProjection, framePosition, originalPos, apertures);
+        if (composited) DiagTrace.count("view.drawn");
+        // The outer world pass continues drawing depth-tested geometry after the aperture.
 		RenderSystem.enableDepthTest();
-		return true;
+		return composited;
 	}
 
 	/**

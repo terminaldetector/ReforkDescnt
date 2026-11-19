@@ -18,9 +18,13 @@ public final class SurfaceComposite {
         CoreShaderRegistrationCallback.EVENT.register(c->c.register(Identifier.of("drmd","surface_composite"),
                 VertexFormats.POSITION,p->shader=p));
     }
-    public static void draw(Framebuffer target,Matrix4f projection,Matrix4f view,Vec3d camera,
+    static boolean ready() {
+        return shader != null;
+    }
+
+    public static boolean draw(Framebuffer target,Matrix4f projection,Matrix4f view,Vec3d camera,
             List<PortalTransform.Vec3[]> apertures) {
-        if(shader==null)return;
+        if (!ready() || apertures.isEmpty()) return false;
         boolean depth=GL11.glIsEnabled(GL11.GL_DEPTH_TEST),cull=GL11.glIsEnabled(GL11.GL_CULL_FACE),
                 blend=GL11.glIsEnabled(GL11.GL_BLEND),write=GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
         int function=GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
@@ -36,7 +40,10 @@ public final class SurfaceComposite {
             var buffer=Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS,VertexFormats.POSITION);
             for(var polygon:apertures)for(var p:polygon)
                 buffer.vertex((float)(p.x()-camera.x),(float)(p.y()-camera.y),(float)(p.z()-camera.z));
-            var built=buffer.endNullable();if(built!=null)BufferRenderer.drawWithGlobalProgram(built);
+            var built = buffer.endNullable();
+            if (built == null) return false;
+            BufferRenderer.drawWithGlobalProgram(built);
+            return true;
         } finally {
             RenderSystem.depthFunc(function);RenderSystem.depthMask(write);
             if(depth)RenderSystem.enableDepthTest();else RenderSystem.disableDepthTest();

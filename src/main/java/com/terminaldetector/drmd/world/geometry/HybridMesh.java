@@ -138,12 +138,15 @@ public final class HybridMesh {
             for (int v=0;v<4;v++) for (int u=0;u<4;u++) if (visible[v][u]) {
                 int width=1,height=1;
                 int plane=slice+(d%2==1?1:0);
-                if (!self.organic || planar(d,slice) || axisAware) {
+                // Thermal projection is nonlinear even on engineered material: never replace its
+                // actual rim/crease with a large quad whose interior skips the shared vertices.
+                boolean featureAware=axisAware||thermal;
+                if (!self.organic || planar(d,slice) || featureAware) {
                     while (u+width<4 && visible[v][u+width]
-                        &&(!axisAware||mergePatch(d,plane,u,v,width+1,height))) width++;
+                        &&(!featureAware||mergePatch(d,plane,u,v,width+1,height))) width++;
                     outer: while (v+height<4) {
                         for (int i=0;i<width;i++) if (!visible[v+height][u+i]) break outer;
-                        if(axisAware&&!mergePatch(d,plane,u,v,width,height+1))break;
+                        if(featureAware&&!mergePatch(d,plane,u,v,width,height+1))break;
                         height++;
                     }
                 }

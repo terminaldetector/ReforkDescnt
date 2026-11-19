@@ -82,8 +82,8 @@ public class DescentPlayerData {
 
 	/** Descent ship basis (synced from client while 6DoF). */
 	private boolean shipAttitudeValid;
-	private float shipFx, shipFy, shipFz = 1f;
-	private float shipUx, shipUy = 1f, shipUz;
+    private com.terminaldetector.drmd.client.portal.PortalTransform.Quat shipOrientation=
+        com.terminaldetector.drmd.client.portal.PortalTransform.Quat.IDENTITY;
 
 	// Tunable physics (admin d6_set) — Source units, scaled at runtime. accel/drag/maxSpeed are the
 	// pilotless free-6DoF fallback only — while piloting a Pyro GX, its own fields apply instead
@@ -337,37 +337,27 @@ public class DescentPlayerData {
 
 	public void clearShipAttitude() {
 		this.shipAttitudeValid = false;
-		this.shipFx = 0; this.shipFy = 0; this.shipFz = 1;
-		this.shipUx = 0; this.shipUy = 1; this.shipUz = 0;
+        this.shipOrientation=com.terminaldetector.drmd.client.portal.PortalTransform.Quat.IDENTITY;
 	}
 
 	public void setShipAttitude(float fx, float fy, float fz, float ux, float uy, float uz) {
-		this.shipFx = fx; this.shipFy = fy; this.shipFz = fz;
-		this.shipUx = ux; this.shipUy = uy; this.shipUz = uz;
-		this.shipAttitudeValid = true;
-		com.terminaldetector.drmd.flight.ShipAttitude tmp = new com.terminaldetector.drmd.flight.ShipAttitude();
-		tmp.setForwardUp(new Vec3d(fx, fy, fz), new Vec3d(ux, uy, uz));
-		this.roll = tmp.bankDegrees();
-	}
+        var frame=com.terminaldetector.drmd.physics.OrientationFrame.decode(new Vec3d(fx,fy,fz),new Vec3d(ux,uy,uz));
+        if(frame.isEmpty())return; // invalid packet must not poison the last authoritative state
+        shipOrientation=frame.orElseThrow();shipAttitudeValid=true;
+        roll=com.terminaldetector.drmd.flight.ShipAttitude.bankDegrees(
+            com.terminaldetector.drmd.physics.OrientationFrame.toWorld(shipOrientation,new Vec3d(0,0,1)),
+            com.terminaldetector.drmd.physics.OrientationFrame.toWorld(shipOrientation,new Vec3d(0,1,0)));
+    }
+    public com.terminaldetector.drmd.client.portal.PortalTransform.Quat shipOrientation(){return shipOrientation;}
 
-	public Vec3d shipForward(PlayerEntity player) {
-		if (shipAttitudeValid) return new Vec3d(shipFx, shipFy, shipFz).normalize();
-		return player.getRotationVec(1f);
-	}
-
-	public Vec3d shipUp(PlayerEntity player) {
-		if (shipAttitudeValid) {
-			Vec3d f = shipForward(player);
-			Vec3d u = new Vec3d(shipUx, shipUy, shipUz);
-			u = u.subtract(f.multiply(u.dotProduct(f)));
-			if (u.lengthSquared() < 1e-8) return new Vec3d(0, 1, 0);
-			return u.normalize();
-		}
-		Vec3d look = player.getRotationVec(1f);
-		Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
-		if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
-		return right.normalize().crossProduct(look).normalize();
-	}
+    public Vec3d shipForward(PlayerEntity player) {
+        if(shipAttitudeValid)return com.terminaldetector.drmd.physics.OrientationFrame.toWorld(shipOrientation,new Vec3d(0,0,1));
+        return player.getRotationVec(1f);
+    }
+    public Vec3d shipUp(PlayerEntity player) {
+        if(shipAttitudeValid)return com.terminaldetector.drmd.physics.OrientationFrame.toWorld(shipOrientation,new Vec3d(0,1,0));
+        return com.terminaldetector.drmd.flight.ShipAttitude.levelUpOf(player.getRotationVec(1f));
+    }
 
 	public Vec3d shipRight(PlayerEntity player) {
 		return shipForward(player).crossProduct(shipUp(player)).normalize();
@@ -375,7 +365,7 @@ public class DescentPlayerData {
 
 	public void levelShipAttitude(PlayerEntity player) {
 		com.terminaldetector.drmd.flight.ShipAttitude a = new com.terminaldetector.drmd.flight.ShipAttitude();
-		if (shipAttitudeValid) a.setForwardUp(new Vec3d(shipFx, shipFy, shipFz), new Vec3d(shipUx, shipUy, shipUz));
+		if (shipAttitudeValid) a.setForwardUp(shipForward(player),shipUp(player));
 		else a.fromLook(player.getRotationVec(1f));
 		a.levelRoll();
 		setShipAttitude((float) a.fx, (float) a.fy, (float) a.fz, (float) a.ux, (float) a.uy, (float) a.uz);

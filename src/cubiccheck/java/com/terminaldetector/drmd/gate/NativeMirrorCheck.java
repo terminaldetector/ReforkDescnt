@@ -21,7 +21,7 @@ public final class NativeMirrorCheck {
     private static int ticks,age,stage;
     private static int[] on;
     private static final String[] NAMES={"joined-on","joined-off","hole-on","hole-off","angled-on","angled-off",
-            "occluded-on","occluded-off","charged-on","charged-off","portal-on","portal-off","banked-on","banked-off"};
+            "occluded-on","occluded-off","charged-on","charged-off","portal-on","portal-off","banked-on","banked-off","both-on","both-off"};
     private static final List<String> RESULTS=new ArrayList<>();
     public static void register() {ClientTickEvents.END_CLIENT_TICK.register(NativeMirrorCheck::tick);}
     public static void overrideCamera(Camera camera) {
@@ -36,8 +36,8 @@ public final class NativeMirrorCheck {
             for(var child:prompt.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget button
                     && button.getMessage().getString().equals("I know what I'm doing!"))button.onPress();
         if(client.player==null || client.world==null || client.getServer()==null)return;
-        com.terminaldetector.drmd.client.DescentClientState.enabled=stage>=12;
-        if(stage>=12) {
+        com.terminaldetector.drmd.client.DescentClientState.enabled=stage==12 || stage==13;
+        if(stage==12 || stage==13) {
             var attitude=new com.terminaldetector.drmd.flight.ShipAttitude();
             attitude.setForwardUp(new Vec3d(0,0,1),new Vec3d(0,1,0));attitude.rollLocal(45);
             com.terminaldetector.drmd.client.flight.ShipAttitudeClient.acceptPortalFrame(client.player,attitude.forward(),attitude.up());
@@ -71,7 +71,7 @@ public final class NativeMirrorCheck {
     private static void prepareReady(MinecraftClient client) {
         ready=false;age=0;DescentConfig.planetFloor=false;DescentConfig.levelSky=false;
         DescentConfig.mirrorReflection=stage%2==0 && stage!=10;
-        DescentConfig.portalSeeThrough=stage==10;
+        DescentConfig.portalSeeThrough=stage==10 || stage==14;
         if(stage%2==1){ready=true;return;}
         client.getServer().execute(()->{
             var world=client.getServer().getOverworld();
@@ -85,15 +85,17 @@ public final class NativeMirrorCheck {
             // Warm gold wall is behind the real camera; it can only appear via a mirror.
             for(var pos:BlockPos.iterate(new BlockPos(6,2153,35),new BlockPos(20,2162,35)))
                 world.setBlockState(pos,Blocks.GOLD_BLOCK.getDefaultState(),3);
-            if(stage==10) {
-                var a=new BlockPos(12,2155,24);var b=new BlockPos(12,2155,12);
+            if (stage==10 || stage==14) {
+                int x = stage==14 ? 16 : 12;
+                var a=new BlockPos(x,2155,24);var b=new BlockPos(x,2155,12);
                 world.setBlockState(a,ModWorldBlocks.PORTAL_PANEL.getDefaultState().with(PortalPanelBlock.FACING,Direction.SOUTH).with(PortalPanelBlock.LINKED,true),3);
                 world.setBlockState(b,ModWorldBlocks.PORTAL_PANEL.getDefaultState().with(PortalPanelBlock.FACING,Direction.NORTH).with(PortalPanelBlock.LINKED,true),3);
                 ((PortalPanelBlockEntity)world.getBlockEntity(a)).setLink(null,b,world.getRegistryKey());
                 ((PortalPanelBlockEntity)world.getBlockEntity(b)).setLink(null,a,world.getRegistryKey());
                 world.getChunkManager().markForUpdate(a);world.getChunkManager().markForUpdate(b);
-                for(var p:BlockPos.iterate(new BlockPos(9,2153,5),new BlockPos(16,2160,5)))world.setBlockState(p,Blocks.DIAMOND_BLOCK.getDefaultState(),3);
-            } else {
+                for(var p:BlockPos.iterate(new BlockPos(9,2153,5),new BlockPos(stage==14 ? 20 : 16,2160,5)))world.setBlockState(p,Blocks.DIAMOND_BLOCK.getDefaultState(),3);
+            }
+            if (stage != 10) {
                 var block=stage==8?ModWorldBlocks.CHARGED_MIRROR:ModWorldBlocks.MIRROR;
                 for(int x=12;x<=13;x++)for(int y=2155;y<=2156;y++)
                     if(stage!=2 || x!=13 || y!=2156)world.setBlockState(new BlockPos(x,y,24),block.getDefaultState().with(net.minecraft.state.property.Properties.FACING,Direction.SOUTH),3);
@@ -125,6 +127,9 @@ public final class NativeMirrorCheck {
             if(count!=1 && stage!=10){age=30;return;}
             var summary=PortalViewDiagnostics.lastSummary(stage==10?"portal":"mirror");
             if(summary==null || !summary.startsWith("drawing")){age=30;return;}
+            if (stage==14 && !Objects.toString(PortalViewDiagnostics.lastSummary("portal"), "").startsWith("drawing")) {
+                age=30;return;
+            }
         }
         try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             var root=client.runDirectory.toPath().resolve("native-mirror-frames");Files.createDirectories(root);
@@ -150,6 +155,14 @@ public final class NativeMirrorCheck {
                     if(leaked!=0)throw new IllegalStateException("Reflection leaked into "+NAMES[stage]+": "+leaked);
                     System.out.println("MIRROR_JOIN maskedPixels=64 unchanged "+NAMES[stage]);
                 }
+                if (stage==15) {
+                    var camera = client.gameRenderer.getCamera().getPos();
+                    int mirrorPixels = apertureChanges(image, camera, new Vec3d(12.75,2155.5,24.9));
+                    int portalPixels = apertureChanges(image, camera, new Vec3d(16.5,2155.5,24.9));
+                    if (mirrorPixels < 64 || portalPixels < 64)
+                        throw new IllegalStateException("Same-frame aperture lost its own view: mirror="+mirrorPixels+" portal="+portalPixels);
+                    System.out.println("MIRROR_PORTAL_SAME_FRAME mirrorChanged="+mirrorPixels+" portalChanged="+portalPixels);
+                }
                 RESULTS.add("{\"scene\":\""+NAMES[stage-1]+"\",\"changedPixels\":"+changed+"}");
                 System.out.println("MIRROR_JOIN "+NAMES[stage]+" changed="+changed);
             }
@@ -163,11 +176,25 @@ public final class NativeMirrorCheck {
                 System.out.println("MIRROR_JOIN seamGold="+gold);
             }
             if(++stage==NAMES.length) {
-                Files.writeString(client.runDirectory.toPath().resolve("native-mirror-ok.json"),"{\"frames\":14,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                Files.writeString(client.runDirectory.toPath().resolve("native-mirror-ok.json"),"{\"frames\":"+NAMES.length+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 started=false;client.scheduleStop();return;
             }
             prepare(client);
         }catch(java.io.IOException e){ready=false;throw new IllegalStateException(e);}
         catch(RuntimeException failure){ready=false;throw failure;}
+    }
+
+    private static int apertureChanges(net.minecraft.client.texture.NativeImage image, Vec3d camera, Vec3d point) {
+        var relative = point.subtract(camera);
+        var clip = new org.joml.Vector4f((float) relative.x, (float) relative.y, (float) relative.z, 1)
+                .mul(OffscreenWorldView.framePosition()).mul(OffscreenWorldView.frameProjection());
+        int width = image.getWidth(), height = image.getHeight();
+        int centerX = (int) ((clip.x / clip.w * .5 + .5) * width);
+        int centerY = (int) ((.5 - clip.y / clip.w * .5) * height);
+        int changed = 0;
+        for (int y = Math.max(0, centerY - 8); y < Math.min(height, centerY + 8); y++)
+            for (int x = Math.max(0, centerX - 8); x < Math.min(width, centerX + 8); x++)
+                if (on[y * width + x] != image.getColor(x, y)) changed++;
+        return changed;
     }
 }

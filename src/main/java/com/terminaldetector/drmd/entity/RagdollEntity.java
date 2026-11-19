@@ -555,19 +555,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	@Override
 	public void applyPhysicsImpulse(Vec3d impact, Vec3d impulse) {
 		if (getWorld().isClient || !rigVersionSupported() || !finite(impact) || !finite(impulse)) return;
-		Vec3 point = pure(impact);
-		int nearest = 0;
-		double distance = Double.POSITIVE_INFINITY;
-		for (int i = 0; i < simulation.parts().size(); i++) {
-			double candidate = simulation.parts().get(i).body().position().minus(point).lengthSquared();
-			if (candidate < distance) {
-				distance = candidate;
-				nearest = i;
-			}
-		}
-		RagdollSimulation.Part part = simulation.parts().get(nearest);
-		Vec3 localPoint = part.body().rotation().inverse().rotate(point.minus(part.body().position()));
-		simulation.applyImpulse(nearest, pure(impulse), localPoint);
+		simulation.applyImpulseAt(pure(impact),pure(impulse));
 		dataTracker.set(POSE, trackedPose());
 		velocityModified = true;
 	}

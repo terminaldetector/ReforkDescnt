@@ -175,6 +175,8 @@ public class CarvedBlock extends BlockWithEntity {
 	 *         when the two masks no longer share any solid cell, so the block breaks outright)
 	 */
 	public static CarvedBlockEntity replace(ServerWorld world, BlockPos pos, BlockState source, long mask) {
+		if (!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(world)
+				|| com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos).isEmpty()) return null;
 		if (!(world.getBlockEntity(pos) instanceof CarvedBlockEntity)
 				&& !BlockDamage.isDamageable(world,pos,source)) return null;
 		boolean organic = source.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock;
@@ -211,6 +213,8 @@ public class CarvedBlock extends BlockWithEntity {
 
 	/** Whole again: put the original block back. */
 	public static void restore(ServerWorld world, BlockPos pos) {
+		if (!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(world)
+				|| com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos).isEmpty()) return;
 		BlockEntity be = world.getBlockEntity(pos);
 		BlockState source = be instanceof CarvedBlockEntity carved ? carved.source() : Blocks.STONE.getDefaultState();
 		if (source.getBlock() instanceof CarvedBlock) source = Blocks.STONE.getDefaultState();

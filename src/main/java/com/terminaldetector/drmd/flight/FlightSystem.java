@@ -307,6 +307,7 @@ public final class FlightSystem {
         // Clear authority before dismount: the passenger callback must observe an explicit stop,
         // rather than re-enabling free flight while H is trying to turn it off.
         boolean releaseFoot=com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
+        boolean releaseVehicle=player.getVehicle() instanceof PyroShipEntity;
         Vec3d previousUp=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
         data.setEnabled(false);
         if(player.getVehicle() instanceof PyroShipEntity) player.stopRiding();
@@ -317,7 +318,7 @@ public final class FlightSystem {
         com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
         com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
         player.setNoGravity(false);
-        if(releaseFoot && player.isAlive())
+        if((releaseFoot||releaseVehicle) && player.isAlive())
             com.terminaldetector.drmd.world.gravity.GravityMount.releaseToWorldUp(player,previousUp);
         player.calculateDimensions();
         data.clearShipAttitude();

@@ -1,6 +1,10 @@
 package com.terminaldetector.drmd.flight;
 
 import net.minecraft.util.math.MathHelper;
+import com.terminaldetector.drmd.physics.OrientationFrame;
+import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
+import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import net.minecraft.util.math.Vec3d;
 
 /**
@@ -8,6 +12,8 @@ import net.minecraft.util.math.Vec3d;
  * (port of d6_client.lua Ang:RotateAroundAxis).
  */
 public final class ShipAttitude {
+    private Quat orientation=Quat.IDENTITY;
+    /** Derived legacy wire/render mirrors; physical state is the quaternion. */
 	public double fx = 0, fy = 0, fz = 1;
 	public double ux = 0, uy = 1, uz = 0;
 
@@ -15,46 +21,48 @@ public final class ShipAttitude {
 
 	public ShipAttitude copy() {
 		ShipAttitude a = new ShipAttitude();
-		a.fx = fx; a.fy = fy; a.fz = fz;
-		a.ux = ux; a.uy = uy; a.uz = uz;
+        a.setOrientation(orientation);
 		return a;
 	}
 
-	public Vec3d forward() { return new Vec3d(fx, fy, fz); }
-	public Vec3d up() { return new Vec3d(ux, uy, uz); }
+    public Quat orientation(){return orientation;}
+	public Vec3d forward() { return OrientationFrame.toWorld(orientation,new Vec3d(0,0,1)); }
+	public Vec3d up() { return OrientationFrame.toWorld(orientation,new Vec3d(0,1,0)); }
+    private void setOrientation(Quat frame) {
+        orientation=frame.normalized();var f=forward();var u=up();
+        fx=f.x;fy=f.y;fz=f.z;ux=u.x;uy=u.y;uz=u.z;
+    }
+    private void rotateFrame(Vec3d axis,double degrees) {
+        if(!Double.isFinite(degrees))return;
+        setOrientation(ImmPtlQuaternions.hamiltonProduct(ImmPtlQuaternions.rotationByDegrees(new Vec3(axis.x,axis.y,axis.z),degrees),orientation));
+    }
 	public Vec3d right() { return forward().crossProduct(up()).normalize(); }
 
 	public void setForwardUp(Vec3d f, Vec3d u) {
-		f = f.normalize();
-		u = u.subtract(f.multiply(u.dotProduct(f)));
-		if (u.lengthSquared() < 1e-8) u = new Vec3d(0, 1, 0);
-		u = u.normalize();
-		fx = f.x; fy = f.y; fz = f.z;
-		ux = u.x; uy = u.y; uz = u.z;
-	}
+        OrientationFrame.decode(f,u).ifPresent(this::setOrientation);
+    }
 
 	public void fromLook(Vec3d look) {
 		Vec3d f = look.normalize();
-		fx = f.x; fy = f.y; fz = f.z;
-		setForwardUp(f, levelUp());
+		setForwardUp(f, levelUpOf(f));
 	}
 
 	/** Pitch: rotate around local Right (nose up = negative Minecraft pitch). */
 	public void pitchLocal(double deg) {
 		Vec3d r = right();
-		setForwardUp(rotate(forward(), r, deg), rotate(up(), r, deg));
+		rotateFrame(r,deg);
 	}
 
 	/** Yaw: rotate around local Up. */
 	public void yawLocal(double deg) {
 		Vec3d u = up();
-		setForwardUp(rotate(forward(), u, deg), u);
+		rotateFrame(u,deg);
 	}
 
 	/** Barrel roll: rotate around local Forward. */
 	public void rollLocal(double deg) {
 		Vec3d f = forward();
-		setForwardUp(f, rotate(up(), f, deg));
+		rotateFrame(f,deg);
 	}
 
 	/** Level bank while keeping nose direction. */
@@ -63,7 +71,7 @@ public final class ShipAttitude {
 	}
 
 	public float pitchDegrees() {
-		return (float) (-Math.toDegrees(Math.asin(MathHelper.clamp(fy, -1, 1))));
+		return (float) (-Math.toDegrees(Math.asin(MathHelper.clamp(forward().y, -1, 1))));
 	}
 
 	public float yawDegrees() {
@@ -72,7 +80,7 @@ public final class ShipAttitude {
 
 	private double yawRadians() {
 		// atan2(0, 0) == 0, so a nose pointing exactly at a pole still yields a defined yaw.
-		return Math.atan2(-fx, fz);
+		var f=forward();return Math.atan2(-f.x, f.z);
 	}
 
 	/**

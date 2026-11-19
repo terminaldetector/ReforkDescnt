@@ -80,6 +80,34 @@ public final class RagdollSimulation {
 		target.body().applyImpulse(impulse, offset);
 	}
 
+	/** Closest authored oriented hull, rather than the nearest centre of a long wing/core. */
+	public int nearestPartAt(Vec3 worldPoint) {
+		if (worldPoint == null || !finite(worldPoint) || !Double.isFinite(worldPoint.lengthSquared())) throw new IllegalArgumentException("invalid ragdoll impact point");
+		int nearest=0;
+		double surfaceDistance=Double.POSITIVE_INFINITY,centreDistance=Double.POSITIVE_INFINITY;
+		for(int i=0;i<parts.size();i++){
+			Part part=parts.get(i);Vec3 relative=worldPoint.minus(part.body().position());
+			Vec3 local=part.body().rotation().inverse().rotate(relative),half=part.segment().halfExtents();
+			double x=Math.max(0,Math.abs(local.x())-half.x());
+			double y=Math.max(0,Math.abs(local.y())-half.y());
+			double z=Math.max(0,Math.abs(local.z())-half.z());
+			double candidate=x*x+y*y+z*z,centre=relative.lengthSquared();
+			// Overlapping authored boxes retain a deterministic nearest-centre tie break.
+			if(candidate<surfaceDistance||(candidate==surfaceDistance&&centre<centreDistance)){
+				surfaceDistance=candidate;centreDistance=centre;nearest=i;
+			}
+		}
+		return nearest;
+	}
+
+	/** Route an actual world-space contact to its hull and retain the full off-centre lever arm. */
+	public int applyImpulseAt(Vec3 worldPoint,Vec3 impulse){
+		if(impulse==null||!finite(impulse)||!Double.isFinite(impulse.lengthSquared()))throw new IllegalArgumentException("invalid ragdoll impulse");
+		int selected=nearestPartAt(worldPoint);Part part=parts.get(selected);
+		part.body().applyImpulse(impulse,worldPoint.minus(part.body().position()));
+		return selected;
+	}
+
 	public void step(double seconds, Vec3 gravity) {
 		step(seconds, gravity, DEFAULT_SUBSTEPS, DEFAULT_SOLVER_ITERATIONS, null);
 	}

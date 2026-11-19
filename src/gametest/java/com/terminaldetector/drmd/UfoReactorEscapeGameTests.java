@@ -119,4 +119,43 @@ public final class UfoReactorEscapeGameTests implements FabricGameTest {
         manager.executeWithPrefix(source.withLevel(2),"d6 mega uforeactordelay 60");
         c.assertTrue(f.body.reactorEscapeTicks()==40,"same real command cannot rearm a critical reactor");
     }finally{f.close();}c.complete();});}
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-reactor-real-sabotage",tickLimit=110)
+    public void SabotageRequiresAnExposedPhysicalReactorAndOrdinaryPermission(TestContext c) {
+        admitted(c, f -> {
+            try {
+                var world = c.getWorld();
+                f.player = c.createMockCreativeServerPlayerInWorld();
+                DescentPlayerData.get(f.player).setEnabled(false);
+                f.player.setPosition(f.body.localToWorld(new Vec3d(3.5, .05, .5)));
+                var eye = f.player.getEyePos();
+                var core = f.body.localToWorld(Vec3d.ofCenter(CORE));
+                c.assertTrue(f.body.containsPos(f.player.getPos()), "actual positioned player is within the physical hull");
+                var target = BodyBlockInteraction.target(f.player, eye, core.subtract(eye), 5);
+                c.assertTrue(target.isPresent() && target.get().body() == f.body
+                    && target.get().hit().localBlock().equals(CORE), "unobstructed normal ray has the physical core as its first hit");
+                var cover = BlockPos.ofFloored(eye.lerp(core, .45));
+                var old = world.getBlockState(cover);
+                c.assertTrue(old.isAir(), "external cover occupies a genuinely empty world cell within the ship");
+                world.setBlockState(cover, Blocks.BEDROCK.getDefaultState(), 3);
+                try {
+                    c.assertTrue(!SkyUfoEntity.tryReactorDump(world, f.player) && f.body.hasPoweredReactor(),
+                        "ordinary world cover blocks sabotage and leaves the actual core intact");
+                } finally {
+                    world.setBlockState(cover, old, 3);
+                }
+                f.player.getAbilities().allowModifyWorld = false;
+                c.assertTrue(!SkyUfoEntity.tryReactorDump(world, f.player) && f.body.hasPoweredReactor(),
+                    "a player without edit permission cannot bypass ordinary local interactions");
+                f.player.getAbilities().allowModifyWorld = true;
+                c.assertTrue(SkyUfoEntity.tryReactorDump(world, f.player) && f.body.isCrashing()
+                    && f.body.reactorTicksRemaining() == f.body.reactorEscapeTicks()
+                    && f.body.reactorFailureCause().equals("reactor dump"),
+                    "normal sabotage destroys the reactor and starts the existing bounded evacuation window");
+            } finally {
+                f.close();
+            }
+            c.complete();
+        });
+    }
 }

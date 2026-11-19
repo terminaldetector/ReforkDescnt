@@ -108,6 +108,8 @@
       "values": [
         0
       ]
-    }
+    },
+    {"name": "Ps1SkyFogMix", "type": "float", "count": 1, "values": [0]},
+    {"name": "Ps1SkyFogColor", "type": "float", "count": 3, "values": [0, 0, 0]}
   ]
 }

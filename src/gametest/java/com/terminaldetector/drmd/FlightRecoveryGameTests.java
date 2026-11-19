@@ -72,4 +72,42 @@ public final class FlightRecoveryGameTests implements FabricGameTest {
         server.setEnabled(false); player.discard(); context.complete();
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-exit-alternate-clearance")
+    public void normalOffUsesLoadedAlternateClearanceWithoutDestroyingTheHull(TestContext c) {
+        var world=c.getWorld();var at=c.getAbsolutePos(new BlockPos(6,10,6));
+        for(var p:BlockPos.iterate(at.add(-5,-5,-5),at.add(5,6,5)))world.setBlockState(p,net.minecraft.block.Blocks.AIR.getDefaultState(),2);
+        // A low ceiling blocks the old world-up-only release, while the adjacent side is open.
+        for(var p:BlockPos.iterate(at.add(-1,1,-1),at.add(1,4,1)))world.setBlockState(p,net.minecraft.block.Blocks.IRON_BLOCK.getDefaultState(),2);
+        var player=c.createMockCreativeServerPlayerInWorld();var ship=ModEntities.PYRO_SHIP.create(world);
+        var start=Vec3d.ofCenter(at);ship.setPosition(start);world.spawnEntity(ship);player.setPosition(start);
+        try {
+            var data=DescentPlayerData.get(player);data.setEnabled(true);player.startRiding(ship,true);
+            FlightSystem.disable(player,data);
+            c.assertTrue(!player.hasVehicle()&&!ship.hasPassengers()&&!ship.isRemoved(),"ordinary off removes both links, retains the explicit hull, and needs no damage/lava");
+            c.assertTrue(!data.isEnabled()&&!player.hasNoGravity()&&player.getDimensions(net.minecraft.entity.EntityPose.STANDING).height()>1.7,
+                "native ordinary standing authority is restored");
+            c.assertTrue(world.isSpaceEmpty(player,player.getBoundingBox()),"release finds real clear standing space rather than leaving an upright body inside the ceiling");
+            c.assertTrue(player.getPos().distanceTo(start)<4,"exit search is spatially bounded");
+        } finally {ship.discard();player.discard();for(var p:BlockPos.iterate(at.add(-1,1,-1),at.add(1,4,1)))world.setBlockState(p,net.minecraft.block.Blocks.AIR.getDefaultState(),2);}
+        c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-quaternion-boundary")
+    public void actualPlayerMotionAndGravityBasisShareTheAcceptedQuaternion(TestContext c) {
+        var player=c.createMockCreativeServerPlayerInWorld();
+        try {
+            var data=DescentPlayerData.get(player);data.setShipAttitude(0,1,0,1,0,0);
+            var frame=data.shipOrientation();
+            c.assertTrue(data.shipForward(player).y>.99999&&data.shipUp(player).x>.99999,"actual player stores a vertical quaternion without a yaw/pitch singularity");
+            c.assertTrue(Math.abs(data.shipForward(player).dotProduct(data.shipUp(player)))<1e-10,"accepted basis stays orthogonal");
+            data.setShipAttitude(Float.NaN,0,1,0,1,0);
+            c.assertTrue(data.shipOrientation().equals(frame),"invalid later input retains the actual last accepted player orientation");
+            var vector=new Vec3d(.2,3,-.7);var local=com.terminaldetector.drmd.physics.OrientationFrame.toLocal(frame,vector);
+            c.assertTrue(com.terminaldetector.drmd.physics.OrientationFrame.toWorld(frame,local).squaredDistanceTo(vector)<1e-20,
+                "local gravity vectors round-trip through the same canonical physical quaternion");
+            FlightSystem.disable(player,data);
+            c.assertTrue(!data.hasShipAttitude()&&data.shipOrientation().equals(com.terminaldetector.drmd.client.portal.PortalTransform.Quat.IDENTITY),
+                "explicit exit resets the authoritative quaternion rather than retaining a hidden pose");
+        } finally {player.discard();}
+        c.complete();
+    }
 }

@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.entity.*;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.contraption.BodyBlockInteraction;
 import com.terminaldetector.drmd.world.structure.*;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
@@ -234,11 +235,17 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public static void notifyCoreBroken(ServerWorld world,BlockPos pos){}
     public static void notifyBombDetonation(ServerWorld world,BlockPos pos,float power){}
     public static boolean tryReactorDump(ServerWorld world,PlayerEntity user) {
-        var ufo=findContaining(world,user.getPos());if(ufo==null)return false;
-        var core=ufo.localToWorld(Vec3d.ofCenter(CORE));if(user.getEyePos().squaredDistanceTo(core)>25)return false;
-        var hit=new com.terminaldetector.drmd.world.contraption.BlockBodyWorldAccess(ufo).raycastBlockBody(user.getEyePos(),core);
-        if(hit.isEmpty()||!hit.get().localBlock().equals(CORE))return false;
-        ufo.destroyFromCore(world,user,"reactor dump");return ufo.crashing;
+        if (!world.getServer().isOnThread() || user.getWorld() != world || !user.isAlive()
+                || user.isSpectator() || !user.getAbilities().allowModifyWorld) return false;
+        var ufo = findContaining(world, user.getPos());
+        if (ufo == null || !ufo.hasPoweredReactor()) return false;
+        var core = ufo.localToWorld(Vec3d.ofCenter(CORE));
+        var eye = user.getEyePos();
+        if (eye.squaredDistanceTo(core) > 25 || !world.canPlayerModifyAt(user, BlockPos.ofFloored(core))) return false;
+        var target = BodyBlockInteraction.target(user, eye, core.subtract(eye), 5);
+        if (target.isEmpty() || target.get().body() != ufo || !target.get().hit().localBlock().equals(CORE)) return false;
+        ufo.destroyFromCore(world, user, "reactor dump");
+        return ufo.crashing;
     }
     /** Legacy debug mode can no longer convert this hull into a world block copy. */
     public void forceVirtualFlight(ServerWorld world,boolean virtual){}

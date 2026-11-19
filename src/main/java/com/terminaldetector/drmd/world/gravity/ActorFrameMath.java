@@ -15,16 +15,12 @@ public final class ActorFrameMath {
     }
 
     public static Vec3d toWorld(Vec3d local, Vec3d up) {
-        Vec3d forward = new Vec3d(0,0,1).subtract(up.multiply(up.z));
-        if (forward.lengthSquared() < 1e-8)
-            forward = WORLD_UP.subtract(up.multiply(up.y));
-        forward = forward.normalize();
-        Vec3d right = up.crossProduct(forward);
-        return right.multiply(local.x).add(up.multiply(local.y)).add(forward.multiply(local.z));
+        return com.terminaldetector.drmd.physics.OrientationFrame.toWorld(
+            com.terminaldetector.drmd.physics.OrientationFrame.fromUp(up),local);
     }
 
     public static Vec3d toLocal(Vec3d world,Vec3d up) {
-        return new Vec3d(world.dotProduct(toWorld(new Vec3d(1,0,0),up)),world.dotProduct(up),
-            world.dotProduct(toWorld(new Vec3d(0,0,1),up)));
+        return com.terminaldetector.drmd.physics.OrientationFrame.toLocal(
+            com.terminaldetector.drmd.physics.OrientationFrame.fromUp(up),world);
     }
 }

@@ -74,18 +74,40 @@ public final class GravityMount {
 
     /** Releasing a wall/ceiling frame must leave room for the ordinary upright body. */
     public static boolean releaseToWorldUp(net.minecraft.entity.player.PlayerEntity player,Vec3d oldUp) {
-        Vec3d away=oldUp.lengthSquared()<1e-6?new Vec3d(0,1,0):oldUp.normalize();
-        Vec3d origin=player.getPos();
-        double height=player.getDimensions(EntityPose.STANDING).height();
-        for(int i=0;i<=16;i++) {
-            Vec3d candidate=origin.add(away.multiply(i*.2));
-            if(!player.getWorld().isSpaceEmpty(player,standingBox(candidate,new Vec3d(0,1,0),player.getWidth()/2,height))) continue;
-            if(i>0) player.requestTeleport(candidate.x,candidate.y,candidate.z);
-            player.setPose(EntityPose.STANDING); player.setSwimming(false);
-            player.calculateDimensions();
-            return true;
+        Vec3d away=oldUp==null||!Double.isFinite(oldUp.lengthSquared())||oldUp.lengthSquared()<1e-6?new Vec3d(0,1,0):oldUp.normalize();
+        Vec3d origin=player.getPos();double height=player.getDimensions(EntityPose.STANDING).height();
+        var directions=new java.util.ArrayList<Vec3d>();directions.add(away);
+        for(var direction:net.minecraft.util.math.Direction.values()) {
+            var vector=Vec3d.of(direction.getVector());if(vector.dotProduct(away)<.999999)directions.add(vector);
+        }
+        var loaded=new java.util.HashMap<com.terminaldetector.drmd.d6.D6ChunkPos,Boolean>();
+        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(player.getWorld());
+        for(int i=0;i<=16;i++) for(int axis=0;axis<(i==0?1:directions.size());axis++) {
+            Vec3d candidate=origin.add(directions.get(axis).multiply(i*.2));
+            var box=standingBox(candidate,new Vec3d(0,1,0),player.getWidth()/2,height);
+            if(!loadedRelease(player,box,access,loaded)||!player.getWorld().isSpaceEmpty(player,box))continue;
+            if(i>0)player.requestTeleport(candidate.x,candidate.y,candidate.z);
+            player.setPose(EntityPose.STANDING);player.setSwimming(false);player.calculateDimensions();return true;
         }
         return false;
+    }
+    private static boolean loadedRelease(net.minecraft.entity.player.PlayerEntity player,Box box,
+            com.terminaldetector.drmd.world.access.WorldAccess access,
+            java.util.Map<com.terminaldetector.drmd.d6.D6ChunkPos,Boolean> loaded) {
+        var world=player.getWorld();
+        if(box.minY<world.getBottomY()||box.maxY>world.getTopY()||!world.getWorldBorder().contains(box))return false;
+        var halo=box.expand(1); // prove the neighbour halo before native shape-provider reads
+        for(int x=net.minecraft.util.math.MathHelper.floor(halo.minX)>>4;x<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(halo.maxX))>>4;x++)
+            for(int y=net.minecraft.util.math.MathHelper.floor(halo.minY)>>4;y<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(halo.maxY))>>4;y++)
+                for(int z=net.minecraft.util.math.MathHelper.floor(halo.minZ)>>4;z<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(halo.maxZ))>>4;z++) {
+                    var cube=new com.terminaldetector.drmd.d6.D6ChunkPos(x,y,z);
+                    if(!loaded.containsKey(cube)) {
+                        if(loaded.size()>=64)return false;
+                        loaded.put(cube,access.isVolumeAvailable(cube));
+                    }
+                    if(!loaded.get(cube))return false;
+                }
+        return true;
     }
 
 	/**

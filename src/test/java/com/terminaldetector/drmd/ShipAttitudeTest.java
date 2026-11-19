@@ -114,4 +114,31 @@ class ShipAttitudeTest {
 			assertEquals(Math.toDegrees(Math.atan2(screenX, screenY)), bank, 1e-3);
 		}
 	}
+    @Test void mixedLocalTurnsKeepOneFiniteQuaternionAndInvertLocalGravityCoordinates() {
+        var attitude=new ShipAttitude();
+        for(int i=0;i<6000;i++){attitude.pitchLocal(.13);attitude.yawLocal(-.21);attitude.rollLocal(.17);}
+        var q=attitude.orientation();
+        assertEquals(1,q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w(),1e-11);
+        assertEquals(1,attitude.forward().length(),1e-11);assertEquals(1,attitude.up().length(),1e-11);
+        assertEquals(0,attitude.forward().dotProduct(attitude.up()),1e-11);
+        var local=new Vec3d(.3,-2,4.1);
+        for(var up:new Vec3d[]{new Vec3d(1,0,0),new Vec3d(0,-1,0),new Vec3d(0,0,-1),new Vec3d(1,2,-3).normalize()}) {
+            var world=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(local,up);
+            assertTrue(com.terminaldetector.drmd.world.gravity.ActorFrameMath.toLocal(world,up).squaredDistanceTo(local)<1e-20);
+            assertTrue(com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(0,1,0),up).squaredDistanceTo(up)<1e-20);
+        }
+    }
+    @Test void malformedPacketBasisCannotReplaceTheAuthoritativeQuaternion() {
+        var data=new DescentPlayerData();data.setShipAttitude(1,0,0,0,0,1);
+        var accepted=data.shipOrientation();
+        for(float bad:new float[]{Float.NaN,Float.POSITIVE_INFINITY,Float.NEGATIVE_INFINITY}) {
+            data.setShipAttitude(bad,0,1,0,1,0);assertEquals(accepted,data.shipOrientation());
+            data.setShipAttitude(0,0,1,0,bad,0);assertEquals(accepted,data.shipOrientation());
+        }
+        data.setShipAttitude(0,0,0,0,1,0);assertEquals(accepted,data.shipOrientation());
+        data.setShipAttitude(0,1,0,0,1,0);
+        var frame=data.shipOrientation();var f=frame.rotate(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,1));
+        var u=frame.rotate(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,1,0));
+        assertTrue(f.y()>.99999&&Math.abs(f.dot(u))<1e-11,"parallel legacy up needs a proper pole-safe frame");
+    }
 }

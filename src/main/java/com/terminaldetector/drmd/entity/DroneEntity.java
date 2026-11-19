@@ -214,7 +214,8 @@ public class DroneEntity extends HostileEntity {
 	}
 
 	public boolean tryFireAt(LivingEntity target) {
-		if (attackCooldown > 0 || target == null) return false;
+		if (attackCooldown > 0 || target == null
+            ||com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(this)!=null) return false;
 		if (modEnergy < role.weaponCost) return false;
 		modEnergy -= role.weaponCost;
 		attackCooldown = role.weaponCooldown;

@@ -5,6 +5,8 @@ uniform float InnerRadius;
 uniform vec4 ColorModulator;
 uniform vec4 FogColor;
 uniform float Ps1FarFogDensity;
+uniform float Ps1SkyFogMix;
+uniform vec3 Ps1SkyFogColor;
 out vec4 fragColor;
 void main() {
     float horizontal = length(trueEyeVector.xz);
@@ -18,7 +20,8 @@ void main() {
         float distance = length(trueEyeVector);
         float into = max(0.0, distance - max(512.0, InnerRadius)) / 2048.0;
         float amount = min(0.85, 1.0 - exp(-Ps1FarFogDensity * into));
-        colour.rgb = mix(colour.rgb, FogColor.rgb, amount);
+        vec3 haze = mix(FogColor.rgb, Ps1SkyFogColor, Ps1SkyFogMix);
+        colour.rgb = mix(colour.rgb, haze, amount);
     }
     // Real scene geometry owns every depth except the sky background.
     gl_FragDepth = 0.999999;

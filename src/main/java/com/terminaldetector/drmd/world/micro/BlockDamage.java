@@ -1,5 +1,8 @@
 package com.terminaldetector.drmd.world.micro;
 
+import com.terminaldetector.drmd.world.access.CubicAvailability;
+import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import net.minecraft.block.BlockState;
 import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleTypes;
@@ -37,8 +40,11 @@ public final class BlockDamage {
 	 * @return true when the block was destroyed by this hit
 	 */
 	public static boolean hit(ServerWorld world, BlockPos pos, Vec3d impact, float damage) {
-		if (!Float.isFinite(damage) || damage <= 0 || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)) return false;
-		BlockState state = world.getBlockState(pos);
+		if (!Float.isFinite(damage) || damage <= 0 || !CubicAvailability.onWorldThread(world)
+				|| !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)) return false;
+		var loaded = loadedState(world,pos);
+		if (loaded.isEmpty()) return false;
+		BlockState state = loaded.get();
 		if (state.isAir()) return false;
 		if (!isDamageable(world, pos, state)) return false;
 
@@ -104,8 +110,11 @@ public final class BlockDamage {
 
 	/** Called only for vanilla-selected blast cells. Keep the centre's normal destruction/loot path. */
 	public static boolean fractureExplosion(ServerWorld world, BlockPos pos, Vec3d centre, float power) {
-		BlockState state = world.getBlockState(pos);
-		if (!Float.isFinite(power) || power <= 0 || !isDamageable(world,pos,state)) return false;
+		if (!Float.isFinite(power) || power <= 0) return false;
+		var loaded = loadedState(world,pos);
+		if (loaded.isEmpty()) return false;
+		BlockState state = loaded.get();
+		if (!isDamageable(world,pos,state)) return false;
 		double distance = Vec3d.ofCenter(pos).distanceTo(centre);
 		if (distance < power * .55) return false;
 		float damage = (float)(power * 12 * Math.max(0, 1-distance/(power*2)));
@@ -122,6 +131,8 @@ public final class BlockDamage {
 
 	/** Spherical damage — an explosion, a reactor going up. */
 	public static void blast(ServerWorld world, Vec3d centre, double radius, float damage) {
+		if (!CubicAvailability.onWorldThread(world) || !Double.isFinite(radius) || radius <= 0
+				|| !Float.isFinite(damage) || damage <= 0) return;
 		int r = (int) Math.ceil(radius);
 		BlockPos origin = BlockPos.ofFloored(centre);
 		for (int dx = -r; dx <= r; dx++) {
@@ -140,12 +151,20 @@ public final class BlockDamage {
 	}
 
 	public static boolean isDamageable(ServerWorld world, BlockPos pos, BlockState state) {
+		if (loadedState(world,pos).isEmpty()) return false;
 		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED) || state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock) return true;
 		// Generic carving cannot preserve inventories, fluids or the geometry of partial blocks.
 		if (world.getBlockEntity(pos) != null || !state.getFluidState().isEmpty()
 				|| !state.isFullCube(world, pos) || state.isOf(net.minecraft.block.Blocks.TNT)) return false;
 		if (state.getHardness(world, pos) < 0) return false;   // bedrock and friends
 		return !state.isIn(BlockTags.WITHER_IMMUNE);
+	}
+
+	/** Shape callbacks and block entities may inspect neighbours; unknown Y is never observed air. */
+	private static java.util.Optional<BlockState> loadedState(ServerWorld world, BlockPos pos) {
+		if (!CubicAvailability.onWorldThread(world) || !world.getWorldBorder().contains(pos)
+				|| !WorldEditSafety.neighbourhoodLoaded(world,pos)) return java.util.Optional.empty();
+		return WorldAccess.of(world).readIfLoaded(pos);
 	}
 
 	/**

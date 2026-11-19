@@ -228,7 +228,22 @@ public final class EnclaveMissionSystem {
     }
     /** Authoring only: neither branch advances objectives or exposes a reward command. */
     private static void registerCommands(){
-        CommandRegistrationCallback.EVENT.register((dispatcher,registryAccess,environment)->
+        CommandRegistrationCallback.EVENT.register((dispatcher,registryAccess,environment)->{
+            dispatcher.register(CommandManager.literal("ungravitylab")
+                .requires(source -> source.getEntity() instanceof ServerPlayerEntity player && author(player))
+                .then(CommandManager.argument("floor", BlockPosArgumentType.blockPos()).executes(command -> {
+                    var player = command.getSource().getPlayerOrThrow();
+                    var floor = BlockPosArgumentType.getBlockPos(command, "floor");
+                    try {
+                        int changed = LabPrototype.build(player, floor);
+                        notify(player, "Lab at " + floor.toShortString() + ". Changed " + changed
+                            + " blocks. The service shaft approaches from the west.");
+                        return changed > 0 ? 1 : 0;
+                    } catch (IllegalArgumentException refused) {
+                        notify(player, "Lab refused: " + refused.getMessage());
+                        return 0;
+                    }
+                })));
             dispatcher.register(CommandManager.literal("ungravitymission")
                 .requires(source->source.getEntity() instanceof ServerPlayerEntity player&&author(player))
                 .then(CommandManager.literal("bind")
@@ -252,7 +267,8 @@ public final class EnclaveMissionSystem {
                             var player=command.getSource().getPlayerOrThrow();
                             try{notify(player,inspect(player,BlockPosArgumentType.getBlockPos(command,"herald")));return 1;}
                             catch(RuntimeException refused){notify(player,"Mission unavailable: "+Objects.toString(refused.getMessage(),refused.getClass().getSimpleName()));return 0;}
-                        })))));
+                        }))));
+        });
     }
     public static synchronized void register(){
         if(registered)return;

@@ -40,11 +40,15 @@ public final class HybridTerrainCommands {
         });
     }
     public static int apply(ServerWorld world,BlockPos from,BlockPos to,boolean organic) {
+        if (!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(world))
+            throw new IllegalArgumentException("Terrain authoring requires the world owner thread");
         long dx=Math.abs((long)from.getX()-to.getX())+1,dy=Math.abs((long)from.getY()-to.getY())+1,dz=Math.abs((long)from.getZ()-to.getZ())+1;
         if (dx>4096 || dy>4096 || dz>4096 || dx*dy*dz>4096)
             throw new IllegalArgumentException("Select at most 4096 blocks per operation");
         for (BlockPos p:BlockPos.iterate(from,to)) {
-            if (world.isOutOfHeightLimit(p) || !world.isChunkLoaded(p))
+            if (world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)
+                || !com.terminaldetector.drmd.world.edit.WorldEditSafety.neighbourhoodLoaded(world,p)
+                || com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(p).isEmpty())
                 throw new IllegalArgumentException("The entire selection must be loaded and inside the current world height");
         }
         int changed=0;

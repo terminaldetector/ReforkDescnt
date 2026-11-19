@@ -47,14 +47,16 @@ public final class DroneAi {
 
 		@Override
 		public boolean canStart() {
-			return drone.getTarget() != null && drone.getTarget().isAlive()
+			return com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(drone)!=null
+                || drone.getTarget() != null && drone.getTarget().isAlive()
 					&& HostileEnvironment.isHostileTarget(drone, drone.getTarget()) || quietSupportAvailable();
 		}
 
 		@Override
 		public boolean shouldContinue() {
 			LivingEntity t = drone.getTarget();
-			return t != null && t.isAlive() && HostileEnvironment.isHostileTarget(drone, t) || quietSupportAvailable();
+			return com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(drone)!=null
+                || t != null && t.isAlive() && HostileEnvironment.isHostileTarget(drone, t) || quietSupportAvailable();
 		}
 
         private boolean quietSupportAvailable(){return drone.getRole()==AiRole.SUPPORT
@@ -77,6 +79,10 @@ public final class DroneAi {
 
 		@Override
 		public void tick() {
+            var retiringFrom=com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(drone);
+            if(retiringFrom!=null){
+                drone.setTarget(null);tickFlee(drone.getPos(),retiringFrom,1f/20f);return;
+            }
 			LivingEntity target = drone.getTarget();
 			if (target == null) {
                 if(quietSupportAvailable()){drone.addPhaseTimer(1f/20f);tickSupport(drone.getPos(),null,Vec3d.ZERO,Double.POSITIVE_INFINITY,null,1f/20f);}

@@ -70,6 +70,12 @@ public final class PlanetFloorRenderer {
 			if (into <= 0) return;
 			alpha = (float) MathHelper.clamp(into / (FADE_FULL - FADE_START), 0.0, 1.0);
 		}
+		// Styling changes only the colour pass opacity. The original linear share below still
+        // owns projection reach and the mesh cache, so toggling PS1 never rebuilds world geometry.
+        float opacity=alpha;
+        if(overworld&&DescentConfig.ps1FarFog.effective(DescentConfig.presentationProfile,
+                com.terminaldetector.drmd.client.presentation.ScenePresentation.inLowResolutionWorld(),false)>0)
+            opacity=com.terminaldetector.drmd.client.presentation.Ps1Atmosphere.groundOpacity(cam.y);
 
 		long seed = PlanetClientState.INSTANCE.seed();
 		// In the column the eye is where it is and the map keeps the world's own heights. In the
@@ -100,6 +106,10 @@ public final class PlanetFloorRenderer {
         if(HorizonShader.program()==null) return;
         HorizonShader.position((float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
                 (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
+        // This is the same getSkyColor result used by vanilla fog and the existing orbital
+        // envelope. Its LevelSky interpolation is continuous across the asteroid/orbit bands.
+        var sky=mc.world.getSkyColor(cam,ctx.tickCounter().getTickDelta(false));
+        HorizonShader.atmosphere(cam.y,(float)sky.x,(float)sky.y,(float)sky.z,overworld);
 
 		boolean write=org.lwjgl.opengl.GL11.glGetBoolean(org.lwjgl.opengl.GL11.GL_DEPTH_WRITEMASK);
         var previous=RenderSystem.getShader();
@@ -112,7 +122,7 @@ public final class PlanetFloorRenderer {
 		// The climb's fade as a uniform rather than per-vertex alpha, which is what lets the geometry
 		// stay on the GPU across frames — see HorizonVertexBuffer. Each quad's own alpha is already
 		// baked in there; this multiplies the whole field by how far the map has faded in.
-		RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
+		RenderSystem.setShaderColor(1f, 1f, 1f, opacity);
 
 		if (HorizonVertexBuffer.prepare(mesh)) {
 			HorizonVertexBuffer.draw(mat);

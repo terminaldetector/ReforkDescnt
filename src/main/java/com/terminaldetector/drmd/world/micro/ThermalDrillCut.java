@@ -1,4 +1,5 @@
 package com.terminaldetector.drmd.world.micro;
+import com.terminaldetector.drmd.world.access.WorldAccess;
 
 import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import com.terminaldetector.drmd.world.engineer.HeavyDrillDrops;
@@ -50,7 +51,8 @@ public final class ThermalDrillCut {
                 var pos=cursor.next();budget.scan++;
                 if(ThermalBore.distanceTo(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5,cursor.a.x,cursor.a.y,cursor.a.z,cursor.b.x,cursor.b.y,cursor.b.z)>radius+Math.sqrt(3)*.5)continue;
                 budget.reads++;if(!WorldEditSafety.mayChange(world,pos,user)){budget.refused++;cursor.incomplete++;continue;}
-                var state=world.getBlockState(pos);if(state.isAir()||!state.getFluidState().isEmpty())continue;
+                var state=WorldAccess.of(world).readIfLoaded(pos).orElse(null);
+                if(state==null||state.isAir()||!state.getFluidState().isEmpty())continue;
                 var entity=world.getBlockEntity(pos);if(entity!=null&&!(entity instanceof CarvedBlockEntity))continue;
                 var carved=entity instanceof CarvedBlockEntity c?c:null;
                 if(carved!=null&&carved.thermalReadOnly()){budget.refused++;cursor.incomplete++;continue;}
@@ -83,8 +85,11 @@ public final class ThermalDrillCut {
     private static void updates(ServerWorld world,BlockPos pos){
         world.getChunkManager().getLightingProvider().checkBlock(pos);world.updateNeighbors(pos,world.getBlockState(pos).getBlock());
         for(var d:Direction.values()){
-            var at=pos.offset(d);if(!com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(at).isPresent())continue;
-            var fluid=world.getFluidState(at);if(!fluid.isEmpty())world.scheduleFluidTick(at,fluid.getFluid(),fluid.getFluid().getTickRate(world));
+            var at=pos.offset(d);
+            var state=WorldAccess.of(world).readIfLoaded(at).orElse(null);
+            if(state==null)continue;
+            var fluid=state.getFluidState();
+            if(!fluid.isEmpty())world.scheduleFluidTick(at,fluid.getFluid(),fluid.getFluid().getTickRate(world));
         }
         com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world,pos);
     }

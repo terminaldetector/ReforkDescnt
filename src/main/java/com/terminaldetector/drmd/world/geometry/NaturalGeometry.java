@@ -17,8 +17,13 @@ public final class NaturalGeometry {
         Blocks.SAND,Blocks.RED_SAND,Blocks.GRAVEL,Blocks.NETHERRACK,Blocks.END_STONE,
         Blocks.TERRACOTTA,Blocks.SNOW_BLOCK,Blocks.MOSS_BLOCK);
     private static final ConcurrentHashMap<HybridMesh.Neighbourhood,VoxelShape> SHAPES=new ConcurrentHashMap<>();
+    /** Intact material mask. Fracture/heat overlays are classified from the immutable Data snapshot. */
+    public static HybridMaterialPolicy.Mask material(BlockState state) {
+        return GROUND.contains(state.getBlock()) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES)
+            ? HybridMaterialPolicy.Mask.SMOOTH_NATURAL : HybridMaterialPolicy.Mask.HARD_ENGINEERED;
+    }
     public static boolean applies(BlockState state) {
-        return GROUND.contains(state.getBlock()) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES);
+        return material(state)==HybridMaterialPolicy.Mask.SMOOTH_NATURAL;
     }
     /** Read original log properties; never substitute the material or mutate its palette state. */
     public static HybridMesh.LogAxis logAxis(BlockState state) {

@@ -79,6 +79,16 @@ public final class SurvivalThreatDirector {
         var state=SurvivalThreatState.get(world);
         return state.reconAvailable()&&!state.hasActor(victim.getUuid())&&state.alarm(player.getUuid(),victim.getUuid(),point(victim.getPos()),world.getTime());
     }
+    /** Exact saved patrol ownership only; ordinary drones never consult a global roster scan. */
+    public static Vec3d retreatFrom(DroneEntity drone){
+        if(drone==null||!(drone.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()
+            ||!drone.isAlive()||drone.isRemoved()||!drone.getCommandTags().contains(MARKER))return null;
+        var tag=tag(drone);if(tag==null||world.getEntity(drone.getUuid())!=drone)return null;
+        var state=SurvivalThreatState.get(world);if(!state.reconAvailable())return null;
+        var actor=state.actor(drone.getUuid());if(actor==null||!actor.owner().equals(tag.owner()))return null;
+        var progress=state.progress(actor.owner()).orElse(null);
+        return progress!=null&&progress.phase()==ThreatProgress.Phase.COOLDOWN?vector(progress.known()):null;
+    }
     private static ThreatProgress.Point point(Vec3d p){return new ThreatProgress.Point(p.x,p.y,p.z);}
     private static Vec3d vector(ThreatProgress.Point p){return new Vec3d(p.x(),p.y(),p.z());}
     private static void cancel(ServerWorld world,UUID owner){if(world.getServer().isOnThread())SurvivalThreatState.get(world).cancel(owner,world.getTime());}
@@ -177,8 +187,13 @@ public final class SurvivalThreatDirector {
                     break;
                 }
             }
-            progress.advance(now,online,p.getPos().squaredDistanceTo(vector(progress.origin()))<=160*160,observed,state.rosterSize(p.getUuid())==0);
-            if(progress.phase()==ThreatProgress.Phase.COOLDOWN)state.retireTimed(p.getUuid(),now);
+            progress.advance(now,online,p.getPos().squaredDistanceTo(vector(progress.origin()))<=160*160,observed,state.rosterSize(p.getUuid())==0,!state.timed(p.getUuid()));
+            if(progress.phase()==ThreatProgress.Phase.COOLDOWN){
+                state.retireTimed(p.getUuid(),now);
+                // The original encounter deadline also ends visible non-timed patrols. A cooldown
+                // cannot leave an armed pair extending its own lifetime on every fresh sighting.
+                state.cancel(p.getUuid(),now);
+            }
             if(!old.equals(progress.snapshot()))state.markDirty();
             if(old.phase()!=progress.phase())notice(p,progress.phase());
             if(frame.spawned<SPAWNS&&frame.candidates<CANDIDATE_CHECKS){
@@ -189,7 +204,7 @@ public final class SurvivalThreatDirector {
         frame.last=new Stats(checked,frame.roster,frame.candidates,frame.sight,frame.spawned);
     }
     private static void notice(ServerPlayerEntity player,ThreatProgress.Phase phase){
-        String key=switch(phase){case WARNING->"warning";case SEARCHING->"search";case HUNTING->"hunt";case COOLDOWN->"cooldown";case QUIET->null;};
+        String key=switch(phase){case WARNING->"warning";case SEARCHING->"search";case HUNTING,SIEGE->"hunt";case COOLDOWN->"cooldown";case QUIET->null;};
         if(key!=null)feedback(player,key);
     }
     private static void feedback(ServerPlayerEntity player,String key){

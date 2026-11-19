@@ -16,6 +16,10 @@ public final class EnclaveMissionGameplayGameTests implements FabricGameTest {
     public void actualModesAndForeignOwnersCannotClaimAnotherInstance(TestContext context){run(context,EnclaveMissionGameplayFixture.Case.RIGHTS);}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="enclave-mission-invalidation",tickLimit=500)
     public void wrongContactAndReplacementCannotInheritReadyClaim(TestContext context){run(context,EnclaveMissionGameplayFixture.Case.INVALIDATE);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="enclave-lab-prototype",tickLimit=250)
+    public void operatorBuildsAndBindsPhysicalShaftWithoutOverwritingMaterials(TestContext context) {
+        run(context, EnclaveMissionGameplayFixture.Case.PROTOTYPE);
+    }
     private static void run(TestContext context,EnclaveMissionGameplayFixture.Case scenario){
         var driver=new EnclaveMissionGameplayFixture(context,scenario);
         context.runAtEveryTick(()->{

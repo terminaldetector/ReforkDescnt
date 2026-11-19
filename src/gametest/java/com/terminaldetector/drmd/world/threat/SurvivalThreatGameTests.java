@@ -176,4 +176,76 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
             c.assertTrue(f.w.getChunkManager().getLoadedChunkCount()==loadedBefore,"rejected recon candidates cannot request extra chunks");budgets(c);
         }finally{f.close();}c.complete();});
     }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="threat-siege-real-cover",tickLimit=900)
+    public void aNaturallyObservedExistingPairEntersFiniteSiegeAndRealCoverReturnsItToSearch(TestContext c){pressure(c,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="threat-siege-real-escape",tickLimit=1_000)
+    public void escapingAnActualSiegeStopsNewFireAndTheSamePairPhysicallyRetreatsBeforeRetirement(TestContext c){pressure(c,true);}
+    private void pressure(TestContext c,boolean escape){
+        Fixture[] live={null};boolean[] done={false},pressing={false},retiring={false},movedAway={false};
+        long[] huntAt={-1},decisionAt={-1},retreatAt={-1};Point[] known={null};int[] ticks={0};
+        var actors=new LinkedHashSet<UUID>();var alreadyFlying=new HashSet<UUID>();var beforeRetreat=new HashMap<UUID,Vec3d>();
+        // This sole assertion driver is registered before admission; never register work from its callbacks.
+        c.runAtEveryTick(()->{
+            var f=live[0];if(done[0]||f==null)return;
+            try{
+                f.w.resetIdleTimeout();ticks[0]++;budgets(c);long now=f.w.getTime();
+                var progress=f.state().progress(f.player.entity.getUuid()).orElseThrow();var patrol=f.patrol();
+                if(!pressing[0]){
+                    c.assertTrue(ticks[0]<620,"normal own-LOS pair enters pressure after its full hunt dwell: "+progress);
+                    if(progress.phase()==Phase.HUNTING&&huntAt[0]<0)huntAt[0]=progress.since();
+                    if(progress.phase()!=Phase.SIEGE)return;
+                    c.assertTrue(huntAt[0]>=0&&progress.since()-huntAt[0]>=WARNING_TICKS&&progress.lastSeen()>=now-SurvivalThreatDirector.INTERVAL,
+                        "actual fresh own observation after400ordinary hunt ticks, no timer/target injection: "+progress);
+                    c.assertTrue(patrol.size()==2&&progress.spawned()==2&&patrol.stream().allMatch(d->d instanceof OrbEntity&&d.getRole()==com.terminaldetector.drmd.ai.AiRole.ASSAULT
+                        &&d.getCommandTags().contains("drmd.threat.faction="+SurvivalThreatState.FACTION)),"same two original attributed ORBs, no replacement rocket role or larger wave");
+                    c.assertTrue(patrol.stream().anyMatch(d->d.getTarget()==f.player.entity&&d.canSee(f.player.entity)),"normal actor target selectors actually saw the eligible Survival player");
+                    var copy=SurvivalThreatState.fromNbt(f.state().writeNbt(new NbtCompound(),f.w.getRegistryManager()),f.w.getRegistryManager());
+                    c.assertTrue(copy.progress(f.player.entity.getUuid()).orElseThrow().equals(progress)&&copy.rosterSize(f.player.entity.getUuid())==2,
+                        "actual runtime SIEGE and finite roster survive the normal saved-state codec");
+                    for(var d:patrol)actors.add(d.getUuid());known[0]=progress.known();decisionAt[0]=now;pressing[0]=true;
+                    if(escape){
+                        // One deliberate player escape, in the same ticketed columns and inside real world height.
+                        var at=f.player.entity.getPos();double dy=at.y-f.w.getBottomY()>162?-161:161;
+                        var destination=at.add(0,dy,0);
+                        c.assertTrue(destination.y>=f.w.getBottomY()&&destination.y+f.player.entity.getHeight()<f.w.getTopY(),"real escape stays in world bounds");
+                        f.player.entity.setPosition(destination);f.player.entity.setVelocity(Vec3d.ZERO);
+                    }else f.seal(f.player.entity.getPos());
+                    return;
+                }
+                c.assertTrue(progress.spawned()==2,"pressure cannot reset the lifetime pair allowance");
+                if(!escape){
+                    if(now-decisionAt[0]<LOST_SIGHT_TICKS+SurvivalThreatDirector.INTERVAL+5)return;
+                    c.assertTrue(progress.phase()==Phase.SEARCHING&&progress.known().equals(known[0])&&progress.lastSeen()<=decisionAt[0],
+                        "real opaque cover breaks siege and preserves only the last genuinely seen position: "+progress);
+                    c.assertTrue(patrol.size()==2&&patrol.stream().allMatch(d->actors.contains(d.getUuid())),"same living pair, no refill during hidden search");
+                    done[0]=true;f.close();c.complete();return;
+                }
+                if(!retiring[0]){
+                    c.assertTrue(now-decisionAt[0]<=SurvivalThreatDirector.INTERVAL+5,"escaping the alarm area promptly ends pressure");
+                    if(progress.phase()!=Phase.COOLDOWN)return;
+                    retiring[0]=true;retreatAt[0]=now;
+                    for(var d:patrol){
+                        beforeRetreat.put(d.getUuid(),d.getPos());var actor=f.state().actor(d.getUuid());
+                        c.assertTrue(actor!=null&&actor.expires()<=now+LOST_SIGHT_TICKS&&SurvivalThreatDirector.retreatFrom(d)!=null,
+                            "saved finite retirement and real owned AI retreat authority");
+                        float energy=d.getModEnergy();c.assertTrue(!d.tryFireAt(f.player.entity)&&d.getModEnergy()==energy,"retiring patrol refuses a fresh actual weapon action without energy debit");
+                    }
+                    for(var entity:f.w.iterateEntities())if(entity instanceof ProjectileEntity shot&&actors.contains(shot.getOwnerUuid()))alreadyFlying.add(shot.getUuid());
+                }
+                for(var entity:f.w.iterateEntities())if(entity instanceof ProjectileEntity shot&&actors.contains(shot.getOwnerUuid()))
+                    c.assertTrue(alreadyFlying.contains(shot.getUuid()),"existing rounds keep normal flight; no new patrol projectile is emitted after cooldown");
+                var remembered=new Vec3d(known[0].x(),known[0].y(),known[0].z());
+                for(var d:patrol){var before=beforeRetreat.get(d.getUuid());
+                    if(before!=null&&d.getPos().squaredDistanceTo(remembered)>before.squaredDistanceTo(remembered)+.05&&d.getVelocity().lengthSquared()>1e-8)movedAway[0]=true;
+                }
+                if(now-retreatAt[0]>=25)c.assertTrue(movedAway[0],"normal flight AI physically retreats from last observation, no follow teleport or velocity injection");
+                if(now-retreatAt[0]<LOST_SIGHT_TICKS+SurvivalThreatDirector.INTERVAL+10)return;
+                c.assertTrue(progress.phase()==Phase.COOLDOWN&&f.state().rosterSize(f.player.entity.getUuid())==0
+                    &&actors.stream().allMatch(id->f.w.getEntity(id)==null||f.w.getEntity(id).isRemoved()),"the pair retires despite earlier visible hunting; no self-extending patrol or recursive wave");
+                done[0]=true;f.close();c.complete();
+            }catch(Throwable failure){done[0]=true;f.close();throw failure;}
+        });
+        admitted(c,f->{live[0]=f;f.state().restorePlayer(f.player.entity.getUuid(),searching(f.at,f.w.getTime()));});
+    }
 }

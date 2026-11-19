@@ -21,6 +21,75 @@ import net.minecraft.util.math.Vec3d;
 import java.util.UUID;
 
 public final class RagdollGameTests implements FabricGameTest {
+	@GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-repeated-real-damage",tickLimit=180)
+	public void repeatedLethalDamageKeepsOneRegisteredLimitedJetWreck(TestContext context){
+		var world=context.getWorld();var base=context.getAbsolutePos(new BlockPos(7,80,7));var origin=Vec3d.ofCenter(base);
+		var clock=new CodecClock(context,base);var jet=ModEntities.JET.create(world);
+		context.assertTrue(jet!=null,"actual typed JET created");jet.setPosition(origin);jet.setAiDisabled(true);jet.setNoGravity(true);
+		var area=new Box(origin,origin).expand(7);var before=new java.util.HashSet<UUID>();
+		for(var body:world.getEntitiesByClass(RagdollEntity.class,area,e->true))before.add(body.getUuid());
+		RagdollEntity[] corpse={null};int[] stage={0},birthAge={0};long[] birthWorld={0};
+		clock.run(()->{
+			if(stage[0]==0){if(!clock.ready(jet.getBlockPos()))return;clock.spawn(jet);stage[0]=1;return;}
+			if(stage[0]==1){
+				if(jet.age<2)return;
+				context.assertTrue(jet.damage(jet.getDamageSources().genericKill(),Float.MAX_VALUE),"first actual lethal damage event accepted");
+				jet.damage(jet.getDamageSources().generic(),1000);jet.damage(jet.getDamageSources().genericKill(),Float.MAX_VALUE);
+				var found=world.getEntitiesByClass(RagdollEntity.class,area,e->!before.contains(e.getUuid()));
+				context.assertTrue(found.size()==1,"repeated actual damage requests produce exactly one registered corpse");
+				corpse[0]=found.getFirst();clock.track(corpse[0]);birthAge[0]=corpse[0].age;birthWorld[0]=world.getTime();stage[0]=2;return;
+			}
+			if(corpse[0].age-birthAge[0]<8)return;
+			clock.assertOrdinaryTicks(corpse[0],birthAge[0],birthWorld[0],8);
+			var found=world.getEntitiesByClass(RagdollEntity.class,area,e->!before.contains(e.getUuid()));
+			context.assertTrue(found.size()==1&&found.getFirst()==corpse[0],"same sole replacement persists across ordinary world ticks");
+			context.assertTrue(!jet.isAlive()&&jet.isInvisible()&&corpse[0].rigVersion()==2,"dead visible hull is replaced by its own limited JET family");
+			assertLimitedJetAngles(context,corpse[0]);clock.complete();
+		});
+	}
+
+	@GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-limited-rail-wall",tickLimit=180)
+	public void realRailLaunchKeepsLimitedJetBehindAnObsidianWallUnderSidewaysGravity(TestContext context){
+		var world=context.getWorld();var base=context.getAbsolutePos(new BlockPos(7,80,7));var origin=Vec3d.ofCenter(base);
+		var clock=new CodecClock(context,base);var jet=ModEntities.JET.create(world);
+		context.assertTrue(jet!=null,"authored rail target created");jet.refreshPositionAndAngles(origin.x,origin.y,origin.z,25,-15);jet.setFlightRoll(37);jet.setAiDisabled(true);jet.setNoGravity(true);
+		var wall=base.add(6,0,0);var original=new java.util.LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+		for(var pos:BlockPos.iterate(wall.add(0,-6,-8),wall.add(0,6,8))){var key=pos.toImmutable();original.put(key,world.getBlockState(key));world.setBlockState(key,Blocks.OBSIDIAN.getDefaultState(),2);}
+		clock.onClose(()->original.forEach((pos,state)->world.setBlockState(pos,state,2)));
+		var field=UUID.randomUUID();clock.onClose(()->GravityFields.remove(field));
+		var player=context.createMockCreativeServerPlayerInWorld();clock.track(player);player.setPosition(origin.add(-2,0,0));player.setYaw(-90);player.setPitch(0);player.setNoGravity(true);
+		DescentPlayerData.get(player).setShipAttitude(1,0,0,0,1,0);
+		clock.onClose(()->com.terminaldetector.drmd.physics.GravyPhysics.release(player));
+		RagdollEntity[] body={null};int[] stage={0},launchAge={0};long[] launchWorld={0};double[] nearestWall={Double.POSITIVE_INFINITY},startX={0},startZ={0};
+		clock.run(()->{
+			if(stage[0]==0){if(!clock.ready(jet.getBlockPos(),wall))return;clock.spawn(jet);stage[0]=1;return;}
+			if(stage[0]==1){
+				if(jet.age<2)return;jet.damage(jet.getDamageSources().genericKill(),Float.MAX_VALUE);
+				var found=world.getEntitiesByClass(RagdollEntity.class,new Box(origin,origin).expand(4),e->e.flightHullKind()==com.terminaldetector.drmd.entity.FlightEnemyKind.JET);
+				context.assertTrue(found.size()==1,"actual banked JET death supplies one articulated rail target");body[0]=found.getFirst();clock.track(body[0]);
+				context.assertTrue(body[0].rigVersion()==2&&body[0].rig().joints().stream().allMatch(j->j.angularLimits()!=null),"actual target uses authored angular limits");
+				GravityFields.put(new GravityFields.Field(field,world.getRegistryKey(),base,new Vec3d(0,0,-1),32,1,FieldShape.SPHERE,"limited JET rail wall",true));
+				var sample=GravityFields.sample(world,body[0].getPos());context.assertTrue(sample!=null&&sample.downDir().z<-.99&&sample.strength()>.1,"real sampled sideways gravity is present");
+				var rail=com.terminaldetector.drmd.physics.GravyPhysics.Mode.RAIL;
+				context.assertTrue(com.terminaldetector.drmd.physics.GravyPhysics.tryGrab(player,rail,java.util.List.of(body[0]))==1,"existing heavy rail captures actual body");
+				var aim=com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(player).normalize();context.assertTrue(aim.x>.99,"actual rail aims toward wall");
+				context.assertTrue(com.terminaldetector.drmd.physics.GravyPhysics.fling(player)==1,"existing production rail service launches the articulated body");
+				context.assertTrue(body[0].physicsVelocity().distanceTo(aim.multiply(rail.launchSpeed()))<1e-8,"real launch transfers configured aggregate momentum before ordinary motion caps");
+				launchAge[0]=body[0].age;launchWorld[0]=world.getTime();startX[0]=body[0].getX();startZ[0]=body[0].getZ();stage[0]=2;return;
+			}
+			var wreck=body[0];double maximum=wreck.partBounds().stream().mapToDouble(box->box.maxX).max().orElseThrow();
+			context.assertTrue(maximum<=wall.getX()+1e-6,"every actual rotated collider remains on near side of solid wall, maxX="+maximum+" wall="+wall.getX());
+			nearestWall[0]=Math.min(nearestWall[0],wall.getX()-maximum);
+			if(wreck.age-launchAge[0]<32)return;
+			clock.assertOrdinaryTicks(wreck,launchAge[0],launchWorld[0],32);
+			context.assertTrue(wreck.getX()>startX[0]+2&&nearestWall[0]<.02,"actual rail motion reached and contacted the wall");
+			context.assertTrue(wreck.getZ()<startZ[0]-.05,"ordinary destination solver integrated the sampled sideways force");
+			assertLimitedJetAngles(context,wreck);
+			for(int i=0;i<wreck.rig().joints().size();i++)context.assertTrue(wreck.simulation().jointError(i)<.08,"wall-contacted authored joint remains attached");
+			clock.complete();
+		});
+	}
+
 	@GameTest(templateName = EMPTY_STRUCTURE, batchId = "ragdoll-codec-limited", tickLimit = 180)
 	public void newJetUsesLimitedFamilyAndRestoresItsPhysicalState(TestContext context) {
 		var world=context.getWorld();var base=context.getAbsolutePos(new BlockPos(7,80,7));var origin=Vec3d.ofCenter(base);
@@ -199,10 +268,12 @@ public final class RagdollGameTests implements FabricGameTest {
 	}
 	private static final class CodecClock implements AutoCloseable{
 		private final TestContext context;private final AiFixtureChunks chunks;private final java.util.List<Entity> owned=new java.util.ArrayList<>();
+		private final java.util.List<Runnable> cleanup=new java.util.ArrayList<>();
 		private int callbacks;private boolean closed;
 		CodecClock(TestContext context,BlockPos base){this.context=context;chunks=new AiFixtureChunks(context.getWorld(),base,1);}
 		boolean ready(BlockPos... positions){return chunks.entityTicking(positions);}
 		void track(Entity actor){owned.add(actor);context.assertTrue(context.getWorld().getEntity(actor.getUuid())==actor,"codec actor is registered in the ordinary ServerWorld");}
+		void onClose(Runnable action){cleanup.add(action);}
 		void spawn(Entity actor){context.assertTrue(ready(actor.getBlockPos()),"codec actor's real entity-ticking chunk is ready");context.assertTrue(context.getWorld().spawnEntity(actor),"codec actor spawned into the actual ServerWorld");track(actor);}
 		void assertOrdinaryTicks(Entity actor,int previousAge,long previousWorldTime,int minimum){
 			context.assertTrue(context.getWorld().getEntity(actor.getUuid())==actor&&ready(actor.getBlockPos()),"same codec identity remains in the ordinary ticking world");
@@ -213,7 +284,7 @@ public final class RagdollGameTests implements FabricGameTest {
 			step.run();
 		}catch(RuntimeException|Error failure){close();throw failure;}});}
 		void complete(){close();context.complete();}
-		@Override public void close(){if(closed)return;closed=true;owned.forEach(Entity::discard);chunks.close();}
+		@Override public void close(){if(closed)return;closed=true;owned.forEach(Entity::discard);cleanup.forEach(Runnable::run);chunks.close();}
 	}
 
 	@GameTest(templateName = EMPTY_STRUCTURE, batchId = "ragdoll-field-default")

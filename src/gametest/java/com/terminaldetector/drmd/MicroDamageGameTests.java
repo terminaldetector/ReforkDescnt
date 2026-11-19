@@ -15,6 +15,35 @@ import java.util.*;
 
 public class MicroDamageGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE)
+    public void unknownDamageAndBlastQueriesNeverMaterializeRemoteColumns(TestContext ctx) {
+        var world=ctx.getWorld();var base=ctx.getAbsolutePos(new BlockPos(4,4,4));
+        var far=new BlockPos(((base.getX()+8_000_000)>>4)*16+8,base.getY(),((base.getZ())>>4)*16+8);
+        var hit=far;var fracture=far.east(32);var blast=far.east(64);var replace=far.east(96);var restore=far.east(128);
+        for(var p:List.of(hit,fracture,blast,replace,restore))ctx.assertTrue(!world.isChunkLoaded(p),"each damage control begins in an unavailable column");
+        ctx.assertTrue(!BlockDamage.hit(world,hit,Vec3d.ofCenter(hit),12),"unknown impact cannot edit terrain");
+        ctx.assertTrue(!BlockDamage.fractureExplosion(world,fracture,Vec3d.ofCenter(fracture.east(3)),2),"unknown explosion rim cannot be read as air");
+        BlockDamage.blast(world,Vec3d.ofCenter(blast),1,12);
+        ctx.assertTrue(CarvedBlock.replace(world,replace,Blocks.STONE.getDefaultState(),MicroGrid.FULL)==null,"unknown carve cannot create a block entity");
+        CarvedBlock.restore(world,restore);
+        for(var p:List.of(hit,fracture,blast,replace,restore))ctx.assertTrue(!world.isChunkLoaded(p),"ordinary damage APIs never acquire unknown columns");
+        ctx.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void loadedFluidAndWorkerDamagePreserveActualState(TestContext ctx) {
+        var world=ctx.getWorld();var p=ctx.getAbsolutePos(new BlockPos(4,4,4));
+        world.setBlockState(p,Blocks.STONE.getDefaultState());
+        boolean refused=java.util.concurrent.CompletableFuture.supplyAsync(()->
+            !BlockDamage.hit(world,p,Vec3d.ofCenter(p),12)
+            && !BlockDamage.fractureExplosion(world,p,Vec3d.ofCenter(p.east(3)),2)
+            && !BlockDamage.isDamageable(world,p,Blocks.STONE.getDefaultState())).join();
+        ctx.assertTrue(refused && world.getBlockState(p).isOf(Blocks.STONE),"worker-thread callbacks cannot read or carve owned storage");
+        world.setBlockState(p,Blocks.WATER.getDefaultState());
+        ctx.assertTrue(!BlockDamage.hit(world,p,Vec3d.ofCenter(p),40)
+            && !BlockDamage.fractureExplosion(world,p,Vec3d.ofCenter(p.east(3)),2)
+            && world.getBlockState(p).isOf(Blocks.WATER),"known fluid stays a fluid instead of becoming a carved solid");
+        ctx.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
     public void explosionFracturesRimButDestroysCentre(TestContext ctx) {
         var world=ctx.getWorld(); var p=ctx.getAbsolutePos(new BlockPos(1,3,2));var core=p.east(3);
         world.setBlockState(p,Blocks.STONE.getDefaultState());world.setBlockState(core,Blocks.STONE.getDefaultState());
@@ -57,5 +86,22 @@ public class MicroDamageGameTests implements FabricGameTest {
         ctx.assertTrue(MicroGrid.count(after.mask())<MicroGrid.count(before),"second hit deepens damage");
         CarvedBlock.restore(world,p);
         ctx.assertTrue(world.getBlockState(p).isOf(Blocks.STONE) && !MicroStore.get(world).isDamaged(p),"restoration clears stale damage");ctx.complete();
+    }
+
+    @GameTest(templateName = EMPTY_STRUCTURE, batchId = "loaded-fire-ignition")
+    public void blastIgnitionCannotCreateUnknownColumnOrFireFocus(TestContext context) {
+        var world = context.getWorld();
+        var unknown = new BlockPos(1049376, 90, 1983920);
+        var chunks = world.getChunkManager();
+        int cx = unknown.getX() >> 4;
+        int cz = unknown.getZ() >> 4;
+        int count = com.terminaldetector.drmd.world.fire.FireSystem.focusCount();
+        context.assertTrue(chunks.getWorldChunk(cx, cz) == null, "fire fixture begins with a genuinely unloaded column");
+        com.terminaldetector.drmd.world.fire.FireSystem.ignite(world, unknown, 3);
+        com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(world, unknown, 12, 3);
+        context.assertTrue(chunks.getWorldChunk(cx, cz) == null
+            && com.terminaldetector.drmd.world.fire.FireSystem.focusCount() == count,
+            "direct and blast ignition do not materialize unknown terrain or record a ghost fire focus");
+        context.complete();
     }
 }

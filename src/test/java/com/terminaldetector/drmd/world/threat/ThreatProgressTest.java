@@ -65,4 +65,42 @@ class ThreatProgressTest {
         assertThrows(IllegalArgumentException.class,()->new Snapshot(Phase.SEARCHING,0,0,10,10,0,0,false,3,ALARM,ALARM));
         assertThrows(IllegalArgumentException.class,()->deadline(-1,10));assertEquals(Long.MAX_VALUE,deadline(Long.MAX_VALUE-5,10));
     }
+
+    @Test void confirmedPairNeedsTheFullObservedHuntBeforeSiegeAndCannotMintAnotherActor(){
+        var p=searching();p.spawnedActor();p.advance(510,0,true,SEEN,false,true);
+        p.advance(910,0,true,SEEN,false,true);assertEquals(Phase.HUNTING,p.phase());
+        p.spawnedActor();p.advance(911,0,true,SEEN,false,true);
+        assertEquals(Phase.SIEGE,p.phase());assertEquals(2,p.spawned());
+        assertEquals(911,p.snapshot().since());assertEquals(p.snapshot().encounterEnds(),p.snapshot().until());
+        assertThrows(IllegalStateException.class,p::spawnedActor);
+    }
+    @Test void enteringPressureNeverShortensGraceWarningOrExtendsTheEncounter(){
+        var p=ready();p.alarm(100,ALARM);p.advance(100,0,true,SEEN,false,true);
+        p.advance(499,0,true,SEEN,false,true);assertEquals(Phase.WARNING,p.phase());
+        p.advance(500,0,true,null,false,true);p.spawnedActor();p.spawnedActor();long end=p.snapshot().encounterEnds();
+        p.advance(510,0,true,SEEN,false,true);p.advance(909,0,true,SEEN,false,true);assertEquals(Phase.HUNTING,p.phase());
+        p.advance(910,0,true,SEEN,false,true);assertEquals(Phase.SIEGE,p.phase());
+        assertEquals(end,p.snapshot().encounterEnds());p.advance(end,0,true,SEEN,false,true);assertEquals(Phase.COOLDOWN,p.phase());
+    }
+    @Test void defaultTimedReconCannotSilentlyEscalateIntoSiege(){
+        var p=searching();p.spawnedActor();p.spawnedActor();
+        for(long now=510;now<1_800;now+=5)p.advance(now,0,true,SEEN,false);
+        assertEquals(Phase.HUNTING,p.phase());assertEquals(2,p.spawned());
+    }
+    @Test void hiddenSiegeCannotReadAnotherPointOrRenewItsDeadline(){
+        var p=searching();p.spawnedActor();p.spawnedActor();
+        p.advance(510,0,true,SEEN,false,true);p.advance(910,0,true,SEEN,false,true);long end=p.snapshot().encounterEnds();
+        p.advance(1_109,0,true,null,false,true);assertEquals(Phase.SIEGE,p.phase());
+        p.advance(1_110,0,true,null,false,true);assertEquals(Phase.SEARCHING,p.phase());assertEquals(SEEN,p.lastKnown());
+        assertEquals(910,p.snapshot().lastSeen());assertEquals(end,p.snapshot().encounterEnds());
+        p.advance(1_115,0,true,ALARM,false,true);assertEquals(Phase.HUNTING,p.phase());assertEquals(end,p.snapshot().encounterEnds());
+    }
+    @Test void restoredSiegeRetainsRealAllowanceAndEscapeStartsOneFixedCooldown(){
+        var p=searching();p.spawnedActor();p.spawnedActor();p.advance(510,0,true,SEEN,false,true);p.advance(910,0,true,SEEN,false,true);
+        var copy=new ThreatProgress(p.snapshot());assertEquals(p.snapshot(),copy.snapshot());
+        copy.advance(915,0,false,SEEN,false,true);assertEquals(Phase.COOLDOWN,copy.phase());long end=copy.snapshot().until();
+        copy.advance(920,0,false,null,false,true);assertEquals(end,copy.snapshot().until());assertFalse(copy.alarm(920,ALARM));
+        assertThrows(IllegalArgumentException.class,()->new Snapshot(Phase.SIEGE,GRACE_TICKS,910,4_100,4_100,100,909,false,2,ALARM,SEEN));
+        assertThrows(IllegalArgumentException.class,()->new Snapshot(Phase.SIEGE,GRACE_TICKS,910,4_100,4_100,100,910,false,1,ALARM,SEEN));
+    }
 }

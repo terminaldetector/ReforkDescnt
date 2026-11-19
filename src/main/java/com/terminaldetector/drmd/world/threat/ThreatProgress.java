@@ -7,7 +7,7 @@ public final class ThreatProgress {
     public static final int GRACE_TICKS=12_000, WARNING_TICKS=400, SEARCH_TICKS=1_800,
             HUNT_TICKS=1_800, LOST_SIGHT_TICKS=200, COOLDOWN_TICKS=12_000;
     public static final int ALARM_TTL=GRACE_TICKS+WARNING_TICKS+SEARCH_TICKS, PATROL_SIZE=2;
-    public enum Phase { QUIET, WARNING, SEARCHING, HUNTING, COOLDOWN }
+    public enum Phase { QUIET, WARNING, SEARCHING, HUNTING, SIEGE, COOLDOWN }
     public record Point(double x,double y,double z) {
         public Point {if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)
                 ||Math.abs(x)>30_000_000||Math.abs(y)>30_000_000||Math.abs(z)>30_000_000)throw new IllegalArgumentException("invalid alarm position");}
@@ -19,6 +19,8 @@ public final class ThreatProgress {
             if(played<0||played>GRACE_TICKS||since<0||until<since||until-since>COOLDOWN_TICKS
                     ||encounterEnds<0||alarmAt< -1||lastSeen< -1||spawned<0||spawned>PATROL_SIZE)
                 throw new IllegalArgumentException("invalid threat progress");
+            if(phase==Phase.SIEGE&&(spawned!=PATROL_SIZE||lastSeen<since||until!=encounterEnds))
+                throw new IllegalArgumentException("siege requires a fully issued patrol and actual sighting");
         }
     }
     private Phase phase=Phase.QUIET;
@@ -48,6 +50,10 @@ public final class ThreatProgress {
     private void cooldown(long now){phase=Phase.COOLDOWN;since=now;until=deadline(now,COOLDOWN_TICKS);pending=false;}
     /** Online time is separately bounded; offline gaps cannot spend a novice's protection. */
     public void advance(long now,int onlineTicks,boolean insideArea,Point observed,boolean patrolGone){
+        advance(now,onlineTicks,insideArea,observed,patrolGone,false);
+    }
+    /** Only the director may opt its existing confirmed-alarm pair into pressure; timed recon stays unchanged. */
+    public void advance(long now,int onlineTicks,boolean insideArea,Point observed,boolean patrolGone,boolean siegeAllowed){
         if(now<0)throw new IllegalArgumentException("negative world clock");
         played=Math.min(GRACE_TICKS,played+Math.max(0,Math.min(100,onlineTicks)));
         if(phase==Phase.COOLDOWN){if(now>=until){phase=Phase.QUIET;since=now;until=now;spawned=0;lastSeen=-1;}return;}
@@ -62,8 +68,15 @@ public final class ThreatProgress {
             return;
         }
         if((patrolGone&&spawned>0)||now>=encounterEnds){cooldown(now);return;}
-        if(observed!=null){known=observed;lastSeen=now;if(phase==Phase.SEARCHING){phase=Phase.HUNTING;since=now;until=encounterEnds;}return;}
+        if(observed!=null){
+            known=observed;lastSeen=now;
+            if(phase==Phase.SEARCHING){phase=Phase.HUNTING;since=now;until=encounterEnds;}
+            else if(phase==Phase.HUNTING&&siegeAllowed&&spawned==PATROL_SIZE&&now>=deadline(since,WARNING_TICKS)){
+                phase=Phase.SIEGE;since=now;until=encounterEnds;
+            }
+            return;
+        }
         if(phase==Phase.SEARCHING&&now>=until){cooldown(now);return;}
-        if(phase==Phase.HUNTING&&lastSeen>=0&&now-lastSeen>=LOST_SIGHT_TICKS){phase=Phase.SEARCHING;since=now;until=Math.min(encounterEnds,deadline(now,SEARCH_TICKS));}
+        if((phase==Phase.HUNTING||phase==Phase.SIEGE)&&lastSeen>=0&&now-lastSeen>=LOST_SIGHT_TICKS){phase=Phase.SEARCHING;since=now;until=Math.min(encounterEnds,deadline(now,SEARCH_TICKS));}
     }
 }

@@ -11,6 +11,23 @@ import net.minecraft.util.math.Vec3d;
 
 public class HybridTerrainGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE)
+    public void authoringRejectsUnknownAndWorkerAccessBeforeAnyConversion(TestContext ctx) {
+        var world=ctx.getWorld();var p=ctx.getAbsolutePos(new BlockPos(4,4,4));
+        world.setBlockState(p,Blocks.STONE.getDefaultState());
+        var far=p.add(8_000_000,0,0);
+        ctx.assertTrue(!world.isChunkLoaded(far),"unknown authoring control starts absent");
+        boolean unknown=false;
+        try {HybridTerrainCommands.apply(world,far,far,true);}catch(IllegalArgumentException expected){unknown=true;}
+        ctx.assertTrue(unknown && !world.isChunkLoaded(far),"unknown selection is refused without materializing its column");
+        boolean worker=java.util.concurrent.CompletableFuture.supplyAsync(()-> {
+            try {HybridTerrainCommands.apply(world,p,p,true);return false;}
+            catch(IllegalArgumentException expected){return true;}
+        }).join();
+        ctx.assertTrue(worker && world.getBlockState(p).isOf(Blocks.STONE),"worker authoring cannot convert a loaded block");
+        ctx.assertTrue(HybridTerrainCommands.apply(world,p,p,true)==1,"owner-thread loaded authoring still works");
+        ctx.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
     public void ordinaryGroundAndTreesShareSmoothCollisionWithoutReplacingStates(TestContext ctx) {
         var world=ctx.getWorld();var p=ctx.getAbsolutePos(new BlockPos(2,4,2));
         for(BlockPos q:BlockPos.iterate(p.add(-1,-1,-1),p.add(1,1,1)))world.setBlockState(q,Blocks.AIR.getDefaultState());
