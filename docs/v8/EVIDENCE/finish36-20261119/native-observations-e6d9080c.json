@@ -1,0 +1,29 @@
+{
+  "source": "e6d9080c624e0d3d1e9174ccc59f104772848658",
+  "archive": "native-observations-e6d9080c.zip",
+  "sha256": "5a785d16e481f05a47e2ebbb20576445564a550eae7dab53e0ef7205971a42b0",
+  "results": {
+    "weapon-presentation-first": {
+      "testResult": "FAIL",
+      "childExit": 0,
+      "description": "java.lang.IllegalStateException: three fresh stationary model frames keep the same screen anchor"
+    },
+    "orbital-route-native-first": {
+      "testResult": "FAIL",
+      "childExit": 0,
+      "description": "java.lang.IllegalStateException: real connected Creative author already needs permission2"
+    },
+    "high-altitude-lod-traced": {
+      "testResult": "PASS",
+      "childExit": 0,
+      "description": "real roll, horizon and resident mesh flight"
+    },
+    "bdh-native-full-fourth": {
+      "testResult": "FAIL",
+      "childExit": 0,
+      "description": "deadline: 462 real cells verified; eight FULL sections retained for upstream admission"
+    }
+  },
+  "accepted": [],
+  "scope": "True native BCC/Sodium first observations. Flight outcome checks pressure; the two draw passes still show unchanged central sky. Weapon equip moved at the sampled ordinary anchor. Orbital route failed before any movement due to author permission. Optional BDH fourth retained all eight source cubes but both downstream 64m markers remained absent."
+}
