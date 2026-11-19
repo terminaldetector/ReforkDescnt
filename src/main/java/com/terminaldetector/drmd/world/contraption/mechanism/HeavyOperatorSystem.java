@@ -170,7 +170,12 @@ public final class HeavyOperatorSystem {
         // their unchanged300N capacity on three near-centre moment arms.
         for(var p:List.of(new BlockPos(-2,0,-2),new BlockPos(2,0,-2),new BlockPos(0,0,2)))floor.put(p,ModWorldBlocks.SHIP_THRUSTER.getDefaultState());
         var middle=new LinkedHashMap<BlockPos,BlockState>();middle.put(YAW_CHILD,bearing(Direction.DOWN));middle.put(PITCH_DRIVE,drive(Direction.EAST));middle.put(PITCH_BASE,bearing(Direction.EAST));
-        var guns=new LinkedHashMap<BlockPos,BlockState>();guns.put(PITCH_CHILD,bearing(Direction.WEST));guns.put(new BlockPos(0,0,1),Blocks.IRON_BLOCK.getDefaultState());
+        var guns=new LinkedHashMap<BlockPos,BlockState>();guns.put(PITCH_CHILD,bearing(Direction.WEST));
+        // Route the physical brace OUTBOARD of the bearing's mating face.
+        // A full support cube alongside that face rubs the parent housing during
+        // rotation; only the actual two bearing cells have seam admission.
+        guns.put(new BlockPos(1,0,0),Blocks.IRON_BLOCK.getDefaultState());
+        guns.put(new BlockPos(1,0,1),Blocks.IRON_BLOCK.getDefaultState());
         for(int x=-2;x<=2;x++)guns.put(new BlockPos(x,0,2),Blocks.IRON_BLOCK.getDefaultState());
         guns.put(LASER,ModWorldBlocks.SHIP_LASER.getDefaultState().with(Properties.FACING,Direction.SOUTH));
         for(var p:List.of(LEFT,RIGHT))guns.put(p,ModWorldBlocks.SHIP_ROCKET.getDefaultState().with(Properties.FACING,Direction.SOUTH));
