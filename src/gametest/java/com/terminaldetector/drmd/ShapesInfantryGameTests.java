@@ -99,4 +99,57 @@ public final class ShapesInfantryGameTests implements FabricGameTest {
             c.assertTrue(movement[0]&&r.infantry.getHealth()<r.infantry.getMaxHealth()&&r.infantry.getAttacker()==owner&&maximumStep[0]<1,"actual moving shot causes attributed ordinary damage, no immune teleport: hp="+r.infantry.getHealth()+" maxStep="+maximumStep[0]);r.complete();
         });
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="shapes-local-frame-lifecycle",tickLimit=180)
+    public void tallInfantryFramesPreserveNativeEyesFlagsAndSafeNbtOwnershipOnAllSixAxes(TestContext c){
+        var f=new ShapesSurfaceFixture(c,new Vec3d(1,0,0),false);f.drive(r->{
+            var actor=r.receiver;actor.setPosition(Vec3d.ofCenter(r.centre));var feet=actor.getPos();
+            c.assertTrue(com.terminaldetector.drmd.world.gravity.ActorPhysicsProfile.family(actor)==com.terminaldetector.drmd.world.gravity.ActorPhysicsProfile.Family.MECHANICAL
+                &&com.terminaldetector.drmd.world.gravity.EntityGravitySystem.suppressesVanillaGravity(actor),"real admitted C5 actor owns its current live field lease");
+            for(var direction:Direction.values()){
+                var up=Vec3d.of(direction.getVector());c.assertTrue(com.terminaldetector.drmd.world.gravity.ActorFrames.trySetUp(actor,up),"actual loaded tall body accepts this clear six-axis frame");
+                c.assertTrue(actor.getPos().equals(feet)&&actor.getBoundingBox().equals(com.terminaldetector.drmd.world.gravity.ActorFrames.body(actor,feet,up))
+                    &&actor.getEyePos().distanceTo(feet.add(up.multiply(2.55)))<1e-6&&!actor.hasNoGravity()&&actor.getMainHandStack().isOf(ModItems.LASER),"physical tall body/eye, native saved flag and actual authored gun remain consistent");
+                var saved=actor.writeNbt(new NbtCompound());var copy=(ShapesInfantryEntity)EntityType.getEntityFromNbt(saved,r.world).orElseThrow();r.extra.add(copy);
+                c.assertTrue(copy.getUuid().equals(actor.getUuid())&&com.terminaldetector.drmd.world.gravity.ActorFrames.up(copy).distanceTo(up)<1e-6
+                    &&copy.getBoundingBox().equals(actor.getBoundingBox())&&!copy.hasNoGravity()&&!com.terminaldetector.drmd.world.gravity.EntityGravitySystem.suppressesVanillaGravity(copy),"actual NBT factory restores physical pose without borrowing the live object's force lease");
+            }
+            c.assertTrue(com.terminaldetector.drmd.world.gravity.ActorFrames.trySetUp(actor,new Vec3d(1,0,0)),"sideways release control admitted");var overhead=actor.getBlockPos().up(2);var before=r.world.getBlockState(overhead);r.world.setBlockState(overhead,Blocks.BRICKS.getDefaultState(),2);
+            try{c.assertTrue(!com.terminaldetector.drmd.world.gravity.ActorFrames.tryRelease(actor)&&actor.getPos().equals(feet)&&r.world.isSpaceEmpty(actor),"a real obstacle in the tall upright headroom defers release without moving the safe wall body");}
+            finally{r.world.setBlockState(overhead,before,2);}
+            c.assertTrue(com.terminaldetector.drmd.world.gravity.ActorFrames.tryRelease(actor)&&!com.terminaldetector.drmd.world.gravity.ActorFrames.active(actor)&&actor.getPos().equals(feet),"clearance restores the actual ordinary tall body without teleport");r.complete();
+        });
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="shapes-local-route-floor",tickLimit=360)
+    public void nativeGroundRadioInvestigationUsesTheRealSupportedSidePassage(TestContext c){surfaceRadioRoute(c,new Vec3d(0,1,0));}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="shapes-local-route-wall",tickLimit=360)
+    public void nativeWallRadioInvestigationUsesTheRealSupportedSidePassage(TestContext c){surfaceRadioRoute(c,new Vec3d(1,0,0));}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="shapes-local-route-ceiling",tickLimit=360)
+    public void nativeCeilingRadioInvestigationUsesTheRealSupportedSidePassage(TestContext c){surfaceRadioRoute(c,new Vec3d(0,-1,0));}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="shapes-local-cover-wall",tickLimit=440)
+    public void nativeLowHealthCoverReturnsThroughTheWallChartInsteadOfReplacingMomentum(TestContext c){
+        var f=new ShapesSurfaceFixture(c,new Vec3d(1,0,0),true);int[] hurtAge={-1};Vec3d[] hurtAt={null};boolean[] actualLocalRoute={false};
+        f.drive(r->{
+            if(!r.enabled){r.enable();return;}r.sample();
+            if(hurtAge[0]<0){
+                if(!r.completeRoute()){c.assertTrue(r.receiver.age-r.born<240,"same native radio passage/shot admission before the independent cover condition: "+r.state());return;}
+                float desired=r.receiver.getMaxHealth()*.2f;
+                c.assertTrue(r.receiver.damage(r.world.getDamageSources().generic(),r.receiver.getHealth()-desired)&&r.receiver.getHealth()/r.receiver.getMaxHealth()<.22f,
+                    "one disclosed real damage event admits the existing native low-health cover condition");
+                hurtAge[0]=r.receiver.age;hurtAt[0]=r.receiver.getPos();return;
+            }
+            actualLocalRoute[0]|=r.receiver.getNavigation().getCurrentPath() instanceof com.terminaldetector.drmd.world.gravity.LocalSurfacePath;
+            boolean covered=actualLocalRoute[0]&&r.receiver.getPos().distanceTo(hurtAt[0])>.5&&!r.receiver.canSee(r.victim);
+            if(r.receiver.age-hurtAge[0]<80&&!covered)return;
+            System.out.println("SHAPES_NATIVE_LOCAL_COVER localRoute="+actualLocalRoute[0]+" covered="+covered+" "+r.state());
+            c.assertTrue(covered&&r.receiver.getHealth()/r.receiver.getMaxHealth()<.22f,"the original native combat goal must find real material cover using the same supported path, with no direct force drive");r.complete();
+        });
+    }
+    private static void surfaceRadioRoute(TestContext c,Vec3d up){
+        var f=new ShapesSurfaceFixture(c,up,true);f.drive(r->{
+            if(!r.enabled){r.enable();return;}r.sample();
+            if(r.receiver.age-r.born<240&&!r.completeRoute())return;
+            System.out.println("SHAPES_NATIVE_SURFACE_ROUTE "+r.state());
+            c.assertTrue(r.completeRoute(),"real native radio goal must walk the loaded passage with physical support before its own target/shot: "+r.state());r.complete();
+        });
+    }
 }
