@@ -1,0 +1,771 @@
+{
+  "orbitalPlacement": {
+    "source": "b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3",
+    "exit": 0,
+    "scope": "STOCK complete physical layout and warm journal readback",
+    "events": [
+      {
+        "event": "121_LEASED_COLUMNS_AND_REAL_OP2_CONNECTED",
+        "gameTick": 0,
+        "worldTime": 76,
+        "wallNanos": 1177701049,
+        "phase": 0,
+        "anchor": {
+          "x": -5280592,
+          "y": 159,
+          "z": 12631824
+        },
+        "planHash": "165f2900cbee88e2b85233635e01403e62c2a5afa0160e5e3121c0e80283c7fb",
+        "solids": 4412,
+        "cuts": 2919,
+        "verifiedCells": 0,
+        "maxCursorDelta": 0,
+        "maxCasDelta": 0,
+        "owner": "a5264fdd-f4c8-4666-930f-7e1962f53a20"
+      },
+      {
+        "event": "ACTUAL_READY_INERT",
+        "gameTick": 2,
+        "worldTime": 78,
+        "wallNanos": 1396233643,
+        "phase": 1,
+        "anchor": {
+          "x": -5280592,
+          "y": 159,
+          "z": 12631824
+        },
+        "planHash": "165f2900cbee88e2b85233635e01403e62c2a5afa0160e5e3121c0e80283c7fb",
+        "solids": 4412,
+        "cuts": 2919,
+        "verifiedCells": 0,
+        "maxCursorDelta": 0,
+        "maxCasDelta": 0,
+        "owner": "a5264fdd-f4c8-4666-930f-7e1962f53a20",
+        "state": "READY",
+        "detail": "Plan ready; inspect then apply explicitly",
+        "cursor": 0,
+        "total": 7331,
+        "authoring": "PLANNED"
+      },
+      {
+        "event": "FULL_ACTUAL_PLACEMENT_COMPLETE",
+        "gameTick": 491,
+        "worldTime": 567,
+        "wallNanos": 25905801505,
+        "phase": 2,
+        "anchor": {
+          "x": -5280592,
+          "y": 159,
+          "z": 12631824
+        },
+        "planHash": "165f2900cbee88e2b85233635e01403e62c2a5afa0160e5e3121c0e80283c7fb",
+        "solids": 4412,
+        "cuts": 2919,
+        "verifiedCells": 0,
+        "maxCursorDelta": 64,
+        "maxCasDelta": 1,
+        "owner": "a5264fdd-f4c8-4666-930f-7e1962f53a20",
+        "state": "PAUSED",
+        "detail": "Authoring COMPLETED 7331/7331; NONE",
+        "cursor": 7331,
+        "total": 7331,
+        "authoring": "COMPLETED"
+      },
+      {
+        "event": "ALL_CELLS_VERIFIED_BEFORE_WARM_REOPEN",
+        "gameTick": 520,
+        "worldTime": 596,
+        "wallNanos": 27359965515,
+        "phase": 3,
+        "anchor": {
+          "x": -5280592,
+          "y": 159,
+          "z": 12631824
+        },
+        "planHash": "165f2900cbee88e2b85233635e01403e62c2a5afa0160e5e3121c0e80283c7fb",
+        "solids": 4412,
+        "cuts": 2919,
+        "verifiedCells": 7331,
+        "maxCursorDelta": 64,
+        "maxCasDelta": 1,
+        "owner": "a5264fdd-f4c8-4666-930f-7e1962f53a20",
+        "state": "PAUSED",
+        "detail": "Authoring COMPLETED 7331/7331; NONE",
+        "cursor": 7331,
+        "total": 7331,
+        "authoring": "COMPLETED"
+      },
+      {
+        "event": "ACTUAL_WARM_MANIFEST_JOURNAL_REOPEN",
+        "gameTick": 525,
+        "worldTime": 601,
+        "wallNanos": 27609135665,
+        "phase": 5,
+        "anchor": {
+          "x": -5280592,
+          "y": 159,
+          "z": 12631824
+        },
+        "planHash": "165f2900cbee88e2b85233635e01403e62c2a5afa0160e5e3121c0e80283c7fb",
+        "solids": 4412,
+        "cuts": 2919,
+        "verifiedCells": 0,
+        "maxCursorDelta": 64,
+        "maxCasDelta": 1,
+        "owner": "a5264fdd-f4c8-4666-930f-7e1962f53a20",
+        "state": "RESTORED_PAUSED",
+        "detail": "Restored inert data; manual resume required",
+        "cursor": 7331,
+        "total": 7331,
+        "authoring": "CANCELLED"
+      },
+      {
+        "event": "WARM_REOPEN_ALL_ACTUAL_CELLS_UNCHANGED_NOT_COLD_JVM",
+        "gameTick": 554,
+        "worldTime": 630,
+        "wallNanos": 29063891282,
+        "phase": 6,
+        "anchor": {
+          "x": -5280592,
+          "y": 159,
+          "z": 12631824
+        },
+        "planHash": "165f2900cbee88e2b85233635e01403e62c2a5afa0160e5e3121c0e80283c7fb",
+        "solids": 4412,
+        "cuts": 2919,
+        "verifiedCells": 7331,
+        "maxCursorDelta": 64,
+        "maxCasDelta": 1,
+        "owner": "a5264fdd-f4c8-4666-930f-7e1962f53a20",
+        "state": "PAUSED",
+        "detail": "Authoring CANCELLED 7331/7331; RECOVERED",
+        "cursor": 7331,
+        "total": 7331,
+        "authoring": "CANCELLED"
+      }
+    ]
+  },
+  "base": "bd4c5cdb5acbda413c46ead960d6259dd50543a2",
+  "serverRuns": {
+    "first": {
+      "source": "1092a7aee36f19e8426f8d4513240920596e158f",
+      "exit": 1,
+      "gameTests": 0,
+      "gameFailed": {},
+      "unitTestsRecorded": 0,
+      "unitFailuresRecorded": 0
+    },
+    "second": {
+      "source": "740e21fdcaa6b1414e61cae3be47fe2b1b40cbb6",
+      "exit": 1,
+      "gameTests": 0,
+      "gameFailed": {},
+      "unitTestsRecorded": 0,
+      "unitFailuresRecorded": 0,
+      "game": {
+        "sha256": "9efaa4623f0ebc16cd060159002cec3a49c10b7bcaa17a4c76b1211199936739",
+        "bytes": 3275136,
+        "id": "drmd",
+        "version": "1.1.35-ufo-dev.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd",
+          "version": "1.1.35-ufo-dev.1",
+          "name": "DRMD 6DOF",
+          "description": "Descent-like 6DoF Minecraft: inertial flight, arsenal, world layers and an experimental cubic terrain adapter.",
+          "authors": [
+            "Terminal",
+            "DRMD Team"
+          ],
+          "contact": {
+            "homepage": "https://github.com/terminaldetector/ReforkDescnt",
+            "sources": "https://github.com/terminaldetector/ReforkDescnt",
+            "issues": "https://github.com/terminaldetector/ReforkDescnt/issues"
+          },
+          "license": "MIT",
+          "icon": "assets/drmd/icon.png",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.DescentMod"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.client.DescentClient"
+            ]
+          },
+          "mixins": [
+            "drmd.mixins.json"
+          ],
+          "accessWidener": "drmd.accesswidener",
+          "depends": {
+            "fabricloader": ">=0.16.0",
+            "minecraft": "~1.21.1",
+            "java": ">=21",
+            "fabric-api": "*"
+          },
+          "suggests": {
+            "modmenu": "*",
+            "distanthorizons": "*",
+            "sodium": "*"
+          },
+          "custom": {
+            "modmenu": {
+              "links": {
+                "modmenu.discord": "https://github.com/terminaldetector/ReforkDescnt"
+              }
+            }
+          }
+        }
+      },
+      "observer": {
+        "sha256": "6eeb476067de9a3d2551f82a581ef67d8a3da246c56d10a1af7d979008919e5a",
+        "bytes": 755979,
+        "id": "drmd_cubiccheck",
+        "version": "0.0.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd_cubiccheck",
+          "version": "0.0.1",
+          "name": "DRMD cubic production gate",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.gate.CubicServerGate"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.gate.CubicClientGate"
+            ]
+          },
+          "depends": {
+            "fabricloader": ">=0.19.5",
+            "minecraft": "~1.21.1",
+            "fabric-api": "*",
+            "drmd": "*",
+            "bettercubicchunks": "*"
+          },
+          "mixins": [
+            "drmd.cubiccheck.mixins.json"
+          ]
+        }
+      }
+    },
+    "third": {
+      "source": "06d9c3860308058d3741813610bf771e353f7bd3",
+      "exit": 1,
+      "gameTests": 134,
+      "gameFailed": {
+        "genericcontrolcoregametests.leavingthecontrolvolumerestoreswalkingandallowsimmediatetakeover": [
+          "(14556099, -60, -12562009) walking exit and takeover retain the original hull's exact physical state"
+        ],
+        "actorframegametests.nativesightandlookusephysicaleyesonsixaxesandanobliqueframe": [
+          "(14556021, -60, -12561967) real opaque material on the physical ray blocks native sight (1.0, 0.0, 0.0)"
+        ],
+        "survivalthreatgametests.onlyanactualsurvivalmachinekillcreatesanattributeddeduplicatedalarm": [
+          "(14556008, -60, -12561953) No value present"
+        ],
+        "ragdollgametests.aplayerkilledsmallorbcannotcrossathintrapdoorbetweenclearendpoints": [
+          "(14556021, -60, -12561939) actual near-face contact responds instead of skipping to far side"
+        ],
+        "gravitygunbehaviorgametests.actualheavyrailhitsthesolidaimtargetwithoutpassingthrough": [
+          "(14556047, -60, -12561939) registered rail captures the real hundred-cell projectile"
+        ]
+      },
+      "unitTestsRecorded": 43,
+      "unitFailuresRecorded": 0,
+      "game": {
+        "sha256": "3d5d1aa1487280b4eac5a221442e091ef858c79fd7b0bd9abeb8be0f52bb1d39",
+        "bytes": 3275567,
+        "id": "drmd",
+        "version": "1.1.35-ufo-dev.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd",
+          "version": "1.1.35-ufo-dev.1",
+          "name": "DRMD 6DOF",
+          "description": "Descent-like 6DoF Minecraft: inertial flight, arsenal, world layers and an experimental cubic terrain adapter.",
+          "authors": [
+            "Terminal",
+            "DRMD Team"
+          ],
+          "contact": {
+            "homepage": "https://github.com/terminaldetector/ReforkDescnt",
+            "sources": "https://github.com/terminaldetector/ReforkDescnt",
+            "issues": "https://github.com/terminaldetector/ReforkDescnt/issues"
+          },
+          "license": "MIT",
+          "icon": "assets/drmd/icon.png",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.DescentMod"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.client.DescentClient"
+            ]
+          },
+          "mixins": [
+            "drmd.mixins.json"
+          ],
+          "accessWidener": "drmd.accesswidener",
+          "depends": {
+            "fabricloader": ">=0.16.0",
+            "minecraft": "~1.21.1",
+            "java": ">=21",
+            "fabric-api": "*"
+          },
+          "suggests": {
+            "modmenu": "*",
+            "distanthorizons": "*",
+            "sodium": "*"
+          },
+          "custom": {
+            "modmenu": {
+              "links": {
+                "modmenu.discord": "https://github.com/terminaldetector/ReforkDescnt"
+              }
+            }
+          }
+        }
+      },
+      "observer": {
+        "sha256": "a5bc0e2b248da1861fc050784e329e96be185e36d479495dac946d2f131bb632",
+        "bytes": 765560,
+        "id": "drmd_cubiccheck",
+        "version": "0.0.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd_cubiccheck",
+          "version": "0.0.1",
+          "name": "DRMD cubic production gate",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.gate.CubicServerGate"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.gate.CubicClientGate"
+            ]
+          },
+          "depends": {
+            "fabricloader": ">=0.19.5",
+            "minecraft": "~1.21.1",
+            "fabric-api": "*",
+            "drmd": "*",
+            "bettercubicchunks": "*"
+          },
+          "mixins": [
+            "drmd.cubiccheck.mixins.json"
+          ]
+        }
+      }
+    },
+    "fourth": {
+      "source": "9f0c7d6b43eee08b8c213ace6dfc92c580fec907",
+      "exit": 1,
+      "gameTests": 76,
+      "gameFailed": {
+        "gravitygunbehaviorgametests.actualheavyrailhitsthesolidaimtargetwithoutpassingthrough": [
+          "(8652074, -60, -11556875) ordinary world ticks stop the heavy material at its real aim target: hit=false furthest=-1.1554854285287138E7 target=BlockPos{x=8730524, y=102, z=-11554851} state=time=2394 stack=drmd:weapon_d6_gravy_railgun lastFire=2380 elapsed=14 cooldown=6 managerCooling=true mode=Optional.empty held=0 mass=0.0 energy=83.0 playerAlive=true playerPos=(8730524.5, 100.5, -1.15548745E7) enabled=false savedMode=false attitude=true aim=(0.0, 0.0, 1.0) up=(-1.0, 2.220446049250313E-16, 0.0) bodyAlive=true removed=null lookup=true age=22 bodyPos=(8730524.5, 102.12000000476833, -1.1554854285287138E7) velocity=(0.0, 0.0, 0.0) gravity=false tether=20.279522"
+        ]
+      },
+      "unitTestsRecorded": 51,
+      "unitFailuresRecorded": 0,
+      "game": {
+        "sha256": "af12245c93c1b1d5fa5bc6f2f3095303a8f1376340dbaac49ff269294b78a695",
+        "bytes": 3284764,
+        "id": "drmd",
+        "version": "1.1.35-ufo-dev.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd",
+          "version": "1.1.35-ufo-dev.1",
+          "name": "DRMD 6DOF",
+          "description": "Descent-like 6DoF Minecraft: inertial flight, arsenal, world layers and an experimental cubic terrain adapter.",
+          "authors": [
+            "Terminal",
+            "DRMD Team"
+          ],
+          "contact": {
+            "homepage": "https://github.com/terminaldetector/ReforkDescnt",
+            "sources": "https://github.com/terminaldetector/ReforkDescnt",
+            "issues": "https://github.com/terminaldetector/ReforkDescnt/issues"
+          },
+          "license": "MIT",
+          "icon": "assets/drmd/icon.png",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.DescentMod"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.client.DescentClient"
+            ]
+          },
+          "mixins": [
+            "drmd.mixins.json"
+          ],
+          "accessWidener": "drmd.accesswidener",
+          "depends": {
+            "fabricloader": ">=0.16.0",
+            "minecraft": "~1.21.1",
+            "java": ">=21",
+            "fabric-api": "*"
+          },
+          "suggests": {
+            "modmenu": "*",
+            "distanthorizons": "*",
+            "sodium": "*"
+          },
+          "custom": {
+            "modmenu": {
+              "links": {
+                "modmenu.discord": "https://github.com/terminaldetector/ReforkDescnt"
+              }
+            }
+          }
+        }
+      },
+      "observer": {
+        "sha256": "f7bea865612833a9035b131f9111e8102d58953c9d422519017f56b78c920c83",
+        "bytes": 766461,
+        "id": "drmd_cubiccheck",
+        "version": "0.0.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd_cubiccheck",
+          "version": "0.0.1",
+          "name": "DRMD cubic production gate",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.gate.CubicServerGate"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.gate.CubicClientGate"
+            ]
+          },
+          "depends": {
+            "fabricloader": ">=0.19.5",
+            "minecraft": "~1.21.1",
+            "fabric-api": "*",
+            "drmd": "*",
+            "bettercubicchunks": "*"
+          },
+          "mixins": [
+            "drmd.cubiccheck.mixins.json"
+          ]
+        }
+      }
+    },
+    "final": {
+      "source": "b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3",
+      "exit": 0,
+      "gameTests": 138,
+      "gameFailed": {},
+      "unitTestsRecorded": 93,
+      "unitFailuresRecorded": 0,
+      "game": {
+        "sha256": "d88930beccd77193ebcf808c1ad6299fc546e2383098fa701eeedc1b3b942261",
+        "bytes": 3284991,
+        "id": "drmd",
+        "version": "1.1.35-ufo-dev.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd",
+          "version": "1.1.35-ufo-dev.1",
+          "name": "DRMD 6DOF",
+          "description": "Descent-like 6DoF Minecraft: inertial flight, arsenal, world layers and an experimental cubic terrain adapter.",
+          "authors": [
+            "Terminal",
+            "DRMD Team"
+          ],
+          "contact": {
+            "homepage": "https://github.com/terminaldetector/ReforkDescnt",
+            "sources": "https://github.com/terminaldetector/ReforkDescnt",
+            "issues": "https://github.com/terminaldetector/ReforkDescnt/issues"
+          },
+          "license": "MIT",
+          "icon": "assets/drmd/icon.png",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.DescentMod"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.client.DescentClient"
+            ]
+          },
+          "mixins": [
+            "drmd.mixins.json"
+          ],
+          "accessWidener": "drmd.accesswidener",
+          "depends": {
+            "fabricloader": ">=0.16.0",
+            "minecraft": "~1.21.1",
+            "java": ">=21",
+            "fabric-api": "*"
+          },
+          "suggests": {
+            "modmenu": "*",
+            "distanthorizons": "*",
+            "sodium": "*"
+          },
+          "custom": {
+            "modmenu": {
+              "links": {
+                "modmenu.discord": "https://github.com/terminaldetector/ReforkDescnt"
+              }
+            }
+          }
+        }
+      },
+      "observer": {
+        "sha256": "f7bea865612833a9035b131f9111e8102d58953c9d422519017f56b78c920c83",
+        "bytes": 766461,
+        "id": "drmd_cubiccheck",
+        "version": "0.0.1",
+        "metadata": {
+          "schemaVersion": 1,
+          "id": "drmd_cubiccheck",
+          "version": "0.0.1",
+          "name": "DRMD cubic production gate",
+          "environment": "*",
+          "entrypoints": {
+            "main": [
+              "com.terminaldetector.drmd.gate.CubicServerGate"
+            ],
+            "client": [
+              "com.terminaldetector.drmd.gate.CubicClientGate"
+            ]
+          },
+          "depends": {
+            "fabricloader": ">=0.19.5",
+            "minecraft": "~1.21.1",
+            "fabric-api": "*",
+            "drmd": "*",
+            "bettercubicchunks": "*"
+          },
+          "mixins": [
+            "drmd.cubiccheck.mixins.json"
+          ]
+        }
+      }
+    }
+  },
+  "nativeRuns": {
+    "native-connectedPortal": {
+      "source": "740e21fdcaa6b1414e61cae3be47fe2b1b40cbb6",
+      "observerFlag": "connectedPortal",
+      "processExit": 0,
+      "results": {
+        "connected-portal-outcome.json": "PASS"
+      },
+      "rawFrames": {
+        "connected-portal-frames/after.png": "54eb3f01480b5f2fbcf0ac3756837bdaf494145ac71397c7e258c806dfe4e7e9",
+        "connected-portal-frames/before.png": "fe75a6a79189bdbc05a92d2d36c230095ef1cd3015279d647130e03e4f3d0541"
+      },
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "9efaa4623f0ebc16cd060159002cec3a49c10b7bcaa17a4c76b1211199936739",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "6eeb476067de9a3d2551f82a581ef67d8a3da246c56d10a1af7d979008919e5a",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    },
+    "native-connectedPortal-final": {
+      "source": "b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3",
+      "observerFlag": "connectedPortal",
+      "processExit": 0,
+      "results": {
+        "connected-portal-outcome.json": "PASS"
+      },
+      "rawFrames": {
+        "connected-portal-frames/after.png": "d2dcb7fed66ea8b75c648fddf00498e333a41f5ba10098c1c61c35d6a0f5b391",
+        "connected-portal-frames/before.png": "a893a38522daf05ac3e2d707141706acc046f6cde9abf0c5886c57d78445d9a0"
+      },
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "d88930beccd77193ebcf808c1ad6299fc546e2383098fa701eeedc1b3b942261",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "f7bea865612833a9035b131f9111e8102d58953c9d422519017f56b78c920c83",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    },
+    "native-gravityInputRoute": {
+      "source": "740e21fdcaa6b1414e61cae3be47fe2b1b40cbb6",
+      "observerFlag": "gravityInputRoute",
+      "processExit": 0,
+      "results": {
+        "gravity-input-route-ok.json": "PASS"
+      },
+      "rawFrames": {
+        "gravity-input-frames/flight-rail-rmb-held.png": "bc0ab0431cf42e0096bcaa0da54dc1f5a135d163326f46b7178e06b9d5e74596",
+        "gravity-input-frames/flight-rail-rmb-thrown.png": "e595ce476054089e09a4b52fab0b803b790660cea7111fa35164b1468e11c766",
+        "gravity-input-frames/flight-shift-rmb-held.png": "7f7302b1279c29c89bf3bb2ddd6fda720c87994e257de679450d7162c25a735d",
+        "gravity-input-frames/flight-shift-rmb-thrown.png": "92110f4030e6ac3dd69582827d3a284ea7f108cef9e0f6af2a27c6f3aa85f2dc",
+        "gravity-input-frames/flight-swarm-lmb-held.png": "34814d5b7c8564dd99bc492e276b97872022e44b8fe00bd11cf759958af66480",
+        "gravity-input-frames/flight-swarm-lmb-thrown.png": "d35dba88614aef9e8b2cf0ddc74b8b0cb0357d6a920a9f678f6c88e0845e5799",
+        "gravity-input-frames/ordinary-rail-rmb-held.png": "4d14e1bec1039292c598242d71c66a2fa2dbc1e8fb5282d1a063910d271da251",
+        "gravity-input-frames/ordinary-rail-rmb-thrown.png": "4d859893d064906b507eb13e321c9db290915af3d0e195da387ed68c91c49367",
+        "gravity-input-frames/ordinary-shift-lmb-held.png": "9aa6dfab796280f5c4afb8438b1295af2af4266dc5eae3c47e690567489ab2eb",
+        "gravity-input-frames/ordinary-shift-lmb-thrown.png": "b1d36f5c6937dcbdbc1bf9b2be6ff017843e1c013a4c8754f7b57d9573ea36b8",
+        "gravity-input-frames/ordinary-swarm-lmb-held.png": "c84b6660d075ccca65b74b659035c9ef93882f2c87f3efdf23b4a39254fde8bf",
+        "gravity-input-frames/ordinary-swarm-lmb-thrown.png": "670cf16f016d69b3d02e1d107e319518919d6af777080585850f07758bf8a8f1"
+      },
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "9efaa4623f0ebc16cd060159002cec3a49c10b7bcaa17a4c76b1211199936739",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "6eeb476067de9a3d2551f82a581ef67d8a3da246c56d10a1af7d979008919e5a",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    },
+    "native-ps1Atmosphere": {
+      "source": "740e21fdcaa6b1414e61cae3be47fe2b1b40cbb6",
+      "observerFlag": "ps1Atmosphere",
+      "processExit": 255,
+      "results": {
+        "ps1-atmosphere-outcome.json": "FAIL"
+      },
+      "rawFrames": {
+        "ps1-atmosphere-frames/first-failure-after.png": "c45c3c828594797108ee9f09dbe7da6067f6bdbf36635a42eb55dfa88ac05c26",
+        "ps1-atmosphere-frames/first-failure-before.png": "c214743f756e56cb852a558672ef8394829f189129b8e92a46f89e294fd7829a",
+        "ps1-atmosphere-frames/first-failure-final.png": "a0b35b9026a78a6baa8d7b43b94befa56ebf36dacc8e41e544e9d1660b7bac07",
+        "ps1-atmosphere-frames/y600-fog.png": "a0b35b9026a78a6baa8d7b43b94befa56ebf36dacc8e41e544e9d1660b7bac07",
+        "ps1-atmosphere-frames/y600-raw.png": "158754e8e5d762fc100e98459f351e9803f6069de3e8c60871fda54ddce2dad1"
+      },
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "9efaa4623f0ebc16cd060159002cec3a49c10b7bcaa17a4c76b1211199936739",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "6eeb476067de9a3d2551f82a581ef67d8a3da246c56d10a1af7d979008919e5a",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    },
+    "native-ps1Atmosphere-repeat": {
+      "source": "9f0c7d6b43eee08b8c213ace6dfc92c580fec907",
+      "observerFlag": "ps1Atmosphere",
+      "processExit": 0,
+      "results": {
+        "ps1-atmosphere-outcome.json": "PASS"
+      },
+      "rawFrames": {
+        "ps1-atmosphere-frames/native-restored.png": "faffe5e8063dc938e57f84ac6074c023e3160b308c5a1657949b4009c40d77e9",
+        "ps1-atmosphere-frames/y1020-fog.png": "c60c7fd422ee3b99c8780786ec5a48743e7657241f25fc62f31c9fa6b32efa83",
+        "ps1-atmosphere-frames/y1020-raw.png": "7c1fde43890791b11c3b2675f23dd5260bbc2678a22321e926476c43987b536d",
+        "ps1-atmosphere-frames/y1580-fog.png": "0449d3ac08713d12ef43155f53d21aec384c233cc2f5234854834cf3ecdaa503",
+        "ps1-atmosphere-frames/y1580-raw.png": "351989185099c6bcbfc7881786653b6161dca5aff9f8de7d2c4f302fc11ab1f5",
+        "ps1-atmosphere-frames/y600-fog.png": "7873817f7daa68a19eaab2737812b07ad46bd2fa5edae6de035bbc3d20cfa3ab",
+        "ps1-atmosphere-frames/y600-raw.png": "a9fcb67a804d17829c4507c10c30b28ce16d471ee68100acc9b08046f676edb2"
+      },
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "af12245c93c1b1d5fa5bc6f2f3095303a8f1376340dbaac49ff269294b78a695",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "f7bea865612833a9035b131f9111e8102d58953c9d422519017f56b78c920c83",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    },
+    "native-verticalFlight": {
+      "source": "06d9c3860308058d3741813610bf771e353f7bd3",
+      "observerFlag": "verticalFlight",
+      "processExit": 0,
+      "results": {
+        "vertical-flight-outcome.json": "FAIL"
+      },
+      "rawFrames": {},
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "3d5d1aa1487280b4eac5a221442e091ef858c79fd7b0bd9abeb8be0f52bb1d39",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "a5bc0e2b248da1861fc050784e329e96be185e36d479495dac946d2f131bb632",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    },
+    "sim-24": {
+      "source": "740e21fdcaa6b1414e61cae3be47fe2b1b40cbb6",
+      "observerFlag": "connectedPortal",
+      "processExit": 0,
+      "results": {
+        "connected-portal-outcome.json": "PASS"
+      },
+      "rawFrames": {
+        "connected-portal-frames/after.png": "fd735a61576d4b50c5c50dbce9dc2a444033e4771b7f5195497d9a51339937cc",
+        "connected-portal-frames/before.png": "31af45360cca68b125373aa2bfc5e04f4b8732a1d3c39ccc639f4d2242c03881"
+      },
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "9efaa4623f0ebc16cd060159002cec3a49c10b7bcaa17a4c76b1211199936739",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "6eeb476067de9a3d2551f82a581ef67d8a3da246c56d10a1af7d979008919e5a",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    },
+    "sim-8": {
+      "source": "740e21fdcaa6b1414e61cae3be47fe2b1b40cbb6",
+      "observerFlag": "connectedPortal",
+      "processExit": 0,
+      "results": {
+        "connected-portal-outcome.json": "PASS"
+      },
+      "rawFrames": {
+        "connected-portal-frames/after.png": "564691e7d121b0f531329fdadbbc2e1cd123aeb0128b66b56eaa3197ec0ccd81",
+        "connected-portal-frames/before.png": "28ae6e3db323845edc81d9321612c652f3c944ec6482120631ca05ec5d164f01"
+      },
+      "activeLaunchModHashes": {
+        "mods/drmd-6dof-1.1.35-ufo-dev.1.jar": "9efaa4623f0ebc16cd060159002cec3a49c10b7bcaa17a4c76b1211199936739",
+        "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "mods/fabric-api-0.116.15+1.21.1.jar": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "6eeb476067de9a3d2551f82a581ef67d8a3da246c56d10a1af7d979008919e5a",
+        "mods/sodium-fabric-0.8.13+mc1.21.1.jar": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+      }
+    }
+  },
+  "archives": [
+    {
+      "file": "server-results.zip",
+      "sha256": "23a7c0f832804632e16040d5d48529dea6cd15ed3c483862a14f8f557c74cc04",
+      "bytes": 122805
+    },
+    {
+      "file": "native-results.zip",
+      "sha256": "eabfbcc0e12d5a945fc2cb9930a502abe80d9a2f82f53575d5bc515946644c36",
+      "bytes": 3009928
+    },
+    {
+      "file": "jfr-recordings.zip",
+      "sha256": "d7a00931a3ea52a1e07c3ff27903bfad6da5937e5be905dceb196bc7b8c5433f",
+      "bytes": 2432041
+    },
+    {
+      "file": "orbital-authoring.zip",
+      "sha256": "00b0085d5b692eef8ddf24782c3ea92cc3312b4f4c2cca4136ba6ac39bce84b2",
+      "bytes": 69934
+    }
+  ],
+  "releaseAccepted": false,
+  "source": "b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3",
+  "completedIds": [
+    "S00-T02",
+    "S00-T04",
+    "S01-T06",
+    "S03-T01",
+    "S07-T03",
+    "S07-T04",
+    "S08-T01",
+    "S08-T03",
+    "S09-T04",
+    "S10-T02",
+    "S11-T05",
+    "S12-T05",
+    "S13-T04",
+    "S15-T01",
+    "S15-T04",
+    "S16-T05",
+    "S17-T01",
+    "S17-T02",
+    "S17-T04",
+    "S17-T05"
+  ],
+  "wholePacketsAccepted": 0
+}

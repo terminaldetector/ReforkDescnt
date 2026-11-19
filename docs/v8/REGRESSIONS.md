@@ -82,3 +82,6 @@ Articulated AI: original real kit has0/0 autonomous shots. First attempts expose
 ## 2026-11-19 — Round 2 regression outcomes
 
 Exact second-round production source ec696a32132c595aa29095211416abb3ba22acdf. [Проверки и исходные отказы](TASK20_ROUND2_2026-11-19.md) records the actual behavior and the preserved first failures for this source.
+
+
+19 ноября. Регрессии третьего цикла. Закрыто 20 из этой партии, 63/99 в реестре. Игровой источник `b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3`. [Отчёт](TASK20_ROUND3_2026-11-19.md).

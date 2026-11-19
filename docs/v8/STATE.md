@@ -1,3 +1,5 @@
+19 ноября. Третий цикл. Закрыто 20 из этой партии, 63/99 в реестре. Игровой источник `b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3`. [Отчёт](TASK20_ROUND3_2026-11-19.md).
+
 19 November, second round. 20 additional tasks accepted on ec696a32. 43 completed and 56 open in the original ledger. [Exact source, tests and remaining scope](TASK20_ROUND2_2026-11-19.md). Earlier entries below are historical.
 
 19 November completed 20 original IDs on b894a94d. The focused build passed 33 unit tests and 96 ordinary GameTests. The ledger has 23 completed, 30 in progress and 46 pending reverification. See [TASK20_RESULT_2026-11-19.md](TASK20_RESULT_2026-11-19.md). Earlier entries below are historical.

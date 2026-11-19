@@ -21,11 +21,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id001
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND3_2026-11-19.md, ROUND3_HISTORY_PROVENANCE_2026-11-19.md]
+  notes: "2026-11-19, третий цикл. Зафиксированы точные SHA реально запущенного workspace JAR, исходников и Fabric-метаданных. Исторический пользовательский JAR остаётся неизвестен."
 - id: S00-T03
   stage: S00
   stage_title: History & executable truth
@@ -45,11 +45,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id001
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [RESOURCE_USEGRAPH_2026-11-17.md, EVIDENCE/resource-usegraph-9b7cf9b.json, SAVED_REGISTRY_REFERENCES_U01_2026-11-18.md, EVIDENCE/saved-registry-u01-b8c0f23a.json]
-  notes: "Source resource graph and boundedcopiedsave indexarepartial:20PythoncontrolsPASS,actual15files36refs2KEEP34UNKNOWN,0saveedits. Catalog9b source145uniqueIDs, allfiveoldweaponrecipesretained. Runtime registry/full lifecycle/user-save/old sixmarkedIDs remainopen; UNKNOWN is notabsence or deletionauthority."
+  evidence: [RESOURCE_USEGRAPH_2026-11-17.md, EVIDENCE/resource-usegraph-9b7cf9b.json, SAVED_REGISTRY_REFERENCES_U01_2026-11-18.md, EVIDENCE/saved-registry-u01-b8c0f23a.json, TASK20_ROUND3_2026-11-19.md, ROUND3_HISTORY_PROVENANCE_2026-11-19.md]
+  notes: "2026-11-19, третий цикл. Классифицированы 34 коммита, 99 путей Java и три участка записи с сохранением неизвестных источников. Предыдущая отметка: Source resource graph and boundedcopiedsave indexarepartial:20PythoncontrolsPASS,actual15files36refs2KEEP34UNKNOWN,0saveedits. Catalog9b source145uniqueIDs, allfiveoldweaponrecipesretained. Runtime registry/full lifecycle/user-save/old sixmarkedIDs remainopen; UNKNOWN is notabsence or deletionauthority."
 - id: S00-T05
   stage: S00
   stage_title: History & executable truth
@@ -142,11 +142,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id002
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Снят одинаковый маршрут с реальными дистанциями симуляции 8 и 24. Сохранены JFR и фактические rolling MSPT Minecraft."
 - id: S02-T01
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -229,11 +229,11 @@ tasks:
   gate: G1
   depends_on_stages: &id004
   - S02
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
-  notes: "2026-11-19 round 2: Loaded-only edits, carving, fire, drill scans and thermal fluids integrated. Full edit and generation caller coverage remains in progress. See TASK20_ROUND2_2026-11-19.md."
+  evidence: [TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Доступ до ванильного сбора взрыва, буровой выдачи и пограничных срезов проверяется по фактически загруженным кубам. Реальное разрушение и защитные материалы проверены. Предыдущая отметка: 2026-11-19 round 2: Loaded-only edits, carving, fire, drill scans and thermal fluids integrated. Full edit and generation caller coverage remains in progress. See TASK20_ROUND2_2026-11-19.md."
 - id: S03-T02
   stage: S03
   stage_title: Migrate world gameplay and structures
@@ -265,11 +265,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id004
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Негативная высота достигнута с реальным вводом. Длинный подъём и холодное пересечение всех четырёх высот требуют завершения проверки."
 - id: S03-T05
   stage: S03
   stage_title: Migrate world gameplay and structures
@@ -353,8 +353,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Поправлена привязка Y каталожных плавающих ориентиров, проверены встроенная дальняя геометрия и PS1-дымка. Плавность рельефа на всём пути и секторные артефакты ещё измеряются."
 - id: S05-T01
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -390,8 +390,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CLOUD_ATTRIBUTION_PARTIAL_2026-11-17.md, EVIDENCE/cloud-e7213db-partial-attribution.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
-  notes: "2026-11-19 round 2: Altitude-dependent PS1 horizon haze and smooth ground opacity integrated with focused units. Enabled-fog native altitude/asteroid scene remains in progress. See TASK20_ROUND2_2026-11-19.md."
+  evidence: [CLOUD_ATTRIBUTION_PARTIAL_2026-11-17.md, EVIDENCE/cloud-e7213db-partial-attribution.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. В реальном клиенте прошли три пары дымки с общей сценой и возврат Native. Требуется отдельная видимость и переход отдельного астероидного рендера. Предыдущая отметка: 2026-11-19 round 2: Altitude-dependent PS1 horizon haze and smooth ground opacity integrated with focused units. Enabled-fog native altitude/asteroid scene remains in progress. See TASK20_ROUND2_2026-11-19.md."
 - id: S05-T04
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -534,11 +534,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id008
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Физические глаза, нативный взгляд, ближний удар и стрела скелета согласованы с локальной ориентацией. Шесть осей и наклонный случай проверены."
 - id: S07-T04
   stage: S07
   stage_title: Universal 6DoF for all mob families
@@ -546,11 +546,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id008
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Пространственный индекс ограничивает поиск поля. Сущности с действующим контактом поля или незавершённым выходом продолжают обрабатываться каждый тик."
 - id: S07-T05
   stage: S07
   stage_title: Universal 6DoF for all mob families
@@ -571,11 +571,11 @@ tasks:
   gate: G2
   depends_on_stages: &id009
   - S06
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, ROUND3_HISTORY_PROVENANCE_2026-11-19.md]
+  notes: "2026-11-19, третий цикл. Восстановлена цепочка из шести октябрьских Git-объектов. Проверены точный метод решателя, паритет текущих компонентов и исходные тесты контактов."
 - id: S08-T02
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
@@ -595,11 +595,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [DRONE_WRECK_KINDS_2026-11-06.md, EVIDENCE/drone-wreck-kinds-7635dd8.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
-  notes: Typed drone death replacement, matching compound hulls/scale, no visible parent duplicates and actual world restoration pass on7635dd8 with consecutive frame/pixel proof. Player impacts, complete wall tunneling and universal ragdoll remain open.
+  evidence: [DRONE_WRECK_KINDS_2026-11-06.md, EVIDENCE/drone-wreck-kinds-7635dd8.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Трансляционный sweep удерживает малого ORB перед тонкой створкой, а относительная нормализация тензора возвращает контактный импульс. Смерть создаёт один ragdoll. Предыдущая отметка: Typed drone death replacement, matching compound hulls/scale, no visible parent duplicates and actual world restoration pass on7635dd8 with consecutive frame/pixel proof. Player impacts, complete wall tunneling and universal ragdoll remain open."
 - id: S08-T04
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
@@ -669,11 +669,11 @@ tasks:
   owner: UFO_OWNER
   gate: G2
   depends_on_stages: *id010
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: ["CONTROL_CORE_WIP.md", "CONTROL_CORE_LIFECYCLE_2026-11-04.md", "EVIDENCE/ufo-control-0dff43b.zip", "EVIDENCE/ufo-control-lifecycle-ea9c9eb.zip", "BOARDING_SUPPORT_TRANSFER_2026-11-06.md", "EVIDENCE/boarding-seam-ffe7e75.zip", "MODULE_RESTART_2026-11-06.md", "EVIDENCE/module-restart-0c9faa6.zip", "ISLAND_LOADING_2026-11-06.md", "EVIDENCE/island-load-1a848d5.zip", "UFO_BAY_CONTROL_2026-11-06.md", "EVIDENCE/ufo-bay-84ff1a5.zip", "ENGINES_2026-11-07.md", "EVIDENCE/engines-fd8950f.zip", "TURRET_RESTART.md", "EVIDENCE/turret-restart-97d6f59.zip", "UFO_AUTONOMOUS_COMBAT.md", "EVIDENCE/ufo-autonomous-3dd2263.zip", "TURRET_AUTONOMOUS_COMBAT.md", "EVIDENCE/turret-autonomous-d54d71f.zip", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md", docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md]
-  notes: "Reference capture/pilot exit now also passes actual hot module restart and new console capture/H release on Mesa/Sodium. Saved field-owner priority and immediate world-gravity contact admission are fixed. A fresh current-source Sodium pilot hot-restart pair also retains exact state,40 grounded ticks and new capture/yaw/fire/braking/release after physical weapon-owner generalization (3dd2263). Immediate AI motor preemption/manual priority and installed-reference authority are now checked; fresh current-source hot restart remains compatible. Free-ship/portal groups and complete functional control/module lifecycle remain open. Moving wooden two-cell local doors now open/place/break through existing local-grid authority; actual7door/6hatch ordinary PASS on42276e7b. Full functional block entities/redstone/Boarding remain open."
+  evidence: ["CONTROL_CORE_WIP.md", "CONTROL_CORE_LIFECYCLE_2026-11-04.md", "EVIDENCE/ufo-control-0dff43b.zip", "EVIDENCE/ufo-control-lifecycle-ea9c9eb.zip", "BOARDING_SUPPORT_TRANSFER_2026-11-06.md", "EVIDENCE/boarding-seam-ffe7e75.zip", "MODULE_RESTART_2026-11-06.md", "EVIDENCE/module-restart-0c9faa6.zip", "ISLAND_LOADING_2026-11-06.md", "EVIDENCE/island-load-1a848d5.zip", "UFO_BAY_CONTROL_2026-11-06.md", "EVIDENCE/ufo-bay-84ff1a5.zip", "ENGINES_2026-11-07.md", "EVIDENCE/engines-fd8950f.zip", "TURRET_RESTART.md", "EVIDENCE/turret-restart-97d6f59.zip", "UFO_AUTONOMOUS_COMBAT.md", "EVIDENCE/ufo-autonomous-3dd2263.zip", "TURRET_AUTONOMOUS_COMBAT.md", "EVIDENCE/turret-autonomous-d54d71f.zip", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md", docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Выход из области ControlCore возвращает обычный ввод в том же тике. Второй пилот получает новый epoch без изменения физического снимка корпуса. Предыдущая отметка: Reference capture/pilot exit now also passes actual hot module restart and new console capture/H release on Mesa/Sodium. Saved field-owner priority and immediate world-gravity contact admission are fixed. A fresh current-source Sodium pilot hot-restart pair also retains exact state,40 grounded ticks and new capture/yaw/fire/braking/release after physical weapon-owner generalization (3dd2263). Immediate AI motor preemption/manual priority and installed-reference authority are now checked; fresh current-source hot restart remains compatible. Free-ship/portal groups and complete functional control/module lifecycle remain open. Moving wooden two-cell local doors now open/place/break through existing local-grid authority; actual7door/6hatch ordinary PASS on42276e7b. Full functional block entities/redstone/Boarding remain open."
 - id: S09-T05
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -710,8 +710,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md]
-  notes: Actual socket HUD and flight E/Q ownership implemented; native mouse/7-14child/roll/offflight inventory pass retained at6d with18class exact final parity. Full held/inventory model and6DoF matrix remains open.
+  evidence: [docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Починено расположение пяти отрисованных слотов и основная рука в 6DoF fallback. Полная матрица удерживаемых моделей и камер остаётся открытой. Предыдущая отметка: Actual socket HUD and flight E/Q ownership implemented; native mouse/7-14child/roll/offflight inventory pass retained at6d with18class exact final parity. Full held/inventory model and6DoF matrix remains open."
 - id: S10-T02
   stage: S10
   stage_title: Weapons, cluster, drill and building
@@ -719,11 +719,11 @@ tasks:
   owner: WEAPONS
   gate: G4
   depends_on_stages: *id011
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, GRAVITY_NATIVE_INPUT_ACCEPTANCE_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
-  notes: "Current699b749 includes7actual Item.use tests: three behaviors, loaded-only queries, empty-energy retention and funded retry. RAIL same-tick duplicate fixture failure retained. Real keyboard/network route, all masses and ballistic material-hit accuracy remain open."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, GRAVITY_NATIVE_INPUT_ACCEPTANCE_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Все три гравипушки прошли обычный ввод и 6DoF. Тяжёлый рельсовый бросок проверен по реальному цельному коллайдеру и мишени. Предыдущая отметка: Current699b749 includes7actual Item.use tests: three behaviors, loaded-only queries, empty-energy retention and funded retry. RAIL same-tick duplicate fixture failure retained. Real keyboard/network route, all masses and ballistic material-hit accuracy remain open."
 - id: S10-T03
   stage: S10
   stage_title: Weapons, cluster, drill and building
@@ -817,11 +817,11 @@ tasks:
   owner: AI
   gate: G4
   depends_on_stages: *id012
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_SQUAD_INVESTIGATION_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json]
-  notes: Local loaded-only firing-lane recovery for three default roles and actual projectiles through intact offset cover pass712 unit/280 GameTests and four native cases per renderer. Complete weapon/destruction handling, moving bodies and all roles remain open.
+  evidence: [TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_SQUAD_INVESTIGATION_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Отказ стрельбы сохраняет энергию и задержку. Три профиля реально летят и попадают в защитное укрытие. Разрушение обычных препятствий проверено отдельными боевыми случаями. Предыдущая отметка: Local loaded-only firing-lane recovery for three default roles and actual projectiles through intact offset cover pass712 unit/280 GameTests and four native cases per renderer. Complete weapon/destruction handling, moving bodies and all roles remain open."
 - id: S11-T06
   stage: S11
   stage_title: ORB/ROCKET/JET swarms
@@ -891,11 +891,11 @@ tasks:
   owner: GAMEPLAY
   gate: G4
   depends_on_stages: *id013
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Одна обычная серверная сессия связала подтверждённое убийство, предупреждение, охоту в ночь, укрытие, уход и снятие той же пары с учёта."
 - id: S13-T01
   stage: S13
   stage_title: 'World architecture: core to Citadel'
@@ -941,11 +941,11 @@ tasks:
   owner: WORLD_DESIGN
   gate: G5
   depends_on_stages: *id014
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, proposals/ORBITAL_PILOT_2026-11-19.md]
+  notes: "2026-11-19, третий цикл. Оригинальные руины кольца, ангар и Цитадель размещены существующими командами автора. Проверены фактические клетки и повторное открытие их журнала."
 - id: S13-T05
   stage: S13
   stage_title: 'World architecture: core to Citadel'
@@ -953,11 +953,11 @@ tasks:
   owner: WORLD_DESIGN
   gate: G5
   depends_on_stages: *id014
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Удалён конкретный генератор платформ и исправлена высота плавающих ориентиров. Средний/дальний астероидный силуэт и цельный переход атмосферы остаются открытыми."
 - id: S13-T06
   stage: S13
   stage_title: 'World architecture: core to Citadel'
@@ -965,11 +965,11 @@ tasks:
   owner: WORLD_DESIGN
   gate: G5
   depends_on_stages: *id014
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Добавлены девять контрольных точек с авторитетной серверной позицией и проверкой свободного прохода. Полный фактический полёт через уровни остаётся открытым."
 - id: S14-T01
   stage: S14
   stage_title: Factions, Shapes and mission framework
@@ -1042,11 +1042,11 @@ tasks:
   depends_on_stages: &id016
   - S00
   - S10
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, S15_MARKED_ITEM_USE_GRAPH_2026-11-19.md]
+  notes: "2026-11-19, третий цикл. Шесть красных отметок привязаны к реальным слотам, моделям, идентификаторам и потребителям текущего кода."
 - id: S15-T02
   stage: S15
   stage_title: Cleanup / asset and UI integration
@@ -1078,11 +1078,11 @@ tasks:
   owner: CLEANUP
   gate: G3
   depends_on_stages: *id016
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Убран подтверждённый источник случайных орбитальных платформ. Штатные спутники кольца и независимая генерация астероидов сохранены."
 - id: S15-T05
   stage: S15
   stage_title: Cleanup / asset and UI integration
@@ -1155,11 +1155,11 @@ tasks:
   owner: QA
   gate: G6
   depends_on_stages: *id017
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, ROLLBACK_AND_COMPATIBILITY_2026-11-19.md]
+  notes: "2026-11-19, третий цикл. Задокументированы конкретные отказы Loom, GL и BCC и проверяемые пути запуска и отката на копии мира."
 - id: S17-T01
   stage: S17
   stage_title: Integration, handoff and release candidate
@@ -1168,11 +1168,11 @@ tasks:
   gate: G6
   depends_on_stages: &id018
   - S16
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: "Root coordinates isolated reviewed branches and single-source verification; PS1 candidate includes verified mechanism core, full integration acceptance remains open."
+  evidence: [MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Независимые изменения просмотрены и сведены через отдельную ветку с сохранённой базой и историей UFO. Предыдущая отметка: Root coordinates isolated reviewed branches and single-source verification; PS1 candidate includes verified mechanism core, full integration acceptance remains open."
 - id: S17-T02
   stage: S17
   stage_title: Integration, handoff and release candidate
@@ -1180,11 +1180,11 @@ tasks:
   owner: CODEX
   gate: G6
   depends_on_stages: *id018
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: "Root maintains per-task ownership for all99 tasks, verified milestone reports and one Java/native lease queue; final merged-source evidence remains open."
+  evidence: [MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
+  notes: "2026-11-19, третий цикл. Состояние, реестр, решения, регрессии и индекс привязаны к фактическим исходным SHA и JAR. Предыдущая отметка: Root maintains per-task ownership for all99 tasks, verified milestone reports and one Java/native lease queue; final merged-source evidence remains open."
 - id: S17-T03
   stage: S17
   stage_title: Integration, handoff and release candidate
@@ -1204,11 +1204,11 @@ tasks:
   owner: CODEX
   gate: G6
   depends_on_stages: *id018
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md]
+  notes: "2026-11-19, третий цикл. Все исходные P0/P1 перечислены вместе с исходами запусков и границами пройденных сценариев."
 - id: S17-T05
   stage: S17
   stage_title: Integration, handoff and release candidate
@@ -1216,8 +1216,8 @@ tasks:
   owner: CODEX
   gate: G6
   depends_on_stages: *id018
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND3_2026-11-19.md, ROUND3_REPRODUCE.md]
+  notes: "2026-11-19, третий цикл. Доступны команды воспроизведения, исходные SHA для полного diff и конкретный оставшийся план мира."

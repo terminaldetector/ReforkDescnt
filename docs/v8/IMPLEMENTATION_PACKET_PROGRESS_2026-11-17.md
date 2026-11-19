@@ -2,7 +2,7 @@ Latest focused increment: [Embedded PS1 / FIXED groups](IMPLEMENTATION_EMBEDDED_
 
 # Implementation packet progress — live overlay
 
-Both MASTER v8 and ENGINE B / PS1 remain primary, with Dynamic Boarding and Create-style separate gun/bearing/drive. All 99 original IDs remain tracked. 43 completed, 19 in progress, 37 pending reverification. The 21 packets and seven supplements remain active. [Second 20-task round](TASK20_ROUND2_2026-11-19.md).
+Both MASTER v8 and ENGINE B / PS1 remain primary, with Dynamic Boarding and Create-style separate gun/bearing/drive. All 99 original IDs remain tracked. 63 completed, 13 in progress, 23 pending reverification. The 21 packets and seven supplements remain active. [Third focused round](TASK20_ROUND3_2026-11-19.md).
 
 Latest focused implementation: [IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md](IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md). Server7unit/21GT PASS onba30; earlier unrelated doors/buildings remain their422 scoped results. Actual56c0049f native3-state model/cap PASS; first compile/game/native failures retained. No new full-suite acceptance.
 

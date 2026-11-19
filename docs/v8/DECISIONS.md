@@ -58,3 +58,6 @@ Hot turret restart: saved UUID priority applies to the common acquisition candid
 ## 2026-11-19 — Round 2 implementation decisions
 
 Exact second-round production source ec696a32132c595aa29095211416abb3ba22acdf. [Решения реализации](TASK20_ROUND2_2026-11-19.md) records the actual behavior and the preserved first failures for this source.
+
+
+19 ноября. Решения третьего цикла. Закрыто 20 из этой партии, 63/99 в реестре. Игровой источник `b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3`. [Отчёт](TASK20_ROUND3_2026-11-19.md).
