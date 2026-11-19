@@ -329,11 +329,14 @@ public final class HeavyOperatorSystem {
         if(!gun(barrel,slot)||!(barrel.getWorld() instanceof ServerWorld world))return false;
         var f=FRAMES.get(world);var permit=f==null?null:f.permits.get(barrel.getUuid());long now=world.getTime();
         if(permit==null||now<permit.tick||now-permit.tick>=CADENCE)return false;
-        var a=resolve(world,body(world,permit.root));if(!valid(world,a)||a.barrel!=barrel||!slot.equals(f.aimSlots.get(a.base.getUuid())))return false;
+        var a=resolve(world,body(world,permit.root));if(!valid(world,a)||a.barrel!=barrel)return false;
         var target=permit.actor.get();if(!enemy(a.base,target)||!target.getUuid().equals(permit.target))return false;
         var from=MountedWeaponEmitter.muzzle(barrel,slot);var point=target.getBoundingBox().getCenter();
-        if(from.squaredDistanceTo(point)>48*48||!sight(world,a,from,point,f))return false;
+        if(from.squaredDistanceTo(point)>48*48)return false;
         var wanted=aimDirection(barrel,slot,point,target.getVelocity());
-        return wanted!=null&&MountedWeaponEmitter.direction(barrel,slot).dotProduct(wanted)>=Math.cos(Math.toRadians(2));
+        // The shared hinges track a single aim solution. Each intact muzzle can fire
+        // whenever its own geometry and the current target satisfy the full shot gate.
+        return wanted!=null&&MountedWeaponEmitter.direction(barrel,slot).dotProduct(wanted)>=Math.cos(Math.toRadians(2))
+            &&sight(world,a,from,point,f);
     }
 }
