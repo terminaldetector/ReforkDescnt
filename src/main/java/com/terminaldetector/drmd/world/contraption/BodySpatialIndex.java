@@ -64,9 +64,11 @@ public final class BodySpatialIndex {
         if(bounds.isPresent())s.tree.update(body.getId(),bounds.get());else s.tree.remove(body.getId());
     }
     public static List<BlockBodyEntity> query(World world,Box area) {
-        State s=WORLDS.get(world);if(s==null)return List.of();
-        var found=new ArrayList<BlockBodyEntity>();
-        for(int id:s.tree.query(bounds(area)).values()) {
+        State s=WORLDS.get(world);if(s==null||s.tree.size()==0)return List.of();
+        var ids=s.tree.query(bounds(area)).values();
+        if(ids.isEmpty())return List.of();
+        var found=new ArrayList<BlockBodyEntity>(ids.size());
+        for(int id:ids) {
             var ref=s.bodies.get(id);var body=ref==null?null:ref.get();
             if(body==null||body.isRemoved()||body.getWorld()!=world){s.bodies.remove(id);s.tree.remove(id);
                 if(body!=null){var identity=s.uuids.get(body.getUuid());if(identity!=null&&identity.get()==body)s.uuids.remove(body.getUuid());}}

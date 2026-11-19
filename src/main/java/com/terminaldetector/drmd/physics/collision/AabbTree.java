@@ -38,8 +38,11 @@ public final class AabbTree<T> {
         Node<T> leaf=leaves.remove(value);if(leaf==null)return false;detach(leaf);return true;
     }
     public Query<T> query(BodyBounds bounds) {
-        Objects.requireNonNull(bounds);var found=new ArrayList<T>();int visited=0;
-        if(root==null)return new Query<>(found,0);
+        Objects.requireNonNull(bounds);
+        if(root==null)return new Query<>(List.of(),0);
+        if(!root.bounds.intersects(bounds))return new Query<>(List.of(),1);
+        if(root.leaf())return new Query<>(root.exact.intersects(bounds)?List.of(root.value):List.of(),1);
+        var found=new ArrayList<T>();int visited=0;
         var stack=new ArrayDeque<Node<T>>();stack.push(root);
         while(!stack.isEmpty()) {
             var n=stack.pop();visited++;
