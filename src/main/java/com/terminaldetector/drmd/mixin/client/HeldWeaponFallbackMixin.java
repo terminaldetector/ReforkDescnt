@@ -39,7 +39,11 @@ public abstract class HeldWeaponFallbackMixin {
         var item = stack.getItem();
         boolean flight = DescentClientState.enabled;
         boolean centred = item instanceof PortalProjectorItem || item instanceof PortalGunItem;
-        if (!flight && !centred && !(item instanceof DescentWeaponItem)
+        boolean engineer = item instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.MiningLaserItem
+                || item instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.TunnelLaserItem
+                || item instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem
+                || item instanceof com.terminaldetector.drmd.world.build.ConstructLaserItem;
+        if (!flight && !centred && !engineer && !(item instanceof DescentWeaponItem)
                 && !(item instanceof BombardmentItems.BombBayItem)
                 && !(item instanceof BombardmentItems.LaserDesignatorItem)) return;
         ci.cancel();
