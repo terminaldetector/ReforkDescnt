@@ -186,16 +186,34 @@ public final class HeavyOperatorSystem {
         var bodies=BodySpatialIndex.query(world,new Box(from,to).expand(.01));if(bodies.size()>32)return false;
         for(var b:bodies)if(b.physicsRaycast(from,to).isPresent())return false;return true;
     }
-    private static void drive(BlockBodyEntity body,BlockPos cell,Direction facing,Vec3d axis,Vec3d forward,Vec3d desired,double angularSpeed,Frame f){
+    private record AxisRates(double yaw,double pitch){}
+    /** Differential two-axis aiming in the ACTUAL moving frames. Both columns
+     * act on the same final barrel; treating their errors independently lets one
+     * drive undo the other's work when a rolled/recoiling base turns beneath it. */
+    private static AxisRates rates(Vec3d forward,Vec3d desired,Vec3d yawAxis,Vec3d pitchAxis,Vec3d baseAngularVelocity){
+        var cross=forward.crossProduct(desired);double sine=cross.length(),cosine=MathHelper.clamp(forward.dotProduct(desired),-1,1);
+        Vec3d wanted;
+        if(sine>1e-8)wanted=cross.multiply(Math.atan2(sine,cosine)/sine).crossProduct(forward).multiply(3);
+        else if(cosine<0){var axis=yawAxis.subtract(forward.multiply(yawAxis.dotProduct(forward)));if(axis.lengthSquared()<1e-8)axis=pitchAxis.subtract(forward.multiply(pitchAxis.dotProduct(forward)));wanted=axis.lengthSquared()>1e-8?axis.normalize().crossProduct(forward).multiply(Math.PI*3):Vec3d.ZERO;}
+        else wanted=Vec3d.ZERO;
+        var y=yawAxis.crossProduct(forward);var p=pitchAxis.crossProduct(forward);
+        var rhs=wanted.subtract(baseAngularVelocity.crossProduct(forward));
+        double yy=y.lengthSquared()+1e-5,yp=y.dotProduct(p),pp=p.lengthSquared()+1e-5,det=yy*pp-yp*yp;
+        if(!Double.isFinite(det)||det<1e-12)return new AxisRates(0,0);
+        double ry=rhs.dotProduct(y),rp=rhs.dotProduct(p),wy=(ry*pp-rp*yp)/det,wp=(rp*yy-ry*yp)/det;
+        if(!Double.isFinite(wy)||!Double.isFinite(wp))return new AxisRates(0,0);
+        double scale=Math.max(1,Math.max(Math.abs(wy),Math.abs(wp))/MechanicalBearingSystem.MAX_SPEED);
+        return new AxisRates(wy/scale,wp/scale);
+    }
+    private static void drive(BlockBodyEntity body,BlockPos cell,Direction facing,double desiredSpeed,double angularSpeed,Frame f){
         var state=body.getLocalBlock(cell);if(!state.isOf(ModWorldBlocks.ROTARY_DRIVE)||state.get(MechanicalBearingBlock.FACING)!=facing)return;
-        var a=forward.subtract(axis.multiply(forward.dotProduct(axis)));var b=desired.subtract(axis.multiply(desired.dotProduct(axis)));
-        double angle=a.lengthSquared()<1e-8||b.lengthSquared()<1e-8?0:Math.atan2(axis.dotProduct(a.crossProduct(b)),a.dotProduct(b));
-        // A zero-power drive coasts; it cannot brake a recoiling/free bearing.
-        // Lead the angular error by four ordinary ticks using the real relative
-        // velocity, then use only the original physical drive power/torque levels.
-        double demand=angle-angularSpeed*.2;
-        int power=Math.abs(demand)<.015?0:Math.abs(demand)<.15?5:Math.abs(demand)<.5?10:15;
-        var next=state.with(Properties.POWER,power).with(Properties.INVERTED,demand<0);
+        if(!Double.isFinite(desiredSpeed)||!Double.isFinite(angularSpeed))return;
+        double speed=MathHelper.clamp(desiredSpeed,-MechanicalBearingSystem.MAX_SPEED,MechanicalBearingSystem.MAX_SPEED);
+        // Zero POWER is unpowered coasting, not a zero-speed servo. A physical
+        // minimum reverse request brakes the existing momentum near the goal.
+        if(Math.abs(speed)<.02&&Math.abs(angularSpeed)>.01)speed=-Math.copySign(MechanicalBearingSystem.MAX_SPEED/15,angularSpeed);
+        int power=Math.abs(speed)<1e-4?0:Math.max(1,Math.min(15,(int)Math.round(Math.abs(speed)*15/MechanicalBearingSystem.MAX_SPEED)));
+        var next=state.with(Properties.POWER,power).with(Properties.INVERTED,speed<0);
         if(!state.equals(next)&&body.setLocalBlock(cell,next))f.drives++;
     }
     private static Vec3d axis(BlockBodyEntity b,Vec3 axis){var p=b.rotation().rotate(axis);return new Vec3d(p.x(),p.y(),p.z());}
@@ -260,7 +278,8 @@ public final class HeavyOperatorSystem {
             var forward=MountedWeaponEmitter.direction(a.barrel,selected);
             double yawSpeed=a.yaw.physics().angularVelocity().minus(a.base.physics().angularVelocity()).dot(a.base.rotation().rotate(UP));
             double pitchSpeed=a.barrel.physics().angularVelocity().minus(a.yaw.physics().angularVelocity()).dot(a.yaw.rotation().rotate(X));
-            drive(a.base,YAW_DRIVE,Direction.UP,axis(a.base,UP),forward,desired,yawSpeed,f);drive(a.yaw,PITCH_DRIVE,Direction.EAST,axis(a.yaw,X),forward,desired,pitchSpeed,f);
+            var w=a.base.physics().angularVelocity();var command=rates(forward,desired,axis(a.base,UP),axis(a.yaw,X),new Vec3d(w.x(),w.y(),w.z()));
+            drive(a.base,YAW_DRIVE,Direction.UP,command.yaw,yawSpeed,f);drive(a.yaw,PITCH_DRIVE,Direction.EAST,command.pitch,pitchSpeed,f);
             if(target!=null)f.permits.put(a.barrel.getUuid(),new Permit(base.getUuid(),target.getUuid(),new WeakReference<>(target),now));
         }
         f.stats=new Stats(visited,assemblies,f.candidates,f.rays,f.drives);
