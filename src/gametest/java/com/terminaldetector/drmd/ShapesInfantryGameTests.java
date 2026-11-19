@@ -109,7 +109,8 @@ public final class ShapesInfantryGameTests implements FabricGameTest {
                 var up=Vec3d.of(direction.getVector());c.assertTrue(com.terminaldetector.drmd.world.gravity.ActorFrames.trySetUp(actor,up),"actual loaded tall body accepts this clear six-axis frame");
                 c.assertTrue(actor.getPos().equals(feet)&&actor.getBoundingBox().equals(com.terminaldetector.drmd.world.gravity.ActorFrames.body(actor,feet,up))
                     &&actor.getEyePos().distanceTo(feet.add(up.multiply(2.55)))<1e-6&&!actor.hasNoGravity()&&actor.getMainHandStack().isOf(ModItems.LASER),"physical tall body/eye, native saved flag and actual authored gun remain consistent");
-                var saved=actor.writeNbt(new NbtCompound());var copy=(ShapesInfantryEntity)EntityType.getEntityFromNbt(saved,r.world).orElseThrow();r.extra.add(copy);
+                var saved=new NbtCompound();c.assertTrue(actor.saveSelfNbt(saved),"actual native save includes the registered entity id for its real NBT factory");
+                var copy=(ShapesInfantryEntity)EntityType.getEntityFromNbt(saved,r.world).orElseThrow();r.extra.add(copy);
                 c.assertTrue(copy.getUuid().equals(actor.getUuid())&&com.terminaldetector.drmd.world.gravity.ActorFrames.up(copy).distanceTo(up)<1e-6
                     &&copy.getBoundingBox().equals(actor.getBoundingBox())&&!copy.hasNoGravity()&&!com.terminaldetector.drmd.world.gravity.EntityGravitySystem.suppressesVanillaGravity(copy),"actual NBT factory restores physical pose without borrowing the live object's force lease");
             }

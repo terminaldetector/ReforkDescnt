@@ -21,11 +21,50 @@ import java.util.function.Consumer;
 
 /** One finite loaded surface, real native goals and one pre-spawn checked frame per actor. */
 final class ShapesSurfaceFixture implements AutoCloseable {
+    private static final Map<ShapesInfantryEntity,ShapesSurfaceFixture> ACTIVE=new IdentityHashMap<>();
+    private record Birth(ProjectileEntity projectile,Vec3d position,Vec3d velocity,Vec3d actualShooterPosition,long worldTick,int actorAge) {}
+    static {
+        // Read-only native event observations, armed only for these finite fixture objects.
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entity,w)->{
+            if(!(entity instanceof ProjectileEntity shot)||!(shot.getOwnerLiving() instanceof ShapesInfantryEntity owner))return;
+            var f=ACTIVE.get(owner);if(f==null||f.closed||f.world!=w)return;
+            f.emitted++;
+            if(f.births.size()>=128){f.evidenceOverflow=true;return;}
+            f.births.put(shot.getUuid(),new Birth(shot,shot.getPos(),shot.getVelocity(),owner.getPos(),w.getTime(),owner.age));
+            if(f.emitted<=8)System.out.println("SHAPES_SURFACE_REAL_ENTITY_LOAD owner="+owner.getUuid()+" shot="+shot.getUuid()+" actorAge="+owner.age+" worldTick="+w.getTime()+" shotPosition="+shot.getPos()+" shotVelocity="+shot.getVelocity()+" actualShooterPosition="+owner.getPos());
+        });
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity,source,amount)->{
+            if(source.getAttacker() instanceof ShapesInfantryEntity owner){
+                var f=ACTIVE.get(owner);
+                if(f!=null&&!f.closed&&entity==f.victim&&entity.getWorld()==f.world&&amount>0){
+                    f.hitAttempts++;
+                    // WeaponCore uses mobAttack(owner), so DamageSource has no projectile UUID.
+                    // Keep the two genuine facts separate: this exact owner's native load and
+                    // this exact victim's real damage attempt. Never invent a hit-round id.
+                    for(var birth:f.births.values()){
+                        var p=birth.projectile();long elapsed=f.world.getTime()-birth.worldTick();
+                        if(elapsed>=0&&elapsed<=80&&p.age>0&&!p.isRemoved()&&p.getOwnerLiving()==owner
+                            &&f.world.getEntity(p.getUuid())==p&&birth.velocity().lengthSquared()>.01
+                            &&!f.victim.getBoundingBox().expand(.1).contains(birth.position())){
+                            f.nativeImpactAfterBirth=true;break;
+                        }
+                    }
+                    if(f.hitAttempts<=8)System.out.println("SHAPES_SURFACE_NATIVE_HIT_ATTEMPT owner="+owner.getUuid()+" victim="+entity.getUuid()+" actorAge="+owner.age+" worldTick="+f.world.getTime()+" damage="+amount+" appliedRoundIdentity=NOT_IN_DAMAGE_SOURCE registeredNativeBirth="+f.nativeImpactAfterBirth);
+                }
+            }
+            return true; // the observer never changes damage permission or the hurt-window branch
+        });
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity,source,base,amount,blocked)->{
+            if(source.getAttacker() instanceof ShapesInfantryEntity owner){var f=ACTIVE.get(owner);if(f!=null&&!f.closed&&entity==f.victim&&amount>0&&!blocked)f.appliedDamage++;}
+        });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.UNLOAD.register((server,w)->ACTIVE.entrySet().removeIf(e->e.getValue().world==w));
+    }
     final TestContext c;final ServerWorld world;final BlockPos centre,min,max;final Vec3d up,plane;
     final AiFixtureChunks chunks;final ShapesInfantryEntity receiver,scout;final CowEntity victim;
     final UUID field;final boolean barrier;final Map<BlockPos,BlockState> originals=new LinkedHashMap<>();
     final Object navigation,control;final List<Entity> extra=new ArrayList<>();
-    int calls,born=-1,lastAge;boolean spawned,closed,enabled,mailSeen,preOwnMovement,localPath,ownTarget,movingShot,passage;
+    int calls,born=-1,lastAge,emitted,hitAttempts,appliedDamage;boolean spawned,closed,enabled,mailSeen,preOwnMovement,localPath,ownTarget,movingShot,passage;
+    boolean twoSampleMovement,nativeImpactAfterBirth,evidenceOverflow;final Map<UUID,Birth> births=new LinkedHashMap<>();
     double largestStep,largestGap,initialDistance;Vec3d start,last;final Map<UUID,Vec3d> shots=new HashMap<>();
     ShapesSurfaceFixture(TestContext c,Vec3d up,boolean barrier){
         this.c=c;this.up=up;this.barrier=barrier;world=c.getWorld();centre=c.getAbsolutePos(new BlockPos(6,100,6));min=centre.add(-8,-8,-8);max=centre.add(8,8,8);
@@ -33,6 +72,7 @@ final class ShapesSurfaceFixture implements AutoCloseable {
         receiver=ModEntities.SHAPES_INFANTRY.create(world);scout=ModEntities.SHAPES_INFANTRY.create(world);victim=EntityType.COW.create(world);
         c.assertTrue(receiver!=null&&scout!=null&&victim!=null,"actual registered Shapes and real victim exist");
         field=up.y>.999999?null:UUID.randomUUID();navigation=receiver.getNavigation();control=receiver.getMoveControl();
+        c.assertTrue(ACTIVE.size()<4,"finite four-rig native-event observer admission");ACTIVE.put(receiver,this);
         receiver.setPosition(point(-4,.02,-4));scout.setPosition(point(4,.02,4));victim.setPosition(point(0,.02,4));
         receiver.setPersistent();scout.setPersistent();victim.setPersistent();receiver.setAiDisabled(true);scout.setAiDisabled(true);victim.setAiDisabled(true);
         victim.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(4096);victim.setHealth(4096);
@@ -91,16 +131,18 @@ final class ShapesSurfaceFixture implements AutoCloseable {
         ownTarget|=receiver.getTarget()==victim&&receiver.canSee(victim);
         var box=new Box(Vec3d.of(min),Vec3d.of(max.add(1,1,1))).expand(4);
         for(var p:world.getEntitiesByClass(ProjectileEntity.class,box,p->p.getOwnerLiving()==receiver)){
-            var before=shots.putIfAbsent(p.getUuid(),p.getPos());movingShot|=p.age>0&&before!=null&&p.getPos().distanceTo(before)>.01&&p.getVelocity().lengthSquared()>.01;
+            var before=shots.putIfAbsent(p.getUuid(),p.getPos());twoSampleMovement|=p.age>0&&before!=null&&p.getPos().distanceTo(before)>.01&&p.getVelocity().lengthSquared()>.01;
         }
+        c.assertTrue(!evidenceOverflow,"native event evidence stays within128 actual receiver-owned projectile births");
+        movingShot=twoSampleMovement||nativeImpactAfterBirth;
         var stats=DroneSquadCoordinator.stats(world);c.assertTrue(stats.mailboxes()<=256&&stats.maxAllies()<=32&&stats.maxCandidates()<=96,"existing bounded squad coordinator remains the sole knowledge source");
     }
     boolean completeRoute(){return mailSeen&&preOwnMovement&&(field==null||localPath)&&passage&&ownTarget&&movingShot&&initialDistance-receiver.distanceTo(victim)>=1;}
-    String state(){return "age="+(receiver.age-born)+" up="+up+" pos="+receiver.getPos()+" local="+ActorFrameMath.toLocal(receiver.getPos().subtract(plane),up)+" mail="+mailSeen+" preOwnMovement="+preOwnMovement+" localPath="+localPath+" passage="+passage+" ownTarget="+ownTarget+" movingShot="+movingShot+" maxStep="+largestStep+" maxGap="+largestGap;}
+    String state(){return "age="+(receiver.age-born)+" up="+up+" pos="+receiver.getPos()+" local="+ActorFrameMath.toLocal(receiver.getPos().subtract(plane),up)+" mail="+mailSeen+" preOwnMovement="+preOwnMovement+" localPath="+localPath+" passage="+passage+" ownTarget="+ownTarget+" movingShot="+movingShot+" legacyTwoSampleMovement="+twoSampleMovement+" nativeBirths="+emitted+" actualNativeHitAttempts="+hitAttempts+" nativeAppliedDamage="+appliedDamage+" nativeImpactAfterBirth="+nativeImpactAfterBirth+" energy="+receiver.getWeaponEnergy()+" cooldown="+receiver.getAttackCooldownTicks()+" maxStep="+largestStep+" maxGap="+largestGap;}
     void drive(Consumer<ShapesSurfaceFixture> action){c.runAtEveryTick(()->{if(closed)return;try{c.assertTrue(++calls<430,"bounded Shapes surface fixture admission/runtime: "+state());if(admit())action.accept(this);}catch(Throwable e){close();throw e;}});}
     void complete(){close();c.complete();}
     @Override public void close(){
-        if(closed)return;closed=true;if(field!=null)GravityFields.remove(field);
+        if(closed)return;closed=true;ACTIVE.remove(receiver);if(field!=null)GravityFields.remove(field);
         var box=new Box(Vec3d.of(min),Vec3d.of(max.add(1,1,1))).expand(8);
         for(var p:world.getEntitiesByClass(ProjectileEntity.class,box,p->p.getOwnerLiving()==receiver||p.getOwnerLiving()==scout))p.discard();
         receiver.discard();scout.discard();victim.discard();for(var e:extra)e.discard();for(var e:originals.entrySet())world.setBlockState(e.getKey(),e.getValue(),2);chunks.close();
