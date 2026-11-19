@@ -8,6 +8,9 @@ import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSimulation;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSweep;
+import com.terminaldetector.drmd.physics.ragdoll.RagdollSleepController;
+import com.terminaldetector.drmd.physics.ragdoll.RagdollRestCertificate;
+import com.terminaldetector.drmd.physics.ragdoll.RagdollDebrisGroups;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollPortalTransfer;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.entity.model.FlightWreckRig;
@@ -58,6 +61,43 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private List<RenderPart> previousRenderParts = restRenderParts();
 	private List<RenderPart> currentRenderParts = restRenderParts();
 	private int lifeTicks;
+	private final RagdollSleepController rest=new RagdollSleepController();
+	private final RagdollRestCertificate restContacts=new RagdollRestCertificate();
+	private List<com.terminaldetector.drmd.d6.D6PhysicsBody.Snapshot> certifiedBodies=List.of();
+	private List<com.terminaldetector.drmd.d6.D6Mat3> certifiedInertias=List.of();
+	private List<Double> certifiedMasses=List.of();
+	private java.util.Set<Integer> restSupports=java.util.Set.of();
+	private double restPlane;
+	private long simulatedPhysicsTicks,skippedPhysicsTicks;
+	private java.util.UUID debrisGroup;
+	private String debrisCause="legacy";
+	private long debrisBorn;
+	private NbtCompound opaqueDebrisData;
+	public boolean isPhysicsSleeping(){return rest.sleeping();}
+	public long simulatedPhysicsTicks(){return simulatedPhysicsTicks;}
+	public long skippedPhysicsTicks(){return skippedPhysicsTicks;}
+	public int physicalLifeTicks(){return lifeTicks;}
+	public java.util.UUID debrisGroupId(){return debrisGroup;}
+	public void wakeFromDebrisGroup(){rest.wake();certifiedBodies=List.of();if(debrisGroup!=null)refreshDebrisGroup();}
+	private void wakePhysics(){
+		if(getWorld() instanceof ServerWorld world&&debrisGroup!=null)RagdollDebrisGroups.get(world).wake(world,debrisGroup);
+		wakeFromDebrisGroup();
+	}
+	public boolean readyForDebrisRest(){return rest.ready()&&certificateUnchanged();}
+	private boolean certificateUnchanged(){
+		if(certifiedBodies.size()!=simulation.parts().size())return false;
+		for(int i=0;i<certifiedBodies.size();i++){
+			var body=simulation.parts().get(i).body();
+			if(!body.matches(certifiedBodies.get(i))||body.mass()!=certifiedMasses.get(i)||!body.inertia().equals(certifiedInertias.get(i)))return false;
+		}
+		return true;
+	}
+	private void refreshDebrisGroup(){
+		if(!(getWorld() instanceof ServerWorld world)||world.getEntity(getUuid())!=this||!rigVersionSupported()||opaqueDebrisData!=null||isRemoved())return;
+		if(debrisGroup==null){debrisGroup=getUuid();debrisBorn=world.getTime();}
+		if(!RagdollDebrisGroups.get(world).join(debrisGroup,debrisCause,debrisBorn,new RagdollDebrisGroups.Member(getUuid(),simulation.totalMass(),simulation.parts().size(),lifeTicks,rest.sleeping(),flightHull==null?"scout":flightHull.id)))
+			com.terminaldetector.drmd.diag.DiagTrace.count("ragdoll.groupAdmissionRefused");
+	}
 	// Replicated discontinuity frame only; persistent rig/identity/lifetime schemas are unchanged.
 	private int portalPoseEpoch;
 	/** Non-consuming ordinary metadata publication after a prepared portal commit. */
@@ -109,6 +149,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		Vec3d impulse = direction.normalize().multiply(8.0);
 		// Strike a spar rather than the centre so the death begins as a tumble, not a falling icon.
 		ragdoll.applyPhysicsImpulse(origin.add(.35, .12, 0), impulse);
+		ragdoll.debrisGroup=RagdollDebrisGroups.causeGroup(world,source);ragdoll.debrisCause=source.getName();ragdoll.debrisBorn=world.getTime();ragdoll.refreshDebrisGroup();
 		return ragdoll;
 	}
 
@@ -127,8 +168,19 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		}
 
 		Vec3 gravity = gravityVector();
+		refreshDebrisGroup();
+		if(rest.sleeping()){
+			if(certificateUnchanged()&&staticRestEnvironment(gravity,restSupports,restPlane)&&restInterestClear()&&rest.skipTick()){
+				skippedPhysicsTicks++;refreshDebrisGroup();return;
+			}
+			wakePhysics();
+		}
+		Vec3 systemCentre=simulation.centreOfMass();double systemRadius=0;
+		for(var part:simulation.parts())systemRadius=Math.max(systemRadius,part.body().position().minus(systemCentre).length()+part.segment().halfExtents().length());
+		restContacts.begin(systemCentre,gravity,simulation.totalMass(),systemRadius,.05);
 		simulation.step(.05, gravity, RagdollSimulation.DEFAULT_SUBSTEPS,
 				RagdollSimulation.DEFAULT_SOLVER_ITERATIONS, this::resolveTerrain);
+		simulatedPhysicsTicks++;
 		// Mild air/contact loss prevents a permanently vibrating corpse without erasing a weapon throw.
 		for (RagdollSimulation.Part part : simulation.parts()) {
 			part.body().withLinearVelocity(part.body().linearVelocity().scaled(.998));
@@ -137,6 +189,69 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		syncEntityFromSimulation();
 		dataTracker.set(POSE, trackedPose());
 		velocityModified = true;
+		double speed=0,energy=0;var poses=new ArrayList<RagdollSleepController.Pose>();
+		for(var part:simulation.parts()){
+			var body=part.body();double radius=part.segment().halfExtents().length();
+			speed=Math.max(speed,body.linearVelocity().length()+body.angularVelocity().length()*radius);
+			energy+=.5*body.mass()*body.linearVelocity().lengthSquared()+.5*body.angularVelocity().dot(body.angularMomentum());
+			poses.add(new RagdollSleepController.Pose(body.position(),body.rotation(),radius));
+		}
+		boolean candidate=restContacts.balanced()&&jointRestValid()&&staticRestEnvironment(gravity,restContacts.supports(),restContacts.plane());
+		if(rest.observe(candidate,poses,speed,energy,.5*simulation.totalMass()*RagdollSleepController.MAX_CORNER_SPEED*RagdollSleepController.MAX_CORNER_SPEED)){
+			certifiedBodies=simulation.parts().stream().map(p->p.body().snapshot()).toList();
+			certifiedInertias=simulation.parts().stream().map(p->p.body().inertia()).toList();
+			certifiedMasses=simulation.parts().stream().map(p->p.body().mass()).toList();
+			restSupports=restContacts.supports();restPlane=restContacts.plane();
+			if(restInterestClear())rest.sleep();
+		}else certifiedBodies=List.of();
+		refreshDebrisGroup();
+	}
+
+	private boolean jointRestValid(){
+		for(int i=0;i<rig.joints().size();i++){
+			if(simulation.jointError(i)>.01)return false;var joint=rig.joints().get(i);var limit=joint.angularLimits();
+			if(limit!=null){var angle=com.terminaldetector.drmd.physics.ragdoll.RagdollAngularLimit.angles(simulation.parts().get(joint.first()).body().rotation(),simulation.parts().get(joint.second()).body().rotation(),limit);
+				if(angle.swing()>limit.maxSwing()+.001||angle.twist()<limit.minTwist()-.001||angle.twist()>limit.maxTwist()+.001)return false;}
+		}
+		return true;
+	}
+	private boolean restInterestClear(){
+		for(var player:getWorld().getPlayers())if(!player.isRemoved()&&player.squaredDistanceTo(this)<32*32)return false;
+		for(var other:getWorld().getOtherEntities(this,getBoundingBox().expand(8),e->e instanceof PhysicsTarget||e instanceof net.minecraft.entity.LivingEntity||e instanceof net.minecraft.entity.ItemEntity)){
+			if(other instanceof RagdollEntity body&&debrisGroup!=null&&debrisGroup.equals(body.debrisGroup)&&body.readyForDebrisRest())continue;
+			// Ordinary settled drops keep Vanilla's vertical bounce and their own item ticks.
+			// They do not apply impulses to this D6 solver; a horizontal interaction remains a veto.
+			if(other instanceof net.minecraft.entity.ItemEntity item&&item.isOnGround()&&item.getVelocity().horizontalLengthSquared()<1e-8)continue;
+			return false;
+		}
+		return true;
+	}
+	/** A common, known static horizontal support plane for the whole contact wrench, not one independent certificate per limb. */
+	private boolean staticRestEnvironment(Vec3 gravity,java.util.Set<Integer> supports,double plane){
+		if(supports.isEmpty()||simulation.parts().size()>RagdollSleepController.MAX_PARTS||Math.abs(gravity.y()+9.81)>1e-9||Math.abs(gravity.x())+Math.abs(gravity.z())>1e-9)return false;
+		var access=WorldAccess.of(getWorld());
+		for(var part:simulation.parts()){
+			Box box=partBox(part);if(!insideLoadedWorld(box.expand(.001))||getWorld().containsFluid(box)||getWorld().getBlockCollisions(this,box.contract(1e-7)).iterator().hasNext())return false;
+		}
+		for(int index:supports){
+			if(index<0||index>=simulation.parts().size())return false;Box box=partBox(simulation.parts().get(index));
+			int y=MathHelper.floor(box.minY-.0001);double gap=box.minY-(y+1);
+			if(gap<0||gap>.0001||Math.abs(plane-(y+1))>1e-4)return false;
+			int x0=MathHelper.floor(box.minX+1e-7),x1=MathHelper.floor(box.maxX-1e-7),z0=MathHelper.floor(box.minZ+1e-7),z1=MathHelper.floor(box.maxZ-1e-7);
+			long dx=(long)x1-x0+1,dz=(long)z1-z0+1;if(dx<=0||dz<=0||dx>64||dz>64||dx*dz>64)return false;
+			for(int x=x0;x<=x1;x++)for(int z=z0;z<=z1;z++){
+				var pos=new net.minecraft.util.math.BlockPos(x,y,z);var known=access.readIfLoaded(pos);if(known.isEmpty())return false;var state=known.get();
+				if(state.hasBlockEntity()||!state.getFluidState().isEmpty()||state.getBlock() instanceof net.minecraft.block.FallingBlock||!state.isFullCube(getWorld(),pos)||!state.isOpaqueFullCube(getWorld(),pos)
+						||com.terminaldetector.drmd.world.geometry.NaturalGeometry.material(state)!=com.terminaldetector.drmd.world.geometry.HybridMaterialPolicy.Mask.HARD_ENGINEERED)return false;
+			}
+		}
+		return true;
+	}
+	private void terrainContact(RagdollSimulation.Part part,Vec3 normal,double support){
+		var body=part.body();Vec3 before=body.linearVelocity(),spin=body.angularMomentum();body.contactImpulse(normal.scaled(-support),normal,.72);
+		Vec3 impulse=body.linearVelocity().minus(before).scaled(body.mass()),angular=body.angularMomentum().minus(spin);
+		double bottom=partBox(part).minY;double plane=Math.abs(bottom-Math.rint(bottom))<.0001?Math.rint(bottom):Double.NaN;
+		restContacts.contact(simulation.parts().indexOf(part),body.position(),impulse,angular,normal,plane);
 	}
 
 	private Vec3 gravityVector() {
@@ -178,7 +293,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 			Vec3 normal=first.normal();
 			from=from.plus(delta.scaled(first.fraction())).plus(normal.scaled(CONTACT_EPSILON));
 			part.body().withPosition(from);
-			part.body().contactImpulse(normal.scaled(-projectionRadius(part,normal)),normal,.72);
+			terrainContact(part,normal,projectionRadius(part,normal));
 			Vec3 remaining=delta.scaled(1-first.fraction());double into=remaining.dot(normal);
 			if(into<0)remaining=remaining.minus(normal.scaled(into));
 			to=from.plus(remaining); // retain tangential travel; bound corner work to four contacts
@@ -198,8 +313,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 			Vec3 normal = best.normal();
 			part.body().withPosition(part.body().position().plus(normal.scaled(best.depth() + CONTACT_EPSILON)));
 			double support = projectionRadius(part, normal);
-			Vec3 contactOffset = normal.scaled(-support);
-			part.body().contactImpulse(contactOffset, normal, .72);
+			terrainContact(part,normal,support);
 		}
 
 		// Constraint correction can occasionally wedge a conservative OBB broadphase into a corner.
@@ -514,6 +628,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		/** Commit once after whole-group acceptance; never follow this with a generic entity teleport. */
 		public boolean apply(){
 			if(!current() || !motion.apply())return false;
+			wakePhysics();
 			applied=true;
 			Quat turn=motion.rotation();
 			previousRenderParts=rotateRenderParts(sourcePreviousParts,turn);
@@ -537,6 +652,12 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
+		rest.wake();certifiedBodies=List.of();debrisGroup=null;opaqueDebrisData=null;
+		boolean hasDebris=nbt.contains("debrisVersion")||nbt.contains("debrisGroup")||nbt.contains("debrisCause")||nbt.contains("debrisBorn");
+		if(hasDebris&&(!nbt.contains("debrisVersion",NbtElement.INT_TYPE)||nbt.getInt("debrisVersion")!=1||!nbt.containsUuid("debrisGroup")
+				||!nbt.contains("debrisCause",NbtElement.STRING_TYPE)||nbt.getString("debrisCause").length()>128||!nbt.contains("debrisBorn",NbtElement.LONG_TYPE)||nbt.getLong("debrisBorn")<0)){
+			opaqueDebrisData=new NbtCompound();copyKeys(nbt,opaqueDebrisData,List.of("debrisVersion","debrisGroup","debrisCause","debrisBorn"));
+		}else if(nbt.containsUuid("debrisGroup")){debrisGroup=nbt.getUuid("debrisGroup");debrisCause=nbt.getString("debrisCause");debrisBorn=Math.max(0,nbt.getLong("debrisBorn"));}
         readHullIdentity(nbt);
         if(!rigVersionSupported()&&!getWorld().isClient)
             com.terminaldetector.drmd.DescentMod.LOGGER.warn("Ragdoll {} refuses unsupported rigVersion {}; preserving optional physics metadata without simulation",getUuid(),nbt.get("rigVersion"));
@@ -551,6 +672,8 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	@Override
 	protected void writeCustomDataToNbt(NbtCompound nbt) {
+		if(opaqueDebrisData!=null)copyKeys(opaqueDebrisData,nbt,List.copyOf(opaqueDebrisData.getKeys()));
+		else if(debrisGroup!=null){nbt.putInt("debrisVersion",1);nbt.putUuid("debrisGroup",debrisGroup);nbt.putString("debrisCause",debrisCause);nbt.putLong("debrisBorn",debrisBorn);}
         if(opaqueRigData!=null){copyKeys(opaqueRigData,nbt,List.copyOf(opaqueRigData.getKeys()));return;}
         writeHullIdentity(nbt);
 		nbt.putInt("life", lifeTicks);
@@ -584,6 +707,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	@Override
 	public void applyPhysicsImpulse(Vec3d impact, Vec3d impulse) {
 		if (getWorld().isClient || !rigVersionSupported() || !finite(impact) || !finite(impulse)) return;
+		wakePhysics();
 		simulation.applyImpulseAt(pure(impact),pure(impulse));
 		dataTracker.set(POSE, trackedPose());
 		velocityModified = true;
@@ -624,6 +748,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	@Override
 	public void applyPhysicsTorque(Vec3d torque) {
 		if (getWorld().isClient || !rigVersionSupported() || simulation.parts().isEmpty() || !finite(torque)) return;
+		wakePhysics();
 		simulation.parts().get(0).body().applyTorque(pure(torque));
 		dataTracker.set(POSE, trackedPose());
 		velocityModified = true;
@@ -637,6 +762,10 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	@Override
 	public boolean isCollidable() {
 		return true;
+	}
+	@Override public void remove(RemovalReason reason){
+		if(reason.shouldDestroy()&&getWorld() instanceof ServerWorld world&&debrisGroup!=null)RagdollDebrisGroups.get(world).destroyed(debrisGroup,getUuid());
+		super.remove(reason);
 	}
 
 	private static void putVector(NbtCompound tag, String key, Vec3 value) {
