@@ -249,7 +249,12 @@ public final class NativeOrbitalRouteCheck {
         }else {
             var owner=(ServerPlayerEntity)p;row.put("clock",Map.of("epoch",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.epoch(owner),"ack",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.acknowledgment(owner)));
             row.put("activeAuthority",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.owns(owner));row.put("actualInput",actualInput(owner));row.put("actualLease",actualLease(owner));
-            Object observedCube=latestClientSnapshot.get("cube");if(observedCube instanceof List<?> values&&values.size()==3){var other=new D6ChunkPos(((Number)values.get(0)).intValue(),((Number)values.get(1)).intValue(),((Number)values.get(2)).intValue());row.put("lastPublishedClientCube",values);row.put("lastPublishedClientCubeActualServerState",access.cubeState(other).name());}
+            Object observedCube=latestClientSnapshot.get("cube");
+            if(observedCube instanceof List<?> values&&values.size()==3) {
+                var clientCube=new D6ChunkPos(((Number)values.get(0)).intValue(),((Number)values.get(1)).intValue(),((Number)values.get(2)).intValue());
+                row.put("lastPublishedClientCube",values);
+                row.put("lastPublishedClientCubeActualServerState",access.cubeState(clientCube).name());
+            }
         }
         return Collections.unmodifiableMap(row);
     }
