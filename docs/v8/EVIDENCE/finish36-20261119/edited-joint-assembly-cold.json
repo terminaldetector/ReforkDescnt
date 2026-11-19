@@ -1,0 +1,45 @@
+{
+  "source": "f86bae0dcf75207c080da9551f403de9b5aac916",
+  "closedWorldFiles": 103,
+  "sourceSidecars": 13,
+  "writerMaterialEdit": {
+    "body": "e9388c54-c236-489e-b987-706bc53acd4a",
+    "unchangedJointDefinitions": true,
+    "actualLocalMaterialEdit": true,
+    "localCell": [
+      1,
+      1,
+      0
+    ],
+    "remainingCells": 7,
+    "unchangedBodyIdentities": true,
+    "actualEndpointLocation": true,
+    "unoccupiedChild": true
+  },
+  "readerMaterial": {
+    "allOriginalEightBodyColdPredicatesRequired": true,
+    "missingCellStillAbsent": true,
+    "actualEditedGridBeforeFirstPhysicsTick": true,
+    "remainingCells": 7,
+    "actualNewJvm": true
+  },
+  "readerJoints": {
+    "ordinaryKeyboardWalkDistance": 0.48256764813464714,
+    "stableContactTicks": 30,
+    "survivingJoints": 3,
+    "exactJointRegistry": true,
+    "brokenJointAbsent": true,
+    "beforeFirstTickBodies": 8,
+    "actualProcessRestart": true,
+    "noReplacementBodies": true,
+    "freshFrames": 6,
+    "maxAnchorError": 2.120755037632228e-05
+  },
+  "remappedJars": [
+    "841152ac28f656b372d09f08763c90dfa6a5f253a5117d43c16bcce1a8be49ef  /tmp/ungravity-finish-36/cold-observer-fixture-repairs-build/jars/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+    "e300660506489205fc05e46585e5d854e5e3d222951de44d93d04f81659e0850  /tmp/ungravity-finish-36/cold-observer-fixture-repairs-build/jars/drmd-6dof-1.1.35-ufo-dev.1.jar"
+  ],
+  "scope": "Exact normal native save after public local BlockBody edit, separate new JVM restores eight original bodies before the first physical tick. Optional third-party backend and arbitrary legacy saves remain outside this run.",
+  "archive": "edited-joint-assembly-cold.zip",
+  "archiveSha256": "4607051d01de33eb4ba5c43c99d8385b05fcadf044b19baa0d908a3bcafc68d3"
+}
