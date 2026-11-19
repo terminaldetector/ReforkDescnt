@@ -254,4 +254,82 @@ public final class PortalProjectorGameTests implements FabricGameTest {
         } finally {PortalProjector.clear(p);p.discard();}
         c.complete();
     }
+    /** Fresh projectors must be live world BEs, not merely linked map entries. No direct travel calls. */
+    private final class FreshGunFixture implements AutoCloseable {
+        final TestContext c;final BlockPos a,b;final AiFixtureChunks chunks;
+        final Map<BlockPos,net.minecraft.block.BlockState> before=new LinkedHashMap<>();
+        net.minecraft.server.network.ServerPlayerEntity player;io.netty.channel.embedded.EmbeddedChannel channel;
+        boolean closed;int ticks,phase,age,steps,initialEpoch;Vec3d staged,arrived;
+        FreshGunFixture(TestContext c){
+            this.c=c;a=c.getAbsolutePos(new BlockPos(8,100,8));b=a.east(6);chunks=new AiFixtureChunks(c.getWorld(),a,1);
+        }
+        private void put(BlockPos pos,net.minecraft.block.BlockState state){
+            var w=c.getWorld();var previous=com.terminaldetector.drmd.world.access.WorldAccess.of(w).readIfLoaded(pos).orElseThrow();
+            c.assertTrue(!previous.hasBlockEntity(),"owned fixture never replaces a pre-existing BE");before.putIfAbsent(pos.toImmutable(),previous);
+            w.setBlockState(pos,state,net.minecraft.block.Block.NOTIFY_ALL);
+        }
+        private void support(BlockPos at,Direction normal){
+            var axes=Arrays.stream(Direction.values()).filter(d->d.getAxis()!=normal.getAxis()&&d.getDirection()==Direction.AxisDirection.POSITIVE).toArray(Direction[]::new);
+            for(int u=-2;u<=2;u++)for(int v=-2;v<=2;v++){
+                var front=at.offset(axes[0],u).offset(axes[1],v);put(front,Blocks.AIR.getDefaultState());put(front.offset(normal.getOpposite()),Blocks.STONE.getDefaultState());
+            }
+        }
+        private void fire(int slot,BlockPos at,Direction normal){
+            var hit=Vec3d.ofCenter(at.offset(normal.getOpposite())).add(Vec3d.of(normal.getVector()).multiply(.5));
+            PortalProjectorItem.trigger(player,slot,false,hit.subtract(player.getEyePos()).normalize());
+            c.assertTrue(at.equals(PortalGunState.get(c.getWorld()).pair(player.getUuid()).at(slot)),"registered held projector trigger creates actual colour "+slot);
+        }
+        void tick(){
+            if(closed)return;var w=c.getWorld();w.resetIdleTimeout();c.assertTrue(++ticks<170,"fresh projector ticker/actual movement has finite170tick bound phase="+phase);
+            if(!chunks.entityTicking(a,b))return;
+            if(player==null){
+                support(a,Direction.NORTH);support(b,Direction.EAST);
+                var login=net.minecraft.server.network.ConnectedClientData.createDefault(new com.mojang.authlib.GameProfile(UUID.randomUUID(),"fresh-gun-user"),false);
+                player=new net.minecraft.server.network.ServerPlayerEntity(w.getServer(),w,login.gameProfile(),login.syncedOptions());
+                var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);channel=new io.netty.channel.embedded.EmbeddedChannel(connection);
+                w.getServer().getPlayerManager().onPlayerConnect(connection,player,login);
+                player.changeGameMode(net.minecraft.world.GameMode.CREATIVE);player.getAbilities().flying=true;player.setNoGravity(true);DescentPlayerData.get(player).setEnabled(false);
+                player.setPosition(Vec3d.ofCenter(a).add(0,-.6,-3.5));player.setVelocity(Vec3d.ZERO);player.setYaw(0);player.setPitch(0);
+                player.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.PORTAL_PROJECTOR));
+                c.assertTrue(w.getServer().getPlayerManager().getPlayer(player.getUuid())==player&&w.getEntity(player.getUuid())==player,"traveller is an actual connected world player");
+                initialEpoch=DescentPlayerData.get(player).portalEpoch();staged=player.getPos();fire(1,a,Direction.NORTH);phase=1;return;
+            }
+            if(phase==1){
+                c.assertTrue(!((PortalPanelBlockEntity)w.getBlockEntity(a)).isLinked(),"one genuine shot remains inactive");
+                if(player.getItemCooldownManager().isCoolingDown(ModWorldBlocks.PORTAL_PROJECTOR))return;
+                fire(2,b,Direction.EAST);
+                for(var entry:Map.of(a,b,b,a).entrySet())c.assertTrue(w.getBlockEntity(entry.getKey()) instanceof PortalPanelBlockEntity panel&&panel.isLinked()&&entry.getValue().equals(panel.getLinkPartnerPos()),"actual quiet batch installed reciprocal pair");
+                phase=2;age=0;return;
+            }
+            if(phase==2){
+                c.assertTrue(player.getPos().distanceTo(staged)<1e-6&&DescentPlayerData.get(player).portalEpoch()==initialEpoch&&player.getYaw()==0&&player.getPitch()==0,"nearby linked pair cannot rotate or teleport a stationary connected player before contact");
+                if(++age<5)return;phase=3;age=0;
+            }
+            if(phase==3){
+                if(player.getX()>b.getX()+1){
+                    c.assertTrue(steps>=2&&DescentPlayerData.get(player).portalEpoch()==initialEpoch+1,"normal BE tick/END-world drain, never direct carry, transfers actual inward movement once");
+                    c.assertTrue(Math.abs(player.getYaw()+90)<.01&&Math.abs(player.getPitch())<.01,"fresh gun transfer rotates real world look exactly once");
+                    arrived=player.getPos();phase=4;age=0;return;
+                }
+                c.assertTrue(++age<=20,"fresh linked gun pair must tick and transfer within20 real inward moves; map-only BEs cannot pass");
+                steps++;player.setVelocity(0,0,.35);player.move(net.minecraft.entity.MovementType.SELF,new Vec3d(0,0,.35));player.setVelocity(Vec3d.ZERO);
+                return;
+            }
+            if(phase==4){
+                c.assertTrue(player.getPos().distanceTo(arrived)<.05&&DescentPlayerData.get(player).portalEpoch()==initialEpoch+1,"standing at actual exit never bounces or repeatedly turns after the10tick arrival guard");
+                if(++age>=12){close();c.complete();}
+            }
+        }
+        public void close(){
+            if(closed)return;closed=true;var w=c.getWorld();
+            try{
+                if(player!=null){PortalProjector.clear(player);w.getServer().getPlayerManager().remove(player);player.discard();}
+                for(var entry:before.entrySet())w.setBlockState(entry.getKey(),entry.getValue(),net.minecraft.block.Block.NOTIFY_ALL);
+            }finally{if(channel!=null)channel.finishAndReleaseAll();chunks.close();}
+        }
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="portal-projector-fresh-connected-ticker",tickLimit=200)
+    public void freshHeldGunPairNaturallyTicksAndCarriesAConnectedPlayerExactlyOnce(TestContext c){
+        var f=new FreshGunFixture(c);c.runAtEveryTick(()->{if(f.closed)return;try{f.tick();}catch(RuntimeException|Error failure){f.close();throw failure;}});
+    }
 }
