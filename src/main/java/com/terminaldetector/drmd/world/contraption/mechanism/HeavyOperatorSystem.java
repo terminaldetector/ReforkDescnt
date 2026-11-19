@@ -45,6 +45,7 @@ public final class HeavyOperatorSystem {
         final Map<UUID,Interest> interests=new HashMap<>();
         final Map<UUID,Pods> pods=new HashMap<>();
         final Map<UUID,BlockPos> aimSlots=new HashMap<>();
+        final Map<UUID,Set<BlockPos>> visibleSlots=new HashMap<>();
     }
     private HeavyOperatorSystem(){}
     public static void register(){
@@ -218,10 +219,6 @@ public final class HeavyOperatorSystem {
     }
     private static Vec3d axis(BlockBodyEntity b,Vec3 axis){var p=b.rotation().rotate(axis);return new Vec3d(p.x(),p.y(),p.z());}
     private static boolean gun(BlockBodyEntity body,BlockPos cell){return BodyMountedWeapons.isWeapon(body.getLocalBlock(cell));}
-    private static BlockPos anchorSlot(Assembly a,Frame f){
-        var selected=f.aimSlots.get(a.base.getUuid());if(selected!=null&&gun(a.barrel,selected))return selected;
-        for(var slot:List.of(LASER,LEFT,RIGHT))if(gun(a.barrel,slot))return slot;return null;
-    }
     private static Vec3d aimDirection(BlockBodyEntity barrel,BlockPos slot,Vec3d point,Vec3d targetVelocity){
         var cfg=MountedWeaponEmitter.config(barrel,barrel,slot);if(cfg==null)return null;
         var delta=point.subtract(cfg.pos);var relative=targetVelocity.subtract(cfg.inheritedVelocity);
@@ -230,10 +227,10 @@ public final class HeavyOperatorSystem {
         return delta.lengthSquared()>1e-10?delta.normalize():null;
     }
     private static BlockPos selectGun(Assembly a,Frame f,Vec3d point,Vec3d targetVelocity,long now){
-        var old=f.aimSlots.get(a.base.getUuid());
-        if(old!=null&&gun(a.barrel,old)&&a.barrel.mountedWeapons().readyAt(old)<=now)return old;
+        var old=f.aimSlots.get(a.base.getUuid());var visible=f.visibleSlots.get(a.base.getUuid());
+        if(old!=null&&gun(a.barrel,old)&&(visible==null||visible.contains(old))&&a.barrel.mountedWeapons().readyAt(old)<=now)return old;
         BlockPos best=null;double score=-Double.MAX_VALUE;long soonest=Long.MAX_VALUE;
-        for(var slot:List.of(LASER,LEFT,RIGHT))if(gun(a.barrel,slot)){
+        for(var slot:List.of(LASER,LEFT,RIGHT))if(gun(a.barrel,slot)&&(visible==null||visible.contains(slot))){
             var direction=aimDirection(a.barrel,slot,point,targetVelocity);if(direction==null)continue;
             long ready=a.barrel.mountedWeapons().readyAt(slot);double dot=MountedWeaponEmitter.direction(a.barrel,slot).dotProduct(direction);
             boolean due=ready<=now,bestDue=best!=null&&soonest<=now;
@@ -255,7 +252,7 @@ public final class HeavyOperatorSystem {
     private static void tick(ServerWorld world){
         long now=world.getTime();var f=FRAMES.computeIfAbsent(world,w->new Frame());if(f.tick==now)return;
         boolean sense=now%CADENCE==0;f.tick=now;f.drives=0;
-        if(sense){f.candidates=f.rays=0;f.permits.clear();}
+        if(sense){f.candidates=f.rays=0;f.permits.clear();f.visibleSlots.clear();}
         f.memories.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>=DroneSquadMailbox.TTL;});
         f.interests.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>CADENCE+1;});
         f.pods.keySet().removeIf(id->!f.interests.containsKey(id));
@@ -278,14 +275,23 @@ public final class HeavyOperatorSystem {
             var base=bodies.get(Math.floorMod(f.cursor++,bodies.size()));visited++;if(!base.getCommandTags().contains(ROOT))continue;assemblies++;
             var a=resolve(world,base);if(!materialValid(world,a)){f.interests.remove(base.getUuid());f.pods.remove(base.getUuid());stop(a,f);continue;}
             if(f.candidates>=MAX_CANDIDATES){stop(a,f);continue;}
-            var anchor=anchorSlot(a,f);if(anchor==null){stop(a,f);continue;}
-            var from=MountedWeaponEmitter.muzzle(a.barrel,anchor);var candidates=new ArrayList<LivingEntity>();
+            if(List.of(LASER,LEFT,RIGHT).stream().noneMatch(slot->gun(a.barrel,slot))){stop(a,f);continue;}
+            // The query centre is only a bounded presence broadphase. Detection
+            // belongs to each surviving REAL muzzle, never to a virtual sensor.
+            var from=a.barrel.physicsCentre();var candidates=new ArrayList<LivingEntity>();
             world.collectEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),Box.of(from,192,192,192),e->enemy(base,e)&&e.squaredDistanceTo(from)<=96*96,candidates,MAX_CANDIDATES-f.candidates);
             f.candidates+=candidates.size();candidates.sort(Comparator.comparingDouble(e->e.squaredDistanceTo(from)));LivingEntity target=null;
             if(!candidates.isEmpty()&&(f.interests.size()<MAX_ASSEMBLIES||f.interests.containsKey(base.getUuid()))){var present=candidates.get(0);f.interests.put(base.getUuid(),new Interest(present.getUuid(),new WeakReference<>(present),now));}
             else f.interests.remove(base.getUuid());
             if(!valid(world,a)){stop(a,f);continue;}
-            for(var candidate:candidates)if(candidate.squaredDistanceTo(from)<=48*48&&sight(world,a,from,candidate.getBoundingBox().getCenter(),f)){target=candidate;break;}
+            for(var candidate:candidates){
+                var visible=new LinkedHashSet<BlockPos>();var point=candidate.getBoundingBox().getCenter();
+                for(var slot:List.of(LASER,LEFT,RIGHT))if(gun(a.barrel,slot)){
+                    var muzzle=MountedWeaponEmitter.muzzle(a.barrel,slot);
+                    if(muzzle.squaredDistanceTo(point)<=48*48&&sight(world,a,muzzle,point,f))visible.add(slot);
+                }
+                if(!visible.isEmpty()){target=candidate;f.visibleSlots.put(base.getUuid(),Set.copyOf(visible));break;}
+            }
             Vec3d point;
             if(target!=null){point=target.getBoundingBox().getCenter();
                 if(f.interests.size()<MAX_ASSEMBLIES||f.interests.containsKey(base.getUuid()))f.interests.put(base.getUuid(),new Interest(target.getUuid(),new WeakReference<>(target),now));
