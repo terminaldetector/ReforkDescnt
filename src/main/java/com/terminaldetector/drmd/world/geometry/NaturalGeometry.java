@@ -38,7 +38,7 @@ public final class NaturalGeometry {
     }
     public static VoxelShape shape(HybridMesh.Neighbourhood key) {
         var cached=SHAPES.get(key);if(cached!=null)return cached;
-        var shape=BoundedHybridShape.from(new HybridMesh(key).collisionBounds());
+        var shape=BoundedHybridShape.from(new HybridMesh(key));
         if(SHAPES.size()<4096)SHAPES.putIfAbsent(key,shape);
         return shape;
     }

@@ -30,6 +30,10 @@ public final class HybridMesh {
         public Face { vertices = List.copyOf(vertices); }
     }
     public record Bounds(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {}
+    /** Quarter cell vertices in (dy,dz,dx) order, shared exactly with emitted face triangles. */
+    public record Cell(List<Point> vertices) {
+        public Cell{vertices=List.copyOf(vertices);if(vertices.size()!=8)throw new IllegalArgumentException("eight cell vertices");}
+    }
     private static final Point ZERO = new Point(0,0,0);
     private static final int[][] STEPS = {{0,-1,0},{0,1,0},{0,0,-1},{0,0,1},{-1,0,0},{1,0,0}};
     private final Neighbourhood neighbours;
@@ -197,6 +201,17 @@ public final class HybridMesh {
     }
     private Point facePoint(int d,int plane,int u,int v) {
         return d<2?vertex(u,plane,v):d<4?vertex(u,v,plane):vertex(plane,v,u);
+    }
+
+    /** Retain the actual warped volume instead of making each curved quarter cell an enclosing box. */
+    public List<Cell> collisionCells() {
+        var out=new ArrayList<Cell>();
+        for(int y=0;y<4;y++)for(int z=0;z<4;z++)for(int x=0;x<4;x++)if(MicroGrid.get(self.mask,x,y,z)) {
+            var points=new ArrayList<Point>(8);
+            for(int dy=0;dy<2;dy++)for(int dz=0;dz<2;dz++)for(int dx=0;dx<2;dx++)points.add(vertex(x+dx,y+dy,z+dz));
+            out.add(new Cell(points));
+        }
+        return List.copyOf(out);
     }
 
     /** Conservative cell AABBs of the same warped volume; not exact triangle collision. */
