@@ -141,7 +141,7 @@ public class CarvedBlock extends BlockWithEntity {
 	private static VoxelShape shapeAt(BlockView world, BlockPos pos) {
 		BlockEntity be = world.getBlockEntity(pos);
 		if (!(be instanceof CarvedBlockEntity carved)) return VoxelShapes.fullCube();
-		return carved.organic() ? carved.organicShape(world) : shapeOf(carved.mask());
+		return carved.organic() || carved.mask()!=MicroGrid.FULL ? carved.organicShape(world) : shapeOf(carved.mask());
 	}
 
 	/** The shape for a mask, built once and kept. */

@@ -38,7 +38,7 @@ public final class HybridMesh {
     private static final int[][] STEPS = {{0,-1,0},{0,1,0},{0,0,-1},{0,0,1},{-1,0,0},{1,0,0}};
     private final Neighbourhood neighbours;
     private final Block self;
-    private final boolean thermal, axisAware;
+    private final boolean thermal, axisAware, fracture;
     private final Point[] vertices = new Point[125];
 
     public HybridMesh(Neighbourhood neighbours) {
@@ -46,6 +46,7 @@ public final class HybridMesh {
         self = neighbours.at(0,0,0);
         thermal=neighbours.blocks.stream().anyMatch(b->!b.bores.isEmpty());
         axisAware=self.organic&&neighbours.blocks.stream().anyMatch(b->b.logAxis!=LogAxis.NONE);
+        fracture=(self.organic||self.mask!=MicroGrid.FULL)&&neighbours.blocks.stream().anyMatch(b->b.mask!=0&&b.mask!=MicroGrid.FULL&&b.bores.isEmpty());
         Point[] corners = new Point[8];
         for (int y=0;y<2;y++) for (int z=0;z<2;z++) for (int x=0;x<2;x++)
             corners[(y*2+z)*2+x] = self.organic&&self.bores.isEmpty() ? cornerOffset(x,y,z) : ZERO;
@@ -57,10 +58,12 @@ public final class HybridMesh {
                 offset=offset.plus(corners[(cy*2+cz)*2+cx].times(weight));
             }
             Point point=new Point(px,py,pz).plus(offset);
+            boolean logPoint=false;
             if(axisAware) {
                 Point rounded=logVertex(new Point(px,py,pz),x,y,z);
-                if(rounded!=null)point=rounded;
+                if(rounded!=null){point=rounded;logPoint=true;}
             }
+            if(fracture&&!logPoint)point=point.plus(cavityOffset(x,y,z));
             vertices[index(x,y,z)]=thermal?thermalVertex(point,x,y,z):point;
         }
     }
@@ -105,6 +108,29 @@ public final class HybridMesh {
         var q=nearest.project(p.x-ox,p.y-oy,p.z-oz);return new Point(q.x()+ox,q.y()+oy,q.z()+oz);
     }
 
+    /** The same eight incident QUARTER cells round a cold cut on both sides of every XYZ seam.
+     * Intact engineered interfaces, log cross-sections and analytic thermal rims remain authoritative.
+     * This is a small relaxation of the existing damage lattice, never a change to its occupancy mask. */
+    private Point cavityOffset(int x,int y,int z) {
+        boolean[] solid=new boolean[8];boolean damaged=false;
+        for(int dy=0;dy<2;dy++)for(int dz=0;dz<2;dz++)for(int dx=0;dx<2;dx++) {
+            int qx=x+dx-1,qy=y+dy-1,qz=z+dz-1;
+            var block=neighbours.at(Math.floorDiv(qx,4),Math.floorDiv(qy,4),Math.floorDiv(qz,4));
+            if(block.anchor&&block.mask==MicroGrid.FULL||!block.bores.isEmpty()||block.logAxis!=LogAxis.NONE)return ZERO;
+            damaged|=block.mask!=0&&block.mask!=MicroGrid.FULL;
+            solid[(dy*2+dz)*2+dx]=MicroGrid.get(block.mask,Math.floorMod(qx,4),Math.floorMod(qy,4),Math.floorMod(qz,4));
+        }
+        if(!damaged)return ZERO;
+        Point sum=ZERO;int count=0;
+        for(int dy=0;dy<2;dy++)for(int dz=0;dz<2;dz++)for(int dx=0;dx<2;dx++) {
+            int i=(dy*2+dz)*2+dx;
+            if(dx==0&&solid[i]!=solid[i+1]){sum=sum.plus(new Point(0,dy-.5,dz-.5));count++;}
+            if(dy==0&&solid[i]!=solid[i+4]){sum=sum.plus(new Point(dx-.5,0,dz-.5));count++;}
+            if(dz==0&&solid[i]!=solid[i+2]){sum=sum.plus(new Point(dx-.5,dy-.5,0));count++;}
+        }
+        return count==0?ZERO:sum.times(.375*MicroGrid.CELL_SIZE/count);
+    }
+
     /** Same eight world blocks choose the offset on either side of any section boundary. */
     private Point cornerOffset(int x, int y, int z) {
         boolean[] solid=new boolean[8];
@@ -144,7 +170,7 @@ public final class HybridMesh {
                 int plane=slice+(d%2==1?1:0);
                 // Thermal projection is nonlinear even on engineered material: never replace its
                 // actual rim/crease with a large quad whose interior skips the shared vertices.
-                boolean featureAware=axisAware||thermal;
+                boolean featureAware=axisAware||thermal||fracture;
                 if (!self.organic || planar(d,slice) || featureAware) {
                     while (u+width<4 && visible[v][u+width]
                         &&(!featureAware||mergePatch(d,plane,u,v,width+1,height))) width++;
