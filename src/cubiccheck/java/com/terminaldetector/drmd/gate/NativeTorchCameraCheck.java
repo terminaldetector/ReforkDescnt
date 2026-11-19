@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.gate;
 
 import com.google.gson.GsonBuilder;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.DescentClient;
 import com.terminaldetector.drmd.client.DescentClientState;
@@ -45,6 +46,8 @@ import net.minecraft.world.RaycastContext;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL30;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -83,6 +86,12 @@ public final class NativeTorchCameraCheck {
     private static double[][] points,baseline;
     private static int baked,handTilt,handBob,worldTilt;
     private static double handDelta,worldDelta;
+    private static NativeImage handBefore,handAfter;
+    private static int handBeforeEpoch=-1,handAfterEpoch=-1;
+    private static boolean captureStateRestored;
+    private static boolean failureDumped;
+    private static int beforeHandDrawFbo=-1,afterHandDrawFbo=-1;
+    private static final int[][] FACES={{0,2,3,1},{4,5,7,6},{0,1,5,4},{2,6,7,3},{0,4,6,2},{1,3,7,5}};
     private static final List<Map<String,Object>> RESULTS=new ArrayList<>();
     private static final List<Map<String,Object>> EVENTS=new java.util.concurrent.CopyOnWriteArrayList<>();
     private static final List<Map<String,Object>> MATRICES=new ArrayList<>();
@@ -218,7 +227,36 @@ public final class NativeTorchCameraCheck {
         EVENTS.add(Map.of("event","one-time look sample","surface",axis,"look",look,"localYaw",LOOKS[look][0],"localPitch",LOOKS[look][1],"clientTick",ticks));
     }
     public static void beforeFrame(){
-        if(!ENABLED||done)return;epoch++;baked=handTilt=handBob=worldTilt=0;handDelta=worldDelta=0;itemMatrix=null;points=null;MATRICES.clear();
+        if(!ENABLED||done)return;closeHandImages();epoch++;baked=handTilt=handBob=worldTilt=0;handDelta=worldDelta=0;itemMatrix=null;points=null;MATRICES.clear();
+        handBeforeEpoch=handAfterEpoch=-1;beforeHandDrawFbo=afterHandDrawFbo=-1;captureStateRestored=true;
+    }
+    private static void closeHandImages(){if(handBefore!=null){handBefore.close();handBefore=null;}if(handAfter!=null){handAfter.close();handAfter=null;}}
+    /** Actual native renderHand boundaries, before/after its real Immediate.draw. */
+    public static void hand(boolean before){
+        if(!ENABLED||done||failure!=null||step!=Step.LOOK||ticks-lookTick<20||OffscreenWorldView.busy())return;
+        var c=MinecraftClient.getInstance();if(c.player==null||c.world==null||c.currentScreen!=null||!DescentCamera.ownsView(c.gameRenderer.getCamera()))return;
+        try{
+            int actualDraw=GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+            require(actualDraw==c.getFramebuffer().fbo,"UNOBSERVED: actual hand must draw to the sampled native framebuffer");
+            NativeImage image=captureActualFramebuffer();
+            if(before){if(handBefore!=null)handBefore.close();handBefore=image;handBeforeEpoch=epoch;beforeHandDrawFbo=actualDraw;}
+            else{if(handAfter!=null)handAfter.close();handAfter=image;handAfterEpoch=epoch;afterHandDrawFbo=actualDraw;}
+        }catch(Throwable error){failure=error.toString();dumpRenderFailure(error);}
+    }
+    private static NativeImage captureActualFramebuffer(){
+        var c=MinecraftClient.getInstance();int active=GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE),bound=GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        int read=GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING),draw=GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+        int[] names={GL11.GL_PACK_ALIGNMENT,GL11.GL_PACK_ROW_LENGTH,GL11.GL_PACK_SKIP_ROWS,GL11.GL_PACK_SKIP_PIXELS},values=new int[4];
+        for(int i=0;i<4;i++)values[i]=GL11.glGetInteger(names[i]);
+        try{for(int i=0;i<4;i++)GL11.glPixelStorei(names[i],i==0?4:0);return ScreenshotRecorder.takeScreenshot(c.getFramebuffer());}
+        finally{
+            GlStateManager._activeTexture(active);RenderSystem.bindTexture(bound);
+            GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,read);GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER,draw);
+            for(int i=0;i<4;i++)GL11.glPixelStorei(names[i],values[i]);
+            captureStateRestored&=GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE)==active&&GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)==bound
+                &&GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING)==read&&GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING)==draw;
+            for(int i=0;i<4;i++)captureStateRestored&=GL11.glGetInteger(names[i])==values[i];
+        }
     }
     private static double difference(Matrix4f a,Matrix4f b){float[] x=a.get(new float[16]),y=b.get(new float[16]);double max=0;for(int i=0;i<16;i++)max=Math.max(max,Math.abs(x[i]-y[i]));return max;}
     public static void transform(boolean hand,boolean bob,Matrix4f before,Matrix4f after){
@@ -241,8 +279,33 @@ public final class NativeTorchCameraCheck {
             int color=image.getColor(x,y),r=color&255,g=(color>>>8)&255,b=(color>>>16)&255;if(r>=130&&g>=90&&b<=145&&r>=g+15&&g>=b+15)count++;
         }return count;
     }
+    private static boolean inFace(double x,double y,int[] face){
+        double area=0;for(int i=0;i<4;i++){var a=points[face[i]];var b=points[face[(i+1)%4]];area+=a[0]*b[1]-b[0]*a[1];}
+        if(Math.abs(area)<1e-7)return false;
+        for(int i=0;i<4;i++){var a=points[face[i]];var b=points[face[(i+1)%4]];
+            if(Math.signum(area)*((b[0]-a[0])*(y-a[1])-(b[1]-a[1])*(x-a[0]))<-.8*Math.hypot(b[0]-a[0],b[1]-a[1]))return false;
+        }return true;
+    }
+    private static int colorDelta(int a,int b){return Math.max(Math.abs((a&255)-(b&255)),Math.max(Math.abs(((a>>>8)&255)-((b>>>8)&255)),Math.abs(((a>>>16)&255)-((b>>>16)&255))));}
+    private static Map<String,Object> contribution(NativeImage image){
+        require(handBefore!=null&&handAfter!=null&&handBeforeEpoch==epoch&&handAfterEpoch==epoch,"same actual frame has both native renderHand image boundaries");
+        require(handBefore.getWidth()==image.getWidth()&&handAfter.getWidth()==image.getWidth()&&handBefore.getHeight()==image.getHeight()&&handAfter.getHeight()==image.getHeight(),"actual before/after/final framebuffer dimensions agree");
+        double minX=Double.POSITIVE_INFINITY,minY=minX,maxX=Double.NEGATIVE_INFINITY,maxY=maxX;
+        for(var p:points){minX=Math.min(minX,p[0]);minY=Math.min(minY,p[1]);maxX=Math.max(maxX,p[0]);maxY=Math.max(maxY,p[1]);}
+        int changed=0,retained=0,roi=0;long red=0,green=0,blue=0;
+        for(int y=Math.max(0,(int)Math.floor(minY)-1);y<Math.min(image.getHeight(),(int)Math.ceil(maxY)+1);y++)for(int x=Math.max(0,(int)Math.floor(minX)-1);x<Math.min(image.getWidth(),(int)Math.ceil(maxX)+1);x++){
+            boolean inside=false;for(var f:FACES)if(inFace(x+.5,y+.5,f)){inside=true;break;}if(!inside)continue;roi++;
+            int a=handBefore.getColor(x,y),b=handAfter.getColor(x,y),last=image.getColor(x,y);
+            if(colorDelta(a,b)>=8){changed++;red+=b&255;green+=(b>>>8)&255;blue+=(b>>>16)&255;if(colorDelta(b,last)<=2)retained++;}
+        }
+        return Map.of("actualEpoch",epoch,"projectedRoiPixels",roi,"actualHandChangedPixels",changed,"actualFinalRetainedPixels",retained,
+            "minimumRequired",100,"minChannelChange",8,"maxFinalChannelDifference",2,"captureStateRestored",captureStateRestored,
+            "oracle","same-frame native hand draw contribution in emitted projected mesh, retained in actual final framebuffer",
+            "changedMeanAfterRgb",List.of(changed==0?0:(double)red/changed,changed==0?0:(double)green/changed,changed==0?0:(double)blue/changed));
+    }
     public static void rendered(float delta){
         if(!ENABLED||done)return;var c=MinecraftClient.getInstance();
+        if(failure!=null){finish("FAIL",failure);return;}
         try{
             if(c.player==null||c.world==null||c.currentScreen!=null||c.getOverlay()!=null||OffscreenWorldView.busy())return;
             if(step==Step.RELEASE&&view!=null&&view.surface==-1&&!view.foot&&!DescentClientState.footGravity&&FootGravityCamera.settled()&&!view.noGravity&&!view.vehicle){
@@ -282,8 +345,16 @@ public final class NativeTorchCameraCheck {
             require(baked>0&&handTilt>0&&worldTilt>0&&handDelta<=1e-6,"actual native held mesh and stabilized hand callbacks, no second bank/bob");
             float bank=FootGravityCamera.viewRoll(delta);if(axis>0&&look==0)require(Math.abs(bank)>=45&&worldDelta>.1,"actual sideways/ceiling bank exercised in world, retained outside held model");
             double projected=0;if(baseline!=null){for(int i=0;i<8;i++)projected=Math.max(projected,Math.hypot(points[i][0]-baseline[i][0],points[i][1]-baseline[i][1]));require(projected<=1,"actual emitted held vertices remain within one physical pixel across view samples");}
-            try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
-                int pixels=gold(image);require(pixels>=100,"actual held gold mesh must remain visible in completed framebuffer");
+            try(var image=captureActualFramebuffer()){
+                int pixels=gold(image);var witness=contribution(image);
+                // The first88ce gold-hue FAIL is immutable. This independently measures
+                // actual same-frame draw contribution; it does not rename that hue as PASS.
+                if(!captureStateRestored||((Number)witness.get("actualHandChangedPixels")).intValue()<100||((Number)witness.get("actualFinalRetainedPixels")).intValue()<100){
+                    var dir=c.runDirectory.toPath().resolve("torch-camera-draw-failure");Files.createDirectories(dir);
+                    handBefore.writeTo(dir.resolve("before-native-hand.png"));handAfter.writeTo(dir.resolve("after-native-hand.png"));image.writeTo(dir.resolve("actual-final.png"));
+                    Files.writeString(dir.resolve("actual-witness.json"),new GsonBuilder().setPrettyPrinting().create().toJson(Map.of("surface",axis,"look",look,"epoch",epoch,"originalGoldPixels",pixels,"originalGoldHuePass",pixels>=100,"witness",witness,"actualVertices",points,"actualMatrices",List.copyOf(MATRICES)))+"\n");
+                }
+                require(captureStateRestored&&((Number)witness.get("actualHandChangedPixels")).intValue()>=100&&((Number)witness.get("actualFinalRetainedPixels")).intValue()>=100,"actual native hand contributes at least100 real changed mesh pixels retained in the final frame");
                 int worldPixels=0,worldArea=0;
                 for(int y=image.getHeight()/5;y<image.getHeight()/2;y++)for(int x=image.getWidth()*3/10;x<image.getWidth()*7/10;x++){
                     int rgb=image.getColor(x,y);worldArea++;if(Math.max(rgb&255,Math.max((rgb>>>8)&255,(rgb>>>16)&255))>=32)worldPixels++;
@@ -296,8 +367,11 @@ public final class NativeTorchCameraCheck {
                 row.put("handMatrixDelta",handDelta);row.put("handTiltCalls",handTilt);row.put("handBobCalls",handBob);row.put("actualBakedReturns",baked);row.put("actualVertices",points);
                 row.put("actualCallMatrices",List.copyOf(MATRICES));row.put("actualEmittedItemMatrix",itemMatrix.get(new float[16]));row.put("actualSourceUUID",view.source==null?null:view.source.toString());
                 row.put("maximumVertexDriftPixels",projected);row.put("finalGoldPixels",pixels);row.put("obstructed",view.blocker);row.put("actualBlockRayHit",view.blockerHit);RESULTS.add(row);
+                row.put("originalGoldHuePass",pixels>=100);row.put("actualDrawWitness",witness);
+                row.put("actualHandFramebuffers",List.of(beforeHandDrawFbo,afterHandDrawFbo,c.getFramebuffer().fbo));
                 row.put("centralWorldVisiblePixels",worldPixels);row.put("centralWorldPixelArea",worldArea);
-                if(look==0){var dir=c.runDirectory.toPath().resolve("torch-camera-frames");Files.createDirectories(dir);image.writeTo(dir.resolve("surface-"+axis+"-obstructed-"+view.blocker+"-sample-"+RESULTS.size()+".png"));}
+                if(look==0){var dir=c.runDirectory.toPath().resolve("torch-camera-frames");Files.createDirectories(dir);String label="surface-"+axis+"-obstructed-"+view.blocker+"-sample-"+RESULTS.size();
+                    handBefore.writeTo(dir.resolve(label+"-before-hand.png"));handAfter.writeTo(dir.resolve(label+"-after-hand.png"));image.writeTo(dir.resolve(label+".png"));}
             }
             frames=0;
             if(look==0&&blockerLook==null){blockerLook=c.player.getRotationVec(1).normalize();blockRequest=1;step=Step.ADD_BLOCK;return;}
@@ -305,7 +379,19 @@ public final class NativeTorchCameraCheck {
             if(++look<LOOKS.length){setLook(c,up);return;}
             if(++axis<AXES.length){blockerLook=null;requestedSurface=axis;step=Step.SURFACE;return;}
             frames=0;if(DEATH){oldClientPlayer=c.player;step=Step.KILL;}else{requestedSurface=-1;step=Step.RELEASE;}
-        }catch(Throwable error){finish("FAIL",error.toString());}
+        }catch(Throwable error){dumpRenderFailure(error);finish("FAIL",error.toString());}
+    }
+    private static void dumpRenderFailure(Throwable original){
+        if(failureDumped)return;failureDumped=true;
+        try{
+            var c=MinecraftClient.getInstance();var dir=c.runDirectory.toPath().resolve("torch-camera-first-render-failure");Files.createDirectories(dir);
+            var out=new LinkedHashMap<String,Object>();out.put("originalFailure",original.toString());out.put("epoch",epoch);out.put("surface",axis);out.put("look",look);
+            out.put("actualMatrices",List.copyOf(MATRICES));out.put("actualVertices",points);out.put("actualBakedReturns",baked);out.put("handDelta",handDelta);out.put("worldDelta",worldDelta);
+            out.put("beforeHandEpoch",handBeforeEpoch);out.put("afterHandEpoch",handAfterEpoch);out.put("actualFramebuffers",List.of(beforeHandDrawFbo,afterHandDrawFbo,c.getFramebuffer().fbo));
+            if(handBefore!=null)handBefore.writeTo(dir.resolve("before-hand.png"));if(handAfter!=null)handAfter.writeTo(dir.resolve("after-hand.png"));
+            try(var finalImage=captureActualFramebuffer()){finalImage.writeTo(dir.resolve("actual-final.png"));if(points!=null)out.put("originalGoldPixels",gold(finalImage));}
+            Files.writeString(dir.resolve("actual-raw-frame.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");
+        }catch(Throwable captureError){System.err.println("TORCH_CAMERA_FAILURE_CAPTURE_UNOBSERVED "+captureError+" original="+original);}
     }
     private static void finish(String status,String why){
         if(done)return;done=true;DescentKeybinds.toggle.setPressed(false);
@@ -313,7 +399,10 @@ public final class NativeTorchCameraCheck {
             out.put("ownerProbeCompleted",ownerChecked);out.put("surface",axis);out.put("look",look);out.put("latestActualServer",view);out.put("ordinaryDismountScope","separate actual connected-player GameTests; this observer has no vehicle");
             out.put("deathProfile",DEATH);out.put("nativeDeath",deathReceipt);out.put("nativeRespawn",respawnReceipt);out.put("nativeRespawnButton",respawnRequested);
             out.put("manualFrameAdoptions",0);out.put("perFramePoseWrites",0);out.put("sourceBinding",System.getProperty("drmd.gate.torchCameraSource","UNBOUND"));
+            out.put("visibilityOracle","same-frame native hand draw contribution >=100 and retained final pixels >=100 in the actual projected mesh; previous88ce hue FAIL remains separate");
+            out.put("originalGoldHueAllSamplesPass",!RESULTS.isEmpty()&&RESULTS.stream().allMatch(r->Boolean.TRUE.equals(r.get("originalGoldHuePass"))));
+            out.put("originalFirstHueSubject","88ce0587e4ba78fb7a8f67b656028bc362a3c08c");out.put("originalFirstHueStatus","FAIL");
             Files.writeString(c.runDirectory.toPath().resolve("torch-camera-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");
-        }catch(Exception error){error.printStackTrace();}System.out.println("TORCH_CAMERA_OUTCOME "+status+" "+why);MinecraftClient.getInstance().scheduleStop();
+        }catch(Exception error){error.printStackTrace();}finally{closeHandImages();}System.out.println("TORCH_CAMERA_OUTCOME "+status+" "+why);MinecraftClient.getInstance().scheduleStop();
     }
 }

@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.gate.mixin;
 import com.terminaldetector.drmd.gate.NativeTorchCameraCheck;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Matrix4f;
@@ -20,6 +21,10 @@ public abstract class TorchCameraRenderProbe {
     private void drmd$torchBefore(RenderTickCounter ticks,boolean tick,CallbackInfo ci){if(NativeTorchCameraCheck.ENABLED)NativeTorchCameraCheck.beforeFrame();}
     @Inject(method="render",at=@At("RETURN"))
     private void drmd$torchAfter(RenderTickCounter ticks,boolean tick,CallbackInfo ci){if(NativeTorchCameraCheck.ENABLED)NativeTorchCameraCheck.rendered(ticks.getTickDelta(false));}
+    @Inject(method="renderHand",at=@At("HEAD"))
+    private void drmd$beforeActualHand(Camera camera,float delta,Matrix4f projection,CallbackInfo ci){if(NativeTorchCameraCheck.ENABLED)NativeTorchCameraCheck.hand(true);}
+    @Inject(method="renderHand",at=@At("RETURN"))
+    private void drmd$afterActualHand(Camera camera,float delta,Matrix4f projection,CallbackInfo ci){if(NativeTorchCameraCheck.ENABLED)NativeTorchCameraCheck.hand(false);}
     @Redirect(method="renderHand",at=@At(value="INVOKE",target="Lnet/minecraft/client/render/GameRenderer;tiltViewWhenHurt(Lnet/minecraft/client/util/math/MatrixStack;F)V"))
     private void drmd$torchHandTilt(GameRenderer receiver,MatrixStack matrices,float delta){
         Matrix4f before=NativeTorchCameraCheck.ENABLED?new Matrix4f(matrices.peek().getPositionMatrix()):null;
