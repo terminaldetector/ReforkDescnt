@@ -11,7 +11,9 @@ uniform vec3 FieldOriginDelta;
 uniform float InnerRadius;
 uniform float FieldReach;
 out vec4 vertexColor;
+// Correct the smooth varying for the radial change to clip W, then undo it per fragment.
 out vec3 trueEyeVector;
+out float sourceScale;
 
 void main() {
     authoredOrbital = UV0.x >= 0.0 ? 1 : 0;
@@ -25,9 +27,10 @@ void main() {
         float span = max(1.0, FieldReach - InnerRadius);
         drawn = InnerRadius + span * (1.0 - exp(-(distance - InnerRadius) / span));
     }
-    vec3 projected = distance < 0.0001 ? eyeVector : eyeVector * (drawn / distance);
+    sourceScale = distance < 0.0001 ? 1.0 : drawn / distance;
+    vec3 projected = eyeVector * sourceScale;
     gl_Position = ProjMat * ModelViewMat * vec4(projected, 1.0);
     vertexColor = Color;
     vertexColor.a *= handoff;
-    trueEyeVector = eyeVector;
+    trueEyeVector = eyeVector * sourceScale;
 }

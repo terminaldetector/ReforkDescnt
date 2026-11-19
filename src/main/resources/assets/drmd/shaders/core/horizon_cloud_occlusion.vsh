@@ -11,7 +11,9 @@ uniform float InnerRadius;
 uniform float FieldReach;
 out vec3 trueViewPosition;
 out float sourceOpacity;
+// Correct the smooth varying for the radial change to clip W, then undo it per fragment.
 out vec3 trueEyeVector;
+out float sourceScale;
 void main() {
     authoredOrbital = UV0.x >= 0.0 ? 1 : 0;
     int slot = int(UV0.x + 0.5);
@@ -23,9 +25,10 @@ void main() {
         float span = max(1.0, FieldReach - InnerRadius);
         drawn = InnerRadius + span * (1.0 - exp(-(distance - InnerRadius) / span));
     }
-    vec3 projected = distance < 0.0001 ? eye : eye * (drawn / distance);
+    sourceScale = distance < 0.0001 ? 1.0 : drawn / distance;
+    vec3 projected = eye * sourceScale;
     gl_Position = ProjMat * ModelViewMat * vec4(projected, 1.0);
     trueViewPosition = (ModelViewMat * vec4(eye, 1.0)).xyz;
     sourceOpacity = Color.a * handoff;
-    trueEyeVector = eye;
+    trueEyeVector = eye * sourceScale;
 }
