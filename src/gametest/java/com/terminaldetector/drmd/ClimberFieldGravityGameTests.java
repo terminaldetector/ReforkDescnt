@@ -343,7 +343,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
 
     private static final class GoalProgress {
         final net.minecraft.entity.mob.MobEntity actor;final Object navigation,control;final Vec3d start;final int born;
-        final double distance;int age;Vec3d last;boolean path,arrow,nativeTarget;double maxStep,maxGap;
+        final double distance;int age,passiveReceipts;Vec3d last;boolean path,arrow,nativeTarget;double maxStep,maxGap;
         GoalProgress(net.minecraft.entity.mob.MobEntity a,net.minecraft.server.network.ServerPlayerEntity target){actor=a;navigation=a.getNavigation();control=a.getMoveControl();start=last=a.getPos();born=age=a.age;distance=a.distanceTo(target);}
     }
     private static void nativeGoals(TestContext c,Vec3d up,boolean ranged){
@@ -386,6 +386,18 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
                 r.maxGap=Math.max(r.maxGap,groundSupport(c,a,up));r.path|=a.getNavigation().getCurrentPath()!=null&&!a.getNavigation().isIdle();r.nativeTarget|=a.getTarget()==p;
                 c.assertTrue(a.isAlive()&&!a.isAiDisabled()&&!a.hasNoGravity()&&a.getNavigation()==r.navigation&&a.getMoveControl()==r.control
                     &&ActorFrames.up(a).distanceTo(up)<1e-6&&r.maxStep<=1,"native controller/AI/input/body ownership and finite ordinary movement remain intact: "+a.getType());
+                if(!ranged&&up.y<-.5&&r.passiveReceipts++<64){
+                    // Existing native state only: no extra world query, planner/AI call or fixture command.
+                    var nav=a.getNavigation();var path=nav.getCurrentPath();var motor=a.getMoveControl();var trace=new LinkedHashMap<String,Object>();
+                    trace.put("type",a.getType().toString());trace.put("age",a.age);trace.put("elapsed",a.age-r.born);trace.put("position",vector(a.getPos()));trace.put("velocity",vector(a.getVelocity()));
+                    trace.put("playerAge",p.age);trace.put("playerPosition",vector(p.getPos()));trace.put("playerVelocity",vector(p.getVelocity()));trace.put("distance",a.distanceTo(p));trace.put("progress",r.distance-a.distanceTo(p));
+                    trace.put("input",List.of(a.sidewaysSpeed,a.forwardSpeed));trace.put("yaw",a.getYaw());trace.put("pathSeen",r.path);trace.put("nativeIdle",nav.isIdle());
+                    trace.put("pathClass",path==null?"ABSENT":path.getClass().getName());trace.put("pathIndex",path==null?-1:path.getCurrentNodeIndex());trace.put("pathLength",path==null?0:path.getLength());
+                    trace.put("pathTarget",path==null?List.of():List.of(path.getTarget().getX(),path.getTarget().getY(),path.getTarget().getZ()));
+                    trace.put("wanted",List.of(motor.getTargetX(),motor.getTargetY(),motor.getTargetZ()));trace.put("wantedSpeed",motor.getSpeed());trace.put("supportGap",r.maxGap);
+                    trace.put("hurtTime",a.hurtTime);trace.put("nativeTarget",a.getTarget()==null?"ABSENT":a.getTarget().getUuid().toString());
+                    System.out.println("C1_CEILING_NATIVE_PASSIVE "+new com.google.gson.Gson().toJson(trace));
+                }
                 if(ranged)for(var arrow:room.world.getEntitiesByClass(net.minecraft.entity.projectile.PersistentProjectileEntity.class,new Box(Vec3d.of(room.min),Vec3d.of(room.max.add(1,1,1))),v->v.getOwner()==a)){
                     if(arrow.age>0&&arrow.getVelocity().lengthSquared()>.01)r.arrow=true;
                 }
