@@ -1,0 +1,51 @@
+{
+  "source": "4702e74db2066d0cb1d0990796cd9f6721898dc4",
+  "archive": "focused-stock-4702e74d.zip",
+  "sha256": "51abd15f066c1e1b509aa4f4ff1b4715ac4cb00cc18ca69b256144569cb58062",
+  "processExit": 2,
+  "passCount": 24,
+  "pass": [
+    "climberfieldgravitygametests.supportednativegroundcontrollerssharecardinalinputbutcustomcontrollersremainnative",
+    "survivalthreatgametests.unavailablealarmvolumescannotcreateactorsorgeneratechunks",
+    "climberfieldgravitygametests.passivenativetemptgoalspursuetheactualfoodholdingplayerontheceiling",
+    "survivalthreatgametests.realreconacquiresnaturallylosessightandstopsafteritspairisdefeated",
+    "survivalthreatgametests.anaturallyobservedexistingpairentersfinitesiegeandrealcoverreturnsittosearch",
+    "climberfieldgravitygametests.nativegroundwalkergoalsusetheiractualceilingframe",
+    "climberfieldgravitygametests.nativegroundwalkergoalsusetheiractualwallframe",
+    "climberfieldgravitygametests.ordinaryfloornativepursuitadmitsoneassignedcowtarget",
+    "survivalthreatgametests.onlyanactualsurvivalmachinekillcreatesanattributeddeduplicatedalarm",
+    "survivalthreatgametests.twoactualgroundrocketeersgivefullwarningbeforetheirfiniterealrocketsdamageanunprotectedbase",
+    "survivalthreatgametests.escapinganactualsiegestopsnewfireandthesamepairphysicallyretreatsbeforeretirement",
+    "survivalthreatgametests.legitimateescapestopsnewmissilesandthesamegroundpairphysicallyretreatsthenretires",
+    "survivalthreatgametests.nodroneappearsbeforethepersistedwarningdeadline",
+    "climberfieldgravitygametests.nativeskeletonandstraybowgoalsacquirearealplayernavigateandfirefromthewall",
+    "climberfieldgravitygametests.passivenativetemptgoalspursuetheactualfoodholdingplayeronthewall",
+    "plasmaconvergencegametests.realtwinmuzzleshitanarrowreticlevictimfortheoriginaleightenergy",
+    "survivalthreatgametests.onerealdusktonighthuntsupportswarningshelterandescapewithoutrenewingthepair",
+    "survivalthreatgametests.ordinaryplayerplasmacandefeattheactualpairduringitswarningwithoutreplacementactors",
+    "climberfieldgravitygametests.passivenativetemptgoalspursuetheactualfoodholdingplayerontheordinaryfloor",
+    "survivalthreatgametests.actualpersistentstatefilesrestorecooldownrosterandvictimdeduplication",
+    "climberfieldgravitygametests.firstentryretainsclimberpositionandnativeownership",
+    "plasmaconvergencegametests.realopaquecoverterminatesbothboltswithouthiddendamageorfreeenergy",
+    "climberfieldgravitygametests.nativegroundwalkergoalsretainordinaryfloorprogress",
+    "heavyoperatorgametests.separatetwoaxismechanismfireslaserandbothshoulderrocketswhileactuallymovingandrolled"
+  ],
+  "fail": [
+    {
+      "name": "heavyoperatorgametests.savedthreebodyidentityrestoresnormalfireandfutureormissingcorenevergrantsautomaticauthority",
+      "reason": "(9651893, -60, -14715882) actual motors/fire/material/restore must complete in bounded normal ticks; phase=genuine new shot after same-UUID codec restore"
+    },
+    {
+      "name": "heavyoperatorgametests.realshoulderimpactdisablesonlyitsgunandordinarymaterialreplacementresumeswithoutbodyreset",
+      "reason": "(9651906, -60, -14715882) actual module loss keeps other guns; bounded32tick receipt in reports/heavy-module-continuance"
+    }
+  ],
+  "accepted": [
+    "S12-T02"
+  ],
+  "partial": [
+    "S07-T02",
+    "S14-T04"
+  ],
+  "scope": "Normal Fabric GameTest server clock with STOCK backend. Real Survival principals, normal projectile and damage logic. C1 and Heavy ordinary controlled environments. This same-source focused run used the named development runtime."
+}

@@ -523,11 +523,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id008
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/focused-stock-4702e74d.json, EVIDENCE/finish36-20261119/focused-stock-4702e74d.zip]
+  notes: "Все десять серверных сценариев поддержанных ванильных наземных контроллеров прошли. Реальное движение и контакт подтверждены на полу, стене и потолке. Корова, свинья и овца используют обычную цель Tempt, скелет и зимогор сами находят игрока и стреляют со стены. Поведение C2 и другие семейства остаются открыты."
 - id: S07-T03
   stage: S07
   stage_title: Universal 6DoF for all mob families
@@ -856,11 +856,11 @@ tasks:
   owner: GAMEPLAY
   gate: G4
   depends_on_stages: *id013
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/focused-stock-4702e74d.json, EVIDENCE/finish36-20261119/focused-stock-4702e74d.zip]
+  notes: "Два реальных ракетчика дают полное предупреждение и разрушают незащищённую базу. Обычная плазма позволяет отбиться за время предупреждения. При бегстве та же пара прекращает огонь, реально отступает и затем снимается с симуляции. Все 11 серверных сценариев Survival прошли. Два независимых сбоя оператора Heavy сохранены в архиве этого запуска."
 - id: S12-T03
   stage: S12
   stage_title: Survival threat and minimal armament economy
