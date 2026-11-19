@@ -1,0 +1,48 @@
+{
+  "source": "88ce0587e4ba78fb7a8f67b656028bc362a3c08c",
+  "gameplayChange": "2a987b80",
+  "previousSource": "e6d9080c624e0d3d1e9174ccc59f104772848658",
+  "archive": "horizon-ground-coverage.zip",
+  "sha256": "adbe53978f211a96eafa3f710e98a4062fe0404990e3dede6ab4ea0334c0b49c",
+  "accepted": [
+    "S04-T06"
+  ],
+  "profile": "HYBRID_NATIVE, native BCC with Sodium and llvmpipe",
+  "regionXYWH": [
+    560,
+    315,
+    160,
+    90
+  ],
+  "comparison": "Per-channel maximum RGB change >3, from actual frame immediately before and after the same GPU Horizon draw. Flight looks 88 degrees down. Both bridge and near centre contained exact background in the first run. Both no longer contain unchanged sky after the fix. Phase staging follows the ordinary flight and reports actual movement. Existing PS1 coverage and smooth opacity are retained in S16-T03; this archive does not assert a fresh PS1 draw of the patch.",
+  "pixels": {
+    "previous": {
+      "bridge": {
+        "fullChanged": 457805,
+        "fullPixels": 921600,
+        "centreChanged": 0,
+        "centrePixels": 14400
+      },
+      "near": {
+        "fullChanged": 223043,
+        "fullPixels": 921600,
+        "centreChanged": 0,
+        "centrePixels": 14400
+      }
+    },
+    "fixed": {
+      "bridge": {
+        "fullChanged": 921600,
+        "fullPixels": 921600,
+        "centreChanged": 14400,
+        "centrePixels": 14400
+      },
+      "near": {
+        "fullChanged": 921600,
+        "fullPixels": 921600,
+        "centreChanged": 14400,
+        "centrePixels": 14400
+      }
+    }
+  }
+}

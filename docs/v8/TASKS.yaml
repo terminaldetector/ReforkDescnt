@@ -351,11 +351,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id005
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
-  notes: "2026-11-19, третий цикл. Поправлена привязка Y каталожных плавающих ориентиров, проверены встроенная дальняя геометрия и PS1-дымка. Плавность рельефа на всём пути и секторные артефакты ещё измеряются."
+  evidence: [EVIDENCE/finish36-20261119/horizon-ground-coverage.json, EVIDENCE/finish36-20261119/horizon-ground-coverage.zip, EVIDENCE/finish36-20261119/high-altitude-pressure.json]
+  notes: "В повторном полёте Native при взгляде вниз и крене проход LOD закрыл все 14 400 пикселей центральной пробы на 321 и 156 м. В первой пробе они оставались небом. Исправлен перенос максимальной высоты неизвестным мелким ячейкам, сохранены измеренные высоты и плавная интерполяция пяти unit-сценариев. Прогоны давления Native и PS1 отдельно зафиксированы в S16-T03."
 - id: S05-T01
   stage: S05
   stage_title: PS1 Hybrid presentation profile
