@@ -90,13 +90,12 @@ public final class PlanetSurfaceMesh {
 
 		// Keep source coverage beneath the old eye as well: the current camera's near exclusion
         // is evaluated in the shader, so movement cannot expose an old inner hole.
-        // Plan the rings before emitting any: the outermost one has to know where the field ends so
-		// it can fade out into it. A ring that stops at full opacity leaves a rim hanging in the air.
+        // Plan coverage rings before emitting. The shader fades the outer edge around the current
+        // eye, so cached vertices never retain an old camera-centred opacity circle.
 		// The sizing rule itself lives in HorizonGrid, where it is directly testable — see that class
 		// for why altitude now refines the grid instead of coarsening it.
 		double drop = camY - PlanetMap.height(seed, camX, camZ);
 		HorizonGrid.Plan plan = HorizonGrid.plan(0, HorizonProjection.MAX_TRUE_RADIUS, drop);
-		b.fieldOuter = plan.outer();
 
 		for (int ring = 0; ring < plan.rings(); ring++) {
 			b.emitRing(plan.edges()[ring], plan.edges()[ring + 1], plan.cells()[ring]);
@@ -122,8 +121,6 @@ public final class PlanetSurfaceMesh {
 		private final float[] positions;
 		private final int[] colours;
 		private int quads;
-		/** Where the ring walk ends — the outer edge the haze fades into. */
-		private double fieldOuter = HorizonProjection.MAX_TRUE_RADIUS;
 
 		Builder(long seed, double camX, double camY, double camZ, double inner, double reach,
 				Set<Long> scarCells, float[] positions, int[] colours) {
@@ -183,7 +180,7 @@ public final class PlanetSurfaceMesh {
 					} else {
 						rgb = PlanetMap.tint(seed, centreX, centreZ, h);
 					}
-					float alpha = alphaAt(Math.sqrt(d2));
+					float alpha = 1f; // Current-eye outer opacity is evaluated by the shared colour/semantic shaders.
 					double x1 = x0 + cell;
 					double z1 = z0 + cell;
 
@@ -219,7 +216,7 @@ public final class PlanetSurfaceMesh {
 
 				double base = PlanetMap.height(seed, mark.x(), mark.z());
 				double groundTop = mark.baseY(Math.max(base, PlanetMap.SEA_LEVEL));
-				float alpha = alphaAt(d);
+				float alpha = 1f;
 				int rgb = mark.colour();
 				double half = mark.halfWidth();
 				double height = mark.height();
@@ -282,23 +279,6 @@ public final class PlanetSurfaceMesh {
 			quad(x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, side);
 			quad(x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, dark);
 			quad(x1, y0, z0, x1, y0, z1, x1, y1, z1, x1, y1, z0, dark);
-		}
-
-		/**
-		 * Opacity for a point: up out of the real chunks it abuts, down into haze at the horizon.
-		 *
-		 * <p>Both ends matter. Without the inner ramp the map would start as a hard ring exactly
-		 * where vanilla stops drawing ground; without the outer one it would end at a rim in mid-air
-		 * — and the outer one is what a horizon actually looks like.
-		 */
-		private float alphaAt(double distance) {
-			float alpha = 1f;
-			double fadeFrom = fieldOuter * 0.55;
-			if (distance > fadeFrom) {
-				double tail = Math.max(1.0, fieldOuter - fadeFrom);
-				alpha *= (float) Math.max(0.0, 1.0 - (distance - fadeFrom) / tail);
-			}
-			return Math.max(0f, Math.min(1f, alpha));
 		}
 
         private final java.util.Map<Long,Double> heights = new java.util.HashMap<>();

@@ -8,6 +8,7 @@ uniform float InnerRadius;
 uniform float FieldReach;
 out vec3 trueViewPosition;
 out float sourceOpacity;
+out vec3 trueEyeVector;
 void main() {
     vec3 eye = Position + FieldOriginDelta;
     float distance = length(eye);
@@ -20,4 +21,5 @@ void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(projected, 1.0);
     trueViewPosition = (ModelViewMat * vec4(eye, 1.0)).xyz;
     sourceOpacity = Color.a;
+    trueEyeVector = eye;
 }

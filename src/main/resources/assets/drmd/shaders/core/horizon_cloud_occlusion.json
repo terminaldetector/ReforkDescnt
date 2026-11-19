@@ -129,6 +129,14 @@
       "values": [
         400
       ]
+    },
+    {
+      "name": "FieldOuterRadius",
+      "type": "float",
+      "count": 1,
+      "values": [
+        12000
+      ]
     }
   ]
 }

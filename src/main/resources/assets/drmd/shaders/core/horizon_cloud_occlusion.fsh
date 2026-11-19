@@ -5,9 +5,11 @@ uniform float MaxRayDistance;
 uniform vec4 ColorModulator;
 in vec3 trueViewPosition;
 in float sourceOpacity;
+in vec3 trueEyeVector;
+uniform float FieldOuterRadius;
 out vec4 fragColor;
 void main() {
-    float opacity = sourceOpacity * ColorModulator.a;
+    float opacity = sourceOpacity * ColorModulator.a * (1.0 - smoothstep(FieldOuterRadius * 0.55, FieldOuterRadius, length(trueEyeVector.xz)));
     if (opacity < 0.01) discard;
     vec3 normal = cross(dFdx(trueViewPosition), dFdy(trueViewPosition));
     float normalLength = length(normal);

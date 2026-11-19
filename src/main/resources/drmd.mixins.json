@@ -57,6 +57,8 @@
     "client.GameRendererMixin",
     "client.PresentationRendererMixin",
     "client.Ps1FramePacingMixin",
+    "client.Ps1WorldFogMixin",
+    "client.Ps1SkyBackgroundMixin",
     "client.DebugWorldRasterMixin",
     "client.AltitudeCloudBufferMixin",
     "client.AltitudeCloudVanillaMixin",

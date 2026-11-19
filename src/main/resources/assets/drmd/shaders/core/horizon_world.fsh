@@ -2,24 +2,26 @@
 in vec4 vertexColor;
 in vec3 trueEyeVector;
 uniform float InnerRadius;
+uniform float FieldOuterRadius;
 uniform vec4 ColorModulator;
 uniform vec4 FogColor;
 uniform float Ps1FarFogDensity;
 uniform float Ps1SkyFogMix;
 uniform vec3 Ps1SkyFogColor;
+uniform float Ps1FogStart;
+uniform float Ps1FogEnd;
 out vec4 fragColor;
 void main() {
     float horizontal = length(trueEyeVector.xz);
 
-    float nearFade = 1.0;
+    float nearFade = 1.0 - smoothstep(FieldOuterRadius * 0.55, FieldOuterRadius, horizontal);
     vec4 colour = vertexColor * ColorModulator;
     colour.a *= nearFade;
     if (colour.a < 0.01) discard;
     // Style uses uncompressed source distance; alpha and geometry/depth ownership stay original.
     if (Ps1FarFogDensity > 0.0) {
         float distance = length(trueEyeVector);
-        float into = max(0.0, distance - max(512.0, InnerRadius)) / 2048.0;
-        float amount = min(0.85, 1.0 - exp(-Ps1FarFogDensity * into));
+        float amount = smoothstep(Ps1FogStart, Ps1FogEnd, distance) * FogColor.a;
         vec3 haze = mix(FogColor.rgb, Ps1SkyFogColor, Ps1SkyFogMix);
         colour.rgb = mix(colour.rgb, haze, amount);
     }

@@ -144,7 +144,8 @@ public final class ScenePresentation {
                 else{GL11.glPolygonMode(GL11.GL_FRONT,polygonModes[0]);GL11.glPolygonMode(GL11.GL_BACK,polygonModes[1]);}
                 try{if(complete&&scene!=null)scene.compositeOutlines(client);}
                 finally{
-                    if(borrowed!=null)borrowed.close();((ViewFramebufferAccess)client).drmd$framebuffer(output);output.beginWrite(true);active=null;
+                    try{if(borrowed!=null)borrowed.close();((ViewFramebufferAccess)client).drmd$framebuffer(output);output.beginWrite(true);}
+                    finally{Ps1WorldFog.finishWorld();active=null;}
                 }
                 if(!complete)return;
                 if(scene!=null){

@@ -41,6 +41,7 @@ public final class AltitudeCloudRenderer {
     private static boolean valid,hasFarSource,delegated,failed,logged;
     private static int ownerMain,scopeDepth;
     private static final boolean[] scopes=new boolean[8];
+    private static final com.terminaldetector.drmd.client.presentation.Ps1WorldFog.State[] cloudFog=new com.terminaldetector.drmd.client.presentation.Ps1WorldFog.State[8];
     private static long epoch,farDraws,replacements,fallbacks;
     private static String lastFallback="none";
     private AltitudeCloudRenderer(){}
@@ -83,14 +84,16 @@ public final class AltitudeCloudRenderer {
         try(var saved=new FarFieldOcclusionTarget.State()){
             target.begin();RenderSystem.setShader(()->AltitudeCloudShaders.occlusion);var shader=AltitudeCloudShaders.occlusion;
             shader.getUniform("FieldOriginDelta").set(x,y,z);shader.getUniform("InnerRadius").set(inner);shader.getUniform("FieldReach").set(reach);shader.getUniform("InverseProjection").set(new Matrix4f(worldProjection).invert());shader.getUniform("CloudTargetSize").set((float)target.width,(float)target.height);shader.getUniform("MaxRayDistance").set(AltitudeCloudPolicy.MAX_RAY_DISTANCE);
+            shader.getUniform("FieldOuterRadius").set(HorizonExtent.outerRadius());
             HorizonVertexBuffer.drawSemantic(view,worldProjection,shader);hasFarSource=true;farDraws++;
         }catch(RuntimeException failure){fallback("far witness draw rejected: "+failure,failure);}
     }
-    public static void enterCloudScope(boolean sodium){if(OffscreenWorldView.busy())return;if(scopeDepth>=scopes.length){fallback("cloud scope nesting exceeds bound",null);return;}scopes[scopeDepth++]=sodium;}
-    public static void leaveCloudScope(){if(!OffscreenWorldView.busy()&&scopeDepth>0)scopeDepth--;}
+    public static void enterCloudScope(boolean sodium){if(OffscreenWorldView.busy())return;if(scopeDepth>=scopes.length){fallback("cloud scope nesting exceeds bound",null);return;}cloudFog[scopeDepth]=com.terminaldetector.drmd.client.presentation.Ps1WorldFog.suspendForCloud();scopes[scopeDepth++]=sodium;}
+    public static void leaveCloudScope(){if(!OffscreenWorldView.busy()&&scopeDepth>0){int at=--scopeDepth;com.terminaldetector.drmd.client.presentation.Ps1WorldFog.resumeAfterCloud(cloudFog[at]);cloudFog[at]=null;}}
     /** Return true only after executing the single replacement draw; caller cancels the outer call. */
     public static boolean drawCloud(VertexBuffer buffer,Matrix4f view,Matrix4f projection,ShaderProgram original){
-        var c=MinecraftClient.getInstance();if(delegated||scopeDepth==0||original==null||!original.getName().contains("cloud")||!eligible(c))return false;
+        var c=MinecraftClient.getInstance();if(delegated||scopeDepth==0||original==null||!original.getName().contains("cloud"))return false;
+        if(!eligible(c))return com.terminaldetector.drmd.client.presentation.Ps1WorldFog.active()&&drawNearFog(buffer,view,projection);
         if(!valid||failed||target==null||world!=c.world||ownerMain!=c.getFramebuffer().fbo){if(!failed)fallback("no matching current-view semantic witness",null);return false;}
         var main=c.getFramebuffer();int draw=GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);var clouds=((WorldViewTargetsAccess)c.worldRenderer).drmd$clouds();boolean matching=draw==ownerMain||clouds!=null&&draw==clouds.fbo&&clouds.textureWidth==target.width&&clouds.textureHeight==target.height;
         int[] viewport=new int[4];GL11.glGetIntegerv(GL11.GL_VIEWPORT,viewport);
@@ -105,8 +108,26 @@ public final class AltitudeCloudRenderer {
         var policy=DescentConfig.cloudPolicy;float weight=policy.weight(viewerAltitude),extendedFar=policy.expandedFar(far,weight);var extended=new Matrix4f(projection).m22(-(extendedFar+near)/(extendedFar-near)).m32(-2*extendedFar*near/(extendedFar-near));
         delegated=true;
         try(var saved=new FarFieldOcclusionTarget.State()){
-            saved.plainSampler(CloudRenderCompatibility.farSurfaceUnit(layout));var shader=layout==CloudRenderCompatibility.Layout.VANILLA_TEXTURED?AltitudeCloudShaders.cloudsVanilla:AltitudeCloudShaders.clouds;RenderSystem.setShader(()->shader);shader.addSampler("FarSurface",target.texture);shader.getUniform("OriginalProjection").set(projection);shader.getUniform("WorldFromView").set(new Matrix4f(worldView).invert());shader.getUniform("AltitudeWeight").set(weight);shader.getUniform("CloudRange").set(policy.range());shader.getUniform("StockCloudMode").set(scopes[scopeDepth-1]?1:0);selectedDepthCeiling=AltitudeCloudPolicy.farDepthCeiling(saved.depthFunc==GL11.GL_LESS);shader.getUniform("DepthCeiling").set(selectedDepthCeiling);
+            saved.plainSampler(CloudRenderCompatibility.farSurfaceUnit(layout));var shader=layout==CloudRenderCompatibility.Layout.VANILLA_TEXTURED?AltitudeCloudShaders.cloudsVanilla:AltitudeCloudShaders.clouds;RenderSystem.setShader(()->shader);shader.addSampler("FarSurface",target.texture);shader.getUniform("HasFarSurface").set(1);shader.getUniform("OriginalProjection").set(projection);shader.getUniform("WorldFromView").set(new Matrix4f(worldView).invert());shader.getUniform("AltitudeWeight").set(weight);shader.getUniform("CloudRange").set(policy.range());shader.getUniform("StockCloudMode").set(scopes[scopeDepth-1]?1:0);selectedDepthCeiling=AltitudeCloudPolicy.farDepthCeiling(saved.depthFunc==GL11.GL_LESS);shader.getUniform("DepthCeiling").set(selectedDepthCeiling);
+            com.terminaldetector.drmd.client.presentation.Ps1WorldFog.cloudUniforms(shader);
             buffer.draw(view,extended,shader);replacements++;return true;
+        }finally{delegated=false;}
+    }
+    /** Low-altitude PS1 colour uses the original VBO/projection and alpha, without allocating a far witness. */
+    private static boolean drawNearFog(VertexBuffer buffer,Matrix4f view,Matrix4f projection){
+        var format=buffer.getVertexFormat();var layout=CloudRenderCompatibility.layout(format.getVertexSizeByte(),
+            format.has(VertexFormatElement.POSITION)?format.getOffset(VertexFormatElement.POSITION):-1,
+            format.has(VertexFormatElement.UV_0)?format.getOffset(VertexFormatElement.UV_0):-1,
+            format.has(VertexFormatElement.COLOR)?format.getOffset(VertexFormatElement.COLOR):-1,
+            format.has(VertexFormatElement.NORMAL)?format.getOffset(VertexFormatElement.NORMAL):-1,format.getElements().size());
+        if(layout==null||AltitudeCloudShaders.clouds==null||AltitudeCloudShaders.cloudsVanilla==null)return false;
+        delegated=true;
+        try(var saved=new FarFieldOcclusionTarget.State()){
+            var shader=layout==CloudRenderCompatibility.Layout.VANILLA_TEXTURED?AltitudeCloudShaders.cloudsVanilla:AltitudeCloudShaders.clouds;
+            RenderSystem.setShader(()->shader);shader.addSampler("FarSurface",0);shader.getUniform("HasFarSurface").set(0);shader.getUniform("OriginalProjection").set(projection);
+            shader.getUniform("WorldFromView").set(new Matrix4f());shader.getUniform("AltitudeWeight").set(0f);shader.getUniform("CloudRange").set(DescentConfig.cloudPolicy.range());
+            shader.getUniform("StockCloudMode").set(scopes[scopeDepth-1]?1:0);shader.getUniform("DepthCeiling").set(1f);
+            com.terminaldetector.drmd.client.presentation.Ps1WorldFog.cloudUniforms(shader);buffer.draw(view,projection,shader);return true;
         }finally{delegated=false;}
     }
 }

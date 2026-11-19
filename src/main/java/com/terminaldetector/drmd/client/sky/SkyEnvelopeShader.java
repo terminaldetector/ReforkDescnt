@@ -12,6 +12,7 @@ public final class SkyEnvelopeShader {
     private SkyEnvelopeShader() {}
 
     public static void register() {
+        Ps1SkyBackground.register();
         CoreShaderRegistrationCallback.EVENT.register(context -> context.register(
                 Identifier.of("drmd", "sky_envelope"), VertexFormats.POSITION_COLOR,
                 shader -> program = shader));

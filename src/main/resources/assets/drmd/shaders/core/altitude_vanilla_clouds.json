@@ -185,6 +185,91 @@
       "values": [
         1
       ]
+    },
+    {
+      "name": "HasFarSurface",
+      "type": "int",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "Ps1FarFogDensity",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "Ps1SkyFogMix",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "Ps1SkyFogColor",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Ps1FogStart",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "Ps1FogEnd",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "CloudStockFogStart",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "CloudStockFogEnd",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "CloudStockFogColor",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "CloudStockFogShape",
+      "type": "int",
+      "count": 1,
+      "values": [
+        0
+      ]
     }
   ]
 }

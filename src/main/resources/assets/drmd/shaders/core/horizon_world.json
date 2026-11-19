@@ -109,7 +109,47 @@
         0
       ]
     },
-    {"name": "Ps1SkyFogMix", "type": "float", "count": 1, "values": [0]},
-    {"name": "Ps1SkyFogColor", "type": "float", "count": 3, "values": [0, 0, 0]}
+    {
+      "name": "Ps1SkyFogMix",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "Ps1SkyFogColor",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Ps1FogStart",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "Ps1FogEnd",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "FieldOuterRadius",
+      "type": "float",
+      "count": 1,
+      "values": [
+        12000
+      ]
+    }
   ]
 }

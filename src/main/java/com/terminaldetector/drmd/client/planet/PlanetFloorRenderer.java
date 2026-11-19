@@ -74,8 +74,7 @@ public final class PlanetFloorRenderer {
 		// Styling changes only the colour pass opacity. The original linear share below still
         // owns projection reach and the mesh cache, so toggling PS1 never rebuilds world geometry.
         float opacity=alpha;
-        if(overworld&&DescentConfig.ps1FarFog.effective(DescentConfig.presentationProfile,
-                com.terminaldetector.drmd.client.presentation.ScenePresentation.inLowResolutionWorld(),false)>0)
+        if(overworld&&com.terminaldetector.drmd.client.presentation.Ps1WorldFog.active())
             opacity=com.terminaldetector.drmd.client.presentation.Ps1Atmosphere.groundOpacity(cam.y);
 
 		long seed = PlanetClientState.INSTANCE.seed();

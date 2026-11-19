@@ -108,7 +108,7 @@ public final class OffscreenWorldView {
 		if (target == null) {
 			// Ordinarily a minimised window, but it is also one of the ways a mirror shows nothing at
 			// all, so it is worth being able to rule out rather than assume.
-			DiagProblems.record("portal", "no off-screen target: "+MirrorFramebuffer.unavailableReason());
+			DiagProblems.record("portal", "no off-screen target this frame — the window reports no area");
 			return false;
 		}
 
@@ -122,6 +122,7 @@ public final class OffscreenWorldView {
         Matrix4f savedProjection=new Matrix4f(RenderSystem.getProjectionMatrix());
         var savedSorting=RenderSystem.getVertexSorting();
         var savedShader=RenderSystem.getShader();
+        var savedFog=com.terminaldetector.drmd.client.presentation.Ps1WorldFog.capture();
         int originalWinding = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_FRONT_FACE);
 		depth++;
         var nestedTargets=new NestedViewTargets(context.worldRenderer());
@@ -171,6 +172,7 @@ public final class OffscreenWorldView {
 			context.worldRenderer().setupFrustum(originalPos, framePosition, outerProjection);
 			RenderSystem.setProjectionMatrix(savedProjection,savedSorting);
             RenderSystem.setShader(()->savedShader);
+            com.terminaldetector.drmd.client.presentation.Ps1WorldFog.restore(savedFog);
             depth--;
 		}
 
