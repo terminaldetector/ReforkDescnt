@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.world.contraption.mechanism;
 
 import com.terminaldetector.drmd.ai.HostileEnvironment;
+import com.terminaldetector.drmd.ai.DroneSquadMailbox;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.world.contraption.*;
@@ -34,9 +35,11 @@ public final class HeavyOperatorSystem {
     }
     public record Stats(int visited,int assemblies,int candidates,int rays,int drives){}
     private record Permit(UUID root,UUID target,WeakReference<LivingEntity> actor,long tick){}
+    private record Memory(UUID target,WeakReference<LivingEntity> actor,Vec3d point,long observedAt){}
     private static final class Frame {
         long tick=Long.MIN_VALUE;int cursor,candidates,rays,drives;Stats stats=new Stats(0,0,0,0,0);
         final Map<UUID,Permit> permits=new HashMap<>();
+        final Map<UUID,Memory> memories=new HashMap<>();
     }
     private HeavyOperatorSystem(){}
     public static void register(){
@@ -155,6 +158,7 @@ public final class HeavyOperatorSystem {
     private static void tick(ServerWorld world){
         long now=world.getTime();if(now%CADENCE!=0)return;var f=FRAMES.computeIfAbsent(world,w->new Frame());if(f.tick==now)return;
         f.tick=now;f.candidates=f.rays=f.drives=0;f.permits.clear();var bodies=BodySpatialIndex.loaded(world);int visited=0,assemblies=0;
+        f.memories.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>=DroneSquadMailbox.TTL;});
         while(visited<Math.min(MAX_BODY_VISITS,bodies.size())&&assemblies<MAX_ASSEMBLIES){
             var base=bodies.get(Math.floorMod(f.cursor++,bodies.size()));visited++;if(!base.getCommandTags().contains(ROOT))continue;assemblies++;
             var a=resolve(world,base);if(!valid(world,a)){stop(a,f);continue;}
@@ -163,12 +167,20 @@ public final class HeavyOperatorSystem {
             world.collectEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),Box.of(from,96,96,96),e->enemy(base,e),candidates,MAX_CANDIDATES-f.candidates);
             f.candidates+=candidates.size();candidates.sort(Comparator.comparingDouble(e->e.squaredDistanceTo(from)));LivingEntity target=null;
             for(var candidate:candidates)if(candidate.squaredDistanceTo(from)<=48*48&&sight(world,a,from,candidate.getBoundingBox().getCenter(),f)){target=candidate;break;}
-            if(target==null){stop(a,f);continue;}
-            var desired=target.getBoundingBox().getCenter().subtract(from).normalize();var forward=MountedWeaponEmitter.direction(a.barrel,LASER);
+            Vec3d point;
+            if(target!=null){point=target.getBoundingBox().getCenter();if(f.memories.size()<MAX_ASSEMBLIES||f.memories.containsKey(base.getUuid()))f.memories.put(base.getUuid(),new Memory(target.getUuid(),new WeakReference<>(target),point,now));}
+            else{var memory=f.memories.get(base.getUuid());var remembered=memory==null?null:memory.actor.get();
+                if(memory==null||!enemy(base,remembered)||!remembered.getUuid().equals(memory.target)){stop(a,f);continue;}
+                // Own hull/cover can briefly hide a recoiling muzzle. Drive only
+                // toward its copied last observation; hidden actor XYZ cannot
+                // move this aim point or authorize even one projectile.
+                point=memory.point;
+            }
+            var desired=point.subtract(from).normalize();var forward=MountedWeaponEmitter.direction(a.barrel,LASER);
             double yawSpeed=a.yaw.physics().angularVelocity().minus(a.base.physics().angularVelocity()).dot(a.base.rotation().rotate(UP));
             double pitchSpeed=a.barrel.physics().angularVelocity().minus(a.yaw.physics().angularVelocity()).dot(a.yaw.rotation().rotate(X));
             drive(a.base,YAW_DRIVE,Direction.UP,axis(a.base,UP),forward,desired,yawSpeed,f);drive(a.yaw,PITCH_DRIVE,Direction.EAST,axis(a.yaw,X),forward,desired,pitchSpeed,f);
-            f.permits.put(a.barrel.getUuid(),new Permit(base.getUuid(),target.getUuid(),new WeakReference<>(target),now));
+            if(target!=null)f.permits.put(a.barrel.getUuid(),new Permit(base.getUuid(),target.getUuid(),new WeakReference<>(target),now));
         }
         f.stats=new Stats(visited,assemblies,f.candidates,f.rays,f.drives);
     }
