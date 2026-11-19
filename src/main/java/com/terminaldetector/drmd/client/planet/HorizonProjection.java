@@ -1,5 +1,7 @@
 package com.terminaldetector.drmd.client.planet;
 
+import com.terminaldetector.drmd.world.level.WorldLevels;
+
 /**
  * How far away distant things get drawn.
  *
@@ -47,6 +49,14 @@ public final class HorizonProjection {
 	 * thousands of cells to add detail that is already stacked on the horizon line.
 	 */
 	public static final double MAX_TRUE_RADIUS = 8_192.0;
+
+    /** The surface-to-sky transition, with zero slope at both band boundaries. */
+    public static float groundOpacity(double y) {
+        if (!Double.isFinite(y)) return 0;
+        double span = WorldLevels.SKY_TOP - WorldLevels.SURFACE_TOP;
+        double t = Math.max(0, Math.min(1, (y - WorldLevels.SURFACE_TOP) / span));
+        return (float) (t * t * (3 - 2 * t));
+    }
 
 	/** Drawn distance for a true distance. */
 	public static double compress(double distance, double inner, double reach) {

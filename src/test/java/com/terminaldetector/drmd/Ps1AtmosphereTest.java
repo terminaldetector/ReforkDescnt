@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd;
 
 import com.terminaldetector.drmd.client.presentation.*;
+import com.terminaldetector.drmd.client.planet.HorizonProjection;
 import com.terminaldetector.drmd.world.level.WorldLevels;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,17 +11,17 @@ class Ps1AtmosphereTest {
         assertEquals(1,Ps1Atmosphere.density(WorldLevels.SURFACE_TOP,1),1e-6);
         assertEquals(.45,Ps1Atmosphere.density(WorldLevels.SKY_TOP,1),1e-6);
         assertEquals(.08,Ps1Atmosphere.density(WorldLevels.ORBITAL_TOP,1),1e-6);
-        assertEquals(0,Ps1Atmosphere.groundOpacity(WorldLevels.SURFACE_TOP));
-        assertEquals(1,Ps1Atmosphere.groundOpacity(WorldLevels.SKY_TOP));
+        assertEquals(0,HorizonProjection.groundOpacity(WorldLevels.SURFACE_TOP));
+        assertEquals(1,HorizonProjection.groundOpacity(WorldLevels.SKY_TOP));
         for(int boundary:new int[]{WorldLevels.SURFACE_TOP,WorldLevels.SKY_TOP,WorldLevels.ORBITAL_TOP}) {
             assertEquals(Ps1Atmosphere.density(boundary-.001,1),Ps1Atmosphere.density(boundary+.001,1),1e-6);
-            assertEquals(Ps1Atmosphere.groundOpacity(boundary-.001),Ps1Atmosphere.groundOpacity(boundary+.001),1e-6);
+            assertEquals(HorizonProjection.groundOpacity(boundary-.001),HorizonProjection.groundOpacity(boundary+.001),1e-6);
         }
     }
     @Test void climbingNeverIntroducesADensityOrOpacityBandJump() {
         float density=1,opacity=0;
         for(int y=WorldLevels.SURFACE_TOP-32;y<=WorldLevels.ORBITAL_TOP+100;y++) {
-            float next=Ps1Atmosphere.density(y,1),fade=Ps1Atmosphere.groundOpacity(y);
+            float next=Ps1Atmosphere.density(y,1),fade=HorizonProjection.groundOpacity(y);
             assertTrue(next<=density+1e-7&&next>=.07999f);
             assertTrue(Math.abs(next-density)<.01);
             assertTrue(fade>=opacity&&fade<=1&&fade-opacity<.01);
@@ -46,6 +47,6 @@ class Ps1AtmosphereTest {
         assertEquals(0,Ps1Atmosphere.density(Double.NaN,1));
         assertEquals(0,Ps1Atmosphere.density(100,Float.POSITIVE_INFINITY));
         assertEquals(0,Ps1Atmosphere.fogAmount(600,1,Double.POSITIVE_INFINITY,0));
-        assertEquals(0,Ps1Atmosphere.groundOpacity(Double.NaN));
+        assertEquals(0,HorizonProjection.groundOpacity(Double.NaN));
     }
 }

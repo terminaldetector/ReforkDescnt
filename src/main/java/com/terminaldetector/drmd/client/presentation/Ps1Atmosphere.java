@@ -11,11 +11,6 @@ public final class Ps1Atmosphere {
         return t*t*(3-2*t);
     }
 
-    /** Same old ground-ramp endpoints, with zero derivative at the surface/sky joins. */
-    public static float groundOpacity(double y) {
-        return Double.isFinite(y)?(float)ramp(y,WorldLevels.SURFACE_TOP,WorldLevels.SKY_TOP):0;
-    }
-
     /** Thin air fades continuously through the sky and orbital bands; space never gains dense terrestrial haze. */
     public static float density(double y,float configured) {
         if(!Double.isFinite(y)||!Float.isFinite(configured)||configured<=0)return 0;

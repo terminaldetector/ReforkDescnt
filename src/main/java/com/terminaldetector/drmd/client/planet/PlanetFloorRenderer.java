@@ -3,13 +3,10 @@ package com.terminaldetector.drmd.client.planet;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.world.compat.DistantHorizonsCompat;
-import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.planet.PlanetMap;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Matrix4f;
@@ -29,11 +26,6 @@ import org.joml.Matrix4f;
  * it is. So it fades in across the climb out of the surface band and is fully on by the orbital.
  */
 public final class PlanetFloorRenderer {
-	/** Below this the real terrain owns the view; the map would only argue with it. */
-	private static final double FADE_START = WorldLevels.SURFACE_TOP;
-	/** Fully on by the top of the sky band. */
-	private static final double FADE_FULL = WorldLevels.SKY_TOP;
-
 	/** In the End there is no shared vertical, so the planet is placed at a chosen depth. */
 	private static final double END_VIRTUAL_DROP = 900.0;
 
@@ -65,17 +57,8 @@ public final class PlanetFloorRenderer {
             ? DistantHorizonsCompat.horizonShare(mc.world, cam.y, PlanetMap.SEA_LEVEL) : 1;
         if (backdrop <= 0) return;
 
-		float alpha = 1f;
-		if (overworld) {
-			double into = cam.y - FADE_START;
-			if (into <= 0) return;
-			alpha = (float) MathHelper.clamp(into / (FADE_FULL - FADE_START), 0.0, 1.0);
-		}
-		// Styling changes only the colour pass opacity. The original linear share below still
-        // owns projection reach and the mesh cache, so toggling PS1 never rebuilds world geometry.
-        float opacity=alpha;
-        if(overworld&&com.terminaldetector.drmd.client.presentation.Ps1WorldFog.active())
-            opacity=com.terminaldetector.drmd.client.presentation.Ps1Atmosphere.groundOpacity(cam.y);
+        float alpha = overworld ? HorizonProjection.groundOpacity(cam.y) : 1f;
+        if (alpha <= 0) return;
 
 		long seed = PlanetClientState.INSTANCE.seed();
 		// In the column the eye is where it is and the map keeps the world's own heights. In the
@@ -122,7 +105,7 @@ public final class PlanetFloorRenderer {
 		// The climb's fade as a uniform rather than per-vertex alpha, which is what lets the geometry
 		// stay on the GPU across frames — see HorizonVertexBuffer. Each quad's own alpha is already
 		// baked in there; this multiplies the whole field by how far the map has faded in.
-		RenderSystem.setShaderColor(1f, 1f, 1f, (float) (opacity * backdrop));
+		RenderSystem.setShaderColor(1f, 1f, 1f, (float) (alpha * backdrop));
 
 		if (HorizonVertexBuffer.prepare(mesh)) {
 			HorizonVertexBuffer.draw(mat);
