@@ -1,0 +1,138 @@
+{
+  "status": "PASS",
+  "source": "6877d3c64b6a6a6ea4910cbf89d9d010a927a068",
+  "jarSha256": "947bf4c3d55113fb3656b92278b05d5b1fbb3f3afedf90824c8dda652f392198",
+  "cases": {
+    "placement": {
+      "actualMouseEntry": true,
+      "packetPlacement": true,
+      "scenes": [
+        {
+          "scene": "blue-only",
+          "frames": 60,
+          "bluePixels": 0,
+          "orangePixels": 0
+        },
+        {
+          "scene": "paired-blue-orange",
+          "frames": 60,
+          "bluePixels": 1710,
+          "orangePixels": 1446
+        },
+        {
+          "scene": "blue-replaced",
+          "frames": 60,
+          "bluePixels": 0,
+          "orangePixels": 0
+        },
+        {
+          "scene": "pair-cleared",
+          "frames": 60,
+          "bluePixels": 0,
+          "orangePixels": 0
+        },
+        {
+          "scene": "container-protected",
+          "frames": 60,
+          "bluePixels": 0,
+          "orangePixels": 0
+        }
+      ]
+    },
+    "walking": {
+      "status": "PASS",
+      "flight": false,
+      "crossings": 1,
+      "maximumApproachAngle": 0.0,
+      "cameraStateChanges": 0,
+      "nearFrames": 4,
+      "serverArrival": {
+        "tick": 419,
+        "pos": [
+          22.5,
+          2154.88,
+          13.56874751437334
+        ],
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forward": [
+          0.0,
+          -0.0,
+          1.0
+        ],
+        "up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "epoch": 1,
+        "flight": false
+      }
+    },
+    "sixdof": {
+      "status": "PASS",
+      "flight": true,
+      "crossings": 1,
+      "maximumApproachAngle": 0.0,
+      "cameraStateChanges": 0,
+      "nearFrames": 3,
+      "serverArrival": {
+        "tick": 377,
+        "pos": [
+          22.5,
+          2154.88,
+          13.54144918647646
+        ],
+        "velocity": [
+          0.0,
+          0.0,
+          0.8456664043773294
+        ],
+        "forward": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "up": [
+          -0.34202015414019754,
+          0.9396926168497417,
+          0.0
+        ],
+        "epoch": 1,
+        "flight": true
+      }
+    }
+  },
+  "archive": "portal-gun-current-native.zip",
+  "archiveSha256": "e26a34a7c106474423705789fb0dc18c528a75d5e4a574db0187e272675a4e2d",
+  "memberSha256": {
+    "placement/native.log": "dbff1d148c59acff414967f9c59c596bc9d61b37df94ba97877371674c2ce368",
+    "placement/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "placement/inputs.json": "4a0deb2578b794d9375332a60fd393b358afaa3f1b0317220db8f5c8d9f67e07",
+    "placement/portal-gun-ok.json": "d8dd2bf53ee3866e1fe6582eb2e749caaea6dd005e0353d9d4bfe294ca6f1b66",
+    "placement/frames/blue-only.png": "e3899f17733f7733f8e1313d8bc13e75afbc9db458c57b2010b6b7009aab6d6e",
+    "placement/frames/blue-replaced.png": "96523b8913e6a3359d81a001dde79f834d56e567f45f8e8810a9c69b3a34690b",
+    "placement/frames/container-protected.png": "648270008d43726a5f4674241510d9f21c0cf78f613c91f8d72832acfcccebd4",
+    "placement/frames/pair-cleared.png": "75c41af2295038db12fbed66323639674c4e4792ab43b90ccc5354c93df7b01e",
+    "placement/frames/paired-blue-orange.png": "62ea00475f247cbfae86382c28dde8ac9f21ad5e38e4a52260e7f9876de440a9",
+    "walking/native.log": "0dea0199dc3d38225af3e910883c8c860aaf17e5e0758b0c15629de991a819e4",
+    "walking/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "walking/inputs.json": "4a0deb2578b794d9375332a60fd393b358afaa3f1b0317220db8f5c8d9f67e07",
+    "walking/gun-traversal-outcome.json": "98f050fe3a4bd080848980ed09323f5802767fe20ebb5d18749a205d26c7f9c2",
+    "walking/frames/blue-only.png": "e13169c32207fb0897fd0fdaadaa0c2571c0b2e0460d59fe565f524c521800c2",
+    "walking/frames/paired-blue-orange.png": "58b2edda355173a3a17c594e1bedcad155bfdde1dee16aa3d24607bb106f6ba1",
+    "walking/frames/traversal-approach.png": "7cab807a940e1a18e189af38d98babb18ba3f58631683fe7c3833ea478eb6bed",
+    "walking/frames/traversal-exit.png": "f1c906c5cc3d6c2cf9305814964531f6dfaaa048d578019dd04d21492f617e79",
+    "sixdof/native.log": "7c821699385f46ff493a72bed6a48677c938d907889a3c2846eacdbcf7ae26a3",
+    "sixdof/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "sixdof/inputs.json": "4a0deb2578b794d9375332a60fd393b358afaa3f1b0317220db8f5c8d9f67e07",
+    "sixdof/gun-traversal-outcome.json": "98e33ed8b5ccb679da5a109594f39903ee1f864a626e911ee1cdf4e22e4b25d3",
+    "sixdof/frames/blue-only.png": "70a90a9f608da54622984bbbd1b94ee95458360f4299b11d14b482fb6f97e526",
+    "sixdof/frames/paired-blue-orange.png": "31f0a560c4f4f5ddbf12c7bc5364c249517c0f1670e2e17789e225dcd807192a",
+    "sixdof/frames/traversal-approach.png": "fce2aac06c240f9405d428aa8d2f1f7f32e6fcaf742b3bca0569fb3014604a39",
+    "sixdof/frames/traversal-exit.png": "cc4371db25501fd50f604001bb9ecddfe8ee32fc073767ea77419af92deeca0e"
+  }
+}
