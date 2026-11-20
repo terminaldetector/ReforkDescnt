@@ -1,0 +1,180 @@
+{
+  "minecraft": "1.21.1",
+  "javaMajor": 21,
+  "actualHistoricalRingSource": "6877d3c64b6a6a6ea4910cbf89d9d010a927a068",
+  "packageProductionSource": "9cdb8dd48ed84ac850547fdeb309688a8bb2ee05",
+  "packageInstallMods": [
+    {
+      "file": "minecraft-1.21.1-client.jar",
+      "sha256": "499f6897d1837516680f3114072d8106e11c9adcd933fe5cf051b551089b0c99",
+      "bytes": 26836906,
+      "role": "runtime"
+    },
+    {
+      "file": "fabric-loader-0.19.5.jar",
+      "sha256": "93044e4dd46de5d8136701292f05e868da096d2c9fddb4793e4fdbcc63efc695",
+      "bytes": 1984980,
+      "role": "runtime",
+      "id": "fabricloader",
+      "version": "0.19.5",
+      "depends": {}
+    },
+    {
+      "file": "drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "sha256": "ba12a496476041d2b6d224722e8b0b16c63306c5ef385f1f050d9df696fafe49",
+      "bytes": 3588343,
+      "role": "final9cdb-package-game;historical-ring-used947b",
+      "id": "drmd",
+      "version": "1.1.35-ufo-dev.1",
+      "depends": {
+        "fabricloader": ">=0.16.0",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*"
+      }
+    },
+    {
+      "file": "bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+      "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+      "bytes": 806910,
+      "role": "runtime",
+      "id": "bettercubicchunks",
+      "version": "0.1.1+mc1.21.1",
+      "depends": {
+        "fabricloader": ">=0.19.5",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*"
+      }
+    },
+    {
+      "file": "fabric-api-0.116.15+1.21.1.jar",
+      "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+      "bytes": 2452718,
+      "role": "runtime",
+      "id": "fabric-api",
+      "version": "0.116.15+1.21.1",
+      "depends": {
+        "fabricloader": ">=0.15.11",
+        "java": ">=21",
+        "minecraft": ">=1.21- <1.21.2-"
+      }
+    },
+    {
+      "file": "sodium-fabric-0.8.13+mc1.21.1.jar",
+      "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+      "bytes": 1574609,
+      "role": "runtime",
+      "id": "sodium",
+      "version": "0.8.13+mc1.21.1",
+      "depends": {
+        "minecraft": [
+          "1.21",
+          "1.21.1"
+        ],
+        "fabricloader": ">=0.16.0",
+        "fabric-block-view-api-v2": "*",
+        "fabric-renderer-api-v1": "*",
+        "fabric-rendering-data-attachment-v1": "*",
+        "fabric-rendering-fluids-v1": ">=2.0.0",
+        "fabric-resource-loader-v0": "*"
+      }
+    }
+  ],
+  "actualRingRuntime": [
+    {
+      "file": "minecraft-1.21.1-client.jar",
+      "sha256": "499f6897d1837516680f3114072d8106e11c9adcd933fe5cf051b551089b0c99",
+      "bytes": 26836906,
+      "role": "runtime"
+    },
+    {
+      "file": "fabric-loader-0.19.5.jar",
+      "sha256": "93044e4dd46de5d8136701292f05e868da096d2c9fddb4793e4fdbcc63efc695",
+      "bytes": 1984980,
+      "role": "runtime",
+      "id": "fabricloader",
+      "version": "0.19.5",
+      "depends": {}
+    },
+    {
+      "file": "drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "sha256": "947bf4c3d55113fb3656b92278b05d5b1fbb3f3afedf90824c8dda652f392198",
+      "bytes": 3585105,
+      "role": "runtime",
+      "id": "drmd",
+      "version": "1.1.35-ufo-dev.1",
+      "depends": {
+        "fabricloader": ">=0.16.0",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*"
+      }
+    },
+    {
+      "file": "bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+      "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+      "bytes": 806910,
+      "role": "runtime",
+      "id": "bettercubicchunks",
+      "version": "0.1.1+mc1.21.1",
+      "depends": {
+        "fabricloader": ">=0.19.5",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*"
+      }
+    },
+    {
+      "file": "fabric-api-0.116.15+1.21.1.jar",
+      "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+      "bytes": 2452718,
+      "role": "runtime",
+      "id": "fabric-api",
+      "version": "0.116.15+1.21.1",
+      "depends": {
+        "fabricloader": ">=0.15.11",
+        "java": ">=21",
+        "minecraft": ">=1.21- <1.21.2-"
+      }
+    },
+    {
+      "file": "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+      "sha256": "0aac414514185e0b9cf485e39d631eec55fde20676ab50ccfcf59ed52c34237f",
+      "bytes": 1087054,
+      "role": "observer-test-only-DO-NOT-INSTALL",
+      "id": "drmd_cubiccheck",
+      "version": "0.0.1",
+      "depends": {
+        "fabricloader": ">=0.19.5",
+        "minecraft": "~1.21.1",
+        "fabric-api": "*",
+        "drmd": "*",
+        "bettercubicchunks": "*"
+      }
+    },
+    {
+      "file": "sodium-fabric-0.8.13+mc1.21.1.jar",
+      "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+      "bytes": 1574609,
+      "role": "runtime",
+      "id": "sodium",
+      "version": "0.8.13+mc1.21.1",
+      "depends": {
+        "minecraft": [
+          "1.21",
+          "1.21.1"
+        ],
+        "fabricloader": ">=0.16.0",
+        "fabric-block-view-api-v2": "*",
+        "fabric-renderer-api-v1": "*",
+        "fabric-rendering-data-attachment-v1": "*",
+        "fabric-rendering-fluids-v1": ">=2.0.0",
+        "fabric-resource-loader-v0": "*"
+      }
+    }
+  ],
+  "thirdPartyJarsBundled": false,
+  "testOnlyObserverBundled": false,
+  "optionalBDH": "Separate isolated comparison profile; not required for this ring test save."
+}

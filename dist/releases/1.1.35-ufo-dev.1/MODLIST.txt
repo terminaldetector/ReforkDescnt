@@ -1,0 +1,8 @@
+Minecraft1.21.1 / Java21
+minecraft-1.21.1-client.jar | platform  | runtime | SHA256 499f6897d1837516680f3114072d8106e11c9adcd933fe5cf051b551089b0c99
+fabric-loader-0.19.5.jar | fabricloader 0.19.5 | runtime | SHA256 93044e4dd46de5d8136701292f05e868da096d2c9fddb4793e4fdbcc63efc695
+drmd-6dof-1.1.35-ufo-dev.1.jar | drmd 1.1.35-ufo-dev.1 | final9cdb-package-game;historical-ring-used947b | SHA256 ba12a496476041d2b6d224722e8b0b16c63306c5ef385f1f050d9df696fafe49
+bettercubicchunks-fabric-0.1.1+mc1.21.1.jar | bettercubicchunks 0.1.1+mc1.21.1 | runtime | SHA256 8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6
+fabric-api-0.116.15+1.21.1.jar | fabric-api 0.116.15+1.21.1 | runtime | SHA256 a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3
+sodium-fabric-0.8.13+mc1.21.1.jar | sodium 0.8.13+mc1.21.1 | runtime | SHA256 3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d
+Third-party mod JARs are listed, not bundled. Test-only observer is omitted from installation.
