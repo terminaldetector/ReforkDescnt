@@ -148,16 +148,41 @@ public final class HeavyOperatorSystem {
                 f.reactionPods.put(root.getUuid(),cached);
             }catch(IllegalArgumentException unsupported){f.reactionPods.remove(root.getUuid());return;}
         }
-        var forward=MountedWeaponEmitter.direction(barrel,selected);var baseSpin=root.physics().angularVelocity();
+        var forward=MountedWeaponEmitter.direction(barrel,selected);
+        var baseSpin=root.physics().angularVelocity();
+        var yawSpin=a.yaw.physics().angularVelocity();
+        var barrelSpin=barrel.physics().angularVelocity();
+        var yawAxis=root.rotation().rotate(UP);
+        var pitchAxis=a.yaw.rotation().rotate(X);
         var command=rates(forward,desired,axis(root,UP),axis(a.yaw,X),new Vec3d(baseSpin.x(),baseSpin.y(),baseSpin.z()));
-        // Follow the existing capped hinge rates, including the actual base motion.
-        // A balanced vector-pod couple supplies torque at real mounts, not free angular damping.
-        var targetSpin=baseSpin.plus(root.rotation().rotate(UP).scaled(command.yaw)).plus(a.yaw.rotation().rotate(X).scaled(command.pitch));
-        var torque=barrel.physics().worldInertia().transform(targetSpin.minus(barrel.physics().angularVelocity()).scaled(8));
+
+        // The pods drive around the actual bearings. Yaw carries both moving bodies,
+        // so the gun's centre-of-mass inertia alone badly understates the shaft load.
+        var yawPoint=bearingPoint(root,YAW_BASE,UP);
+        var pitchPoint=bearingPoint(a.yaw,PITCH_BASE,X);
+        double yawMoment=momentAbout(barrel,yawPoint,yawAxis)+momentAbout(a.yaw,yawPoint,yawAxis);
+        double pitchMoment=momentAbout(barrel,pitchPoint,pitchAxis);
+        var yawError=yawAxis.scaled(command.yaw-yawSpin.minus(baseSpin).dot(yawAxis));
+        var pitchError=pitchAxis.scaled(command.pitch-barrelSpin.minus(yawSpin).dot(pitchAxis));
+        var targetSpin=baseSpin.plus(yawAxis.scaled(command.yaw)).plus(pitchAxis.scaled(command.pitch));
+        var otherError=targetSpin.minus(barrelSpin).minus(yawError).minus(pitchError);
+        // Preserve the existing rate cap and the force limit of the actual mounts.
+        var torque=barrel.physics().worldInertia().transform(otherError)
+            .plus(yawError.scaled(yawMoment)).plus(pitchError.scaled(pitchMoment)).scaled(8);
         var hardware=cached.hardware;var localTorque=barrel.rotation().inverse().rotate(torque);
         for(var output:hardware.mixer.mix(barrel.localCentre(),new Vec3(0,0,0),localTorque,
             i->barrel.getLocalBlock(hardware.cells.get(i)).isOf(ModWorldBlocks.SHIP_THRUSTER)))
             barrel.physics().applyForceAtPoint(barrel.rotation().rotate(output.force()),barrel.rotation().rotate(output.localPoint().minus(barrel.localCentre())));
+    }
+    private static Vec3 bearingPoint(BlockBodyEntity body,BlockPos cell,Vec3 outward){
+        var local=new Vec3(cell.getX()+.5,cell.getY()+.5,cell.getZ()+.5).plus(outward.scaled(.5));
+        return body.physics().position().plus(body.rotation().rotate(local.minus(body.localCentre())));
+    }
+    private static double momentAbout(BlockBodyEntity body,Vec3 point,Vec3 axis){
+        var physics=body.physics();
+        var lever=physics.position().minus(point);
+        double offsetInertia=physics.mass()*lever.cross(axis).lengthSquared();
+        return axis.dot(physics.worldInertia().transform(axis))+offsetInertia;
     }
     private static Assembly resolve(ServerWorld world,BlockBodyEntity root){
         if(root==null||!root.getCommandTags().contains(ROOT)||root.getCommandTags().stream().anyMatch(t->t.startsWith("drmd.operator.")&&!t.equals(ROOT)&&!t.startsWith(YAW)&&!t.startsWith(BARREL)))return null;
