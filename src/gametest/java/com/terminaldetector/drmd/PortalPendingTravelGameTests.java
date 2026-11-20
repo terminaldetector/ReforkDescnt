@@ -2,6 +2,7 @@ package com.terminaldetector.drmd;
 
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.portal.PortalExitInterest;
 import com.terminaldetector.drmd.world.portal.PortalTravel;
 import com.terminaldetector.drmd.world.portal.mirror.*;
 import com.mojang.authlib.GameProfile;
@@ -71,7 +72,12 @@ public final class PortalPendingTravelGameTests implements FabricGameTest {
                     var restored=WorldAccess.of(w).readIfLoaded(exit);c.assertTrue(restored.isPresent()&&restored.get().isOf(ModWorldBlocks.PORTAL_PANEL),"actual saved destination, not synthetic AIR, is FULL before travel");
                     c.assertTrue(w.getBlockEntity(exit) instanceof PortalPanelBlockEntity target&&target.isLinked()&&source.equals(target.getLinkPartnerPos()),"normal disk reload preserved the exact reciprocal BE link");
                     c.assertTrue(stays.entity.getVelocity().lengthSquared()<1e-12,"retry uses current stopped momentum, never replays old crossing velocity");phase=3;
-                }else c.assertTrue(ticks<300,"bounded warmup must give a waiting near-gate player an actual ready destination");
+                }else if(ticks>=300){
+                    int waiter=w.getServer().getPlayerManager().getPlayerList().indexOf(stays.entity);
+                    c.assertTrue(false,"bounded warmup must give a waiting near-gate player an actual ready destination"
+                        +" waiterIndex="+waiter+" heldColumns="+PortalExitInterest.heldColumns(w,source)
+                        +" exitReady="+WorldAccess.of(w).readIfLoaded(exit).isPresent());
+                }
             }else if(phase==3&&++after>=12){
                 stays.channel.runPendingTasks();int packets=0;for(Object raw:stays.channel.outboundMessages())if(raw instanceof PlayerPositionLookS2CPacket)packets++;
                 c.assertTrue(packets==1&&stays.entity.getX()>exit.getX()&&retreats.entity.getX()<exit.getX()-100,"one retained real crossing transfers once; retreating neighbour stays: packets="+packets);
@@ -91,4 +97,42 @@ public final class PortalPendingTravelGameTests implements FabricGameTest {
     public void aRealSavedUnknownExitWarmsThenTransfersTheWaitingCrossingExactlyOnceAndRetreatCancels(TestContext c){
         var f=new Fixture(c);c.runAtEveryTick(()->{if(f.closed)return;try{f.tick();}catch(RuntimeException|Error failure){f.close();throw failure;}});
     }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="portal-pending-after-retired-roster",tickLimit=400)
+    public void bothLateConnectedUsersKeepTheirColdPortalBehaviourAfterRetiredRosterRows(TestContext c){
+        var world=c.getWorld();
+        var manager=world.getServer().getPlayerManager();
+        var retired=new ArrayList<Player>();
+        Fixture fixture=null;
+        try {
+            for(int i=0;i<129;i++){
+                var legacy=new Player(c,world.getSpawnPos(),"old-portal-"+i);
+                retired.add(legacy);
+                // Reproduce legacy GameTest cleanup which discarded the entity before
+                // retiring its manager row. The test owns and ends each real connection.
+                legacy.entity.discard();
+            }
+            var running=new Fixture(c);
+            fixture=running;
+            var roster=manager.getPlayerList();
+            int staysIndex=roster.indexOf(running.stays.entity);
+            int retreatsIndex=roster.indexOf(running.retreats.entity);
+            c.assertTrue(retired.stream().allMatch(p->p.entity.isRemoved()&&roster.contains(p.entity))
+                &&staysIndex>=retired.size()&&retreatsIndex>=retired.size(),
+                "actual retired manager rows precede both real connected waiting users");
+            System.out.println("PORTAL_RETIRED_ROSTER retired="+retired.size()+" total="+roster.size()
+                +" staysIndex="+staysIndex+" retreatsIndex="+retreatsIndex);
+            c.runAtEveryTick(()->{
+                if(running.closed)return;
+                try {running.tick();}
+                catch(RuntimeException|Error failure){running.close();throw failure;}
+                finally {if(running.closed)retired.forEach(Player::close);}
+            });
+        } catch(RuntimeException|Error failure){
+            try {if(fixture!=null)fixture.close();}
+            finally {retired.forEach(Player::close);}
+            throw failure;
+        }
+    }
+
 }
