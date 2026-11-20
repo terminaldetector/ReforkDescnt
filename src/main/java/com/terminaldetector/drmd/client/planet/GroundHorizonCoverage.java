@@ -10,10 +10,13 @@ import net.minecraft.world.World;
 
 import java.lang.ref.WeakReference;
 
-/** Keeps the backdrop visible while the actual lower terrain streams into the current view. */
+/** Preserves a depth-tested ground backdrop through native terrain render handoff. */
 final class GroundHorizonCoverage {
     private static final int[] FOOTPRINT = {-24, 0, 24};
     private static final double MAX_BRIDGE_OPACITY = .68;
+    private static final double MIN_SKY_FILL_OPACITY = .24;
+    private static final double BRIDGE_START = 16;
+    private static final double BRIDGE_END = 112;
     private static final double COVERAGE_RESPONSE_SECONDS = .24;
 
     private WeakReference<World> observedWorld = new WeakReference<>(null);
@@ -32,8 +35,7 @@ final class GroundHorizonCoverage {
         if (altitudeOpacity >= 1) return 1;
         double ground = groundHeight(seed, eye.x, eye.z);
         double drop = Math.max(0, eye.y - ground);
-        double bridge = smoothstep(drop, 16, 112);
-        if (bridge <= 0) return altitudeOpacity;
+        if (drop <= BRIDGE_START) return altitudeOpacity;
 
         long tick = world.getTime();
         if (tick != sampledTick) {
@@ -51,7 +53,7 @@ final class GroundHorizonCoverage {
         lastFrame = now;
         // A present column can still lie past the ordinary renderer's projection.
         double inProjection = 1 - smoothstep(drop, clip * .72, clip * .96);
-        return combine(altitudeOpacity, bridge, coverage * inProjection);
+        return bridgeOpacity(altitudeOpacity, drop, coverage * inProjection);
     }
 
     private static double availableFootprint(MinecraftClient client, Vec3d eye, long seed) {
@@ -72,9 +74,12 @@ final class GroundHorizonCoverage {
         return Math.max(PlanetMap.SEA_LEVEL, PlanetMap.height(seed, x, z));
     }
 
-    private static float combine(float altitudeOpacity, double bridge, double realCoverage) {
-        double uncovered = bridge * (1 - realCoverage) * MAX_BRIDGE_OPACITY;
-        return (float) (altitudeOpacity + (1 - altitudeOpacity) * uncovered);
+    static float bridgeOpacity(float altitudeOpacity, double drop, double estimatedCoverage) {
+        double bridge = smoothstep(drop, BRIDGE_START, BRIDGE_END);
+        // A FULL cube can lose its rendered mesh as the eye climbs. Reserve some backdrop even
+        // when residency is complete. The existing Horizon depth test protects native terrain.
+        double opacity = MIN_SKY_FILL_OPACITY + (1 - estimatedCoverage) * (MAX_BRIDGE_OPACITY - MIN_SKY_FILL_OPACITY);
+        return (float) (altitudeOpacity + (1 - altitudeOpacity) * bridge * opacity);
     }
 
     private static double smoothstep(double x, double from, double to) {
