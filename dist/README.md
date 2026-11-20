@@ -2,7 +2,7 @@
 
 Сборка для Minecraft 1.21.1, Fabric и Java 21. Исходники 9cdb8dd48ed84ac850547fdeb309688a8bb2ee05.
 
-[Скачать JAR](releases/1.1.35-ufo-dev.1/drmd-1.1.35-ufo-dev.1-fabric-1.21.1.jar) · [Установка](releases/1.1.35-ufo-dev.1/INSTALL_RU.txt) · [Тестовый мир](releases/1.1.35-ufo-dev.1/test-save.zip) · [Модлист](releases/1.1.35-ufo-dev.1/MODLIST.txt) · [Изменения](releases/1.1.35-ufo-dev.1/RELEASE_NOTES_RU.md) · [Проверки](releases/1.1.35-ufo-dev.1/VERIFICATION_RU.md) · [SHA-256](releases/1.1.35-ufo-dev.1/SHA256SUMS)
+[Скачать JAR](releases/1.1.35-ufo-dev.1/drmd-1.1.35-ufo-dev.1-fabric-1.21.1.jar) · [ZIP с JAR](releases/1.1.35-ufo-dev.1/UNGRAVITY-1.1.35-ufo-dev.1.zip) · [Установка](releases/1.1.35-ufo-dev.1/INSTALL_RU.txt) · [Тестовый мир](releases/1.1.35-ufo-dev.1/test-save.zip) · [Модлист](releases/1.1.35-ufo-dev.1/MODLIST.txt) · [Изменения](releases/1.1.35-ufo-dev.1/RELEASE_NOTES_RU.md) · [Проверки](releases/1.1.35-ufo-dev.1/VERIFICATION_RU.md) · [SHA-256](releases/1.1.35-ufo-dev.1/SHA256SUMS)
 
 Предыдущие снимки сохранены ниже.
 
