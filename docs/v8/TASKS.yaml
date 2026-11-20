@@ -511,11 +511,11 @@ tasks:
   gate: G2
   depends_on_stages: &id008
   - S06
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip, SUBMERGED_FISH_GRAVITY_2026-11-17.md, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, CLIMBER_FIELD_ENTRY_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
-  notes: "Five vanilla flyers corrected with original3 and related16 proof, rerun in current391 full suite. Remaining locomotion families, AI and visuals open."
+  evidence: [EVIDENCE/finish36-20261119/seven-family-torch-cold.json, EVIDENCE/finish36-20261119/seven-family-torch-cold.zip, EVIDENCE/finish36-20261119/remaining-heavy-and-gravity.json, EVIDENCE/finish36-20261119/remaining-heavy-and-gravity.zip]
+  notes: "Семь репрезентативных семейств прошли отдельную загрузку мира. На 31e8d28e проверены также нативные части Ender Dragon, закреплённый Shulker, резервная политика Rabbit, шесть осей факела, снятие поля и сохранение собственной физики водных и летающих видов. Тесты с включённым AI отдельно подтверждают штатные цели и навигацию конкретных видов."
 - id: S07-T02
   stage: S07
   stage_title: Universal 6DoF for all mob families
@@ -523,11 +523,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id008
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/finish36-20261119/focused-stock-4702e74d.json, EVIDENCE/finish36-20261119/focused-stock-4702e74d.zip, EVIDENCE/finish36-20261119/native-c1-and-drone-wreck.json, EVIDENCE/finish36-20261119/native-c1-and-drone-wreck.zip]
-  notes: "Штатный прогон подтвердил локальное движение поддержанных C1 на полу, стене и потолке, в том числе обычные цели Tempt и выбор целей у зомби и скелетов. Отдельно Shapes прошли 11 сценариев с маршрутами и выстрелами. Специализированные C2 и неосевые поверхности остаются в работе."
+  evidence: [EVIDENCE/finish36-20261119/native-c1-and-drone-wreck.json, EVIDENCE/finish36-20261119/focused-stock-4702e74d.json, EVIDENCE/finish36-20261119/remaining-heavy-and-gravity.json, EVIDENCE/finish36-20261119/remaining-heavy-and-gravity.zip]
+  notes: "На 31e8d28e оба штатных паука приобретают цель сами и идут по стене и потолку. На потолке оба прошли 1,017 м за 27 тиков при зазоре опоры до 0,02 м. Пол, C1 и обход препятствия Villager Brain вошли в те же 36 прошедших сценариев. Это приёмка навигации по шести осям, произвольные наклонные опоры остаются отдельной задачей."
 - id: S07-T03
   stage: S07
   stage_title: Universal 6DoF for all mob families
@@ -1018,11 +1018,11 @@ tasks:
   owner: GAMEPLAY
   gate: G5
   depends_on_stages: *id015
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/remaining-first-stock.json, EVIDENCE/finish36-20261119/remaining-heavy-and-gravity.json, EVIDENCE/finish36-20261119/remaining-heavy-and-gravity.zip]
+  notes: "На 31e8d28e три игровых сценария подтвердили независимые лазер и плечевые пусковые на движущемся корпусе с двумя приводами, потерю одного модуля от реального попадания, продолжение огня двух остальных за 32 тика, замену модуля и восстановление прежних UUID. Попадание в этом сценарии направлено через центр масс. Ранее сохранённый отказ быстрого восстановления от сильного внеосевого удара остаётся измеренной границей."
 - id: S14-T05
   stage: S14
   stage_title: Factions, Shapes and mission framework
