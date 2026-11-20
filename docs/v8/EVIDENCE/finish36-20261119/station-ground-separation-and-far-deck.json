@@ -1,0 +1,150 @@
+{
+  "source": "3d792abbcaab0c823dea96ddefba17c9c18f43e3",
+  "stationCells": 7680,
+  "sceneDistances": [
+    23.561078065937718,
+    511.5028097670913,
+    3071.5004679146036
+  ],
+  "samplesAfterGroundSeparation": [
+    {
+      "chunk": [
+        -71,
+        74
+      ],
+      "colour": 0,
+      "height": -32768
+    },
+    {
+      "chunk": [
+        -71,
+        75
+      ],
+      "colour": 0,
+      "height": -32768
+    },
+    {
+      "chunk": [
+        -70,
+        74
+      ],
+      "colour": 10987431,
+      "height": 1414
+    },
+    {
+      "chunk": [
+        -70,
+        75
+      ],
+      "colour": 0,
+      "height": -32768
+    },
+    {
+      "chunk": [
+        -69,
+        74
+      ],
+      "colour": 0,
+      "height": -32768
+    },
+    {
+      "chunk": [
+        -69,
+        75
+      ],
+      "colour": 0,
+      "height": -32768
+    }
+  ],
+  "changedPixelsPerPose": [
+    [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    [
+      [
+        21
+      ],
+      [
+        21
+      ],
+      [
+        21
+      ],
+      [
+        21
+      ],
+      [
+        21
+      ],
+      [
+        21
+      ],
+      [
+        21
+      ],
+      [
+        21
+      ]
+    ],
+    [
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ]
+    ]
+  ],
+  "scope": "Same intact closed BCC donor, actual PS1 FBO; no atmosphere mode or flight asserted by this observer.",
+  "archive": "station-ground-separation-and-far-deck.zip",
+  "archiveSha256": "8283cbfbcd212efbe17aaa9e35d3cdc79ad4c7777cbef5240cc4a96e5d646745"
+}

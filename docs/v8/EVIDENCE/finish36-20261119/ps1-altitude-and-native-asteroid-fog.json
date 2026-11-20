@@ -1,0 +1,43 @@
+{
+  "source": "3d792abbcaab0c823dea96ddefba17c9c18f43e3",
+  "priorAltitudeSource": "cde7cf3687dd0ae148f516eb6ba42e0bf169c388",
+  "actualEnabledAltitudesDensitiesAndRanges": [
+    [
+      601.6199998855591,
+      0.8045653,
+      [
+        32.0,
+        2577.4739
+      ]
+    ],
+    [
+      1021.6199998855591,
+      0.44999072,
+      [
+        32.0,
+        4583.205
+      ]
+    ],
+    [
+      1581.619999885559,
+      0.08,
+      [
+        32.0,
+        25632.0
+      ]
+    ]
+  ],
+  "actualFarAsteroidPair": {
+    "exactClosedDonor": true,
+    "realEnginePass": true,
+    "explicitFogMode": true,
+    "originalGates": true,
+    "sameActualDrawInputs": true,
+    "actualNeutralToEnabledFog": true,
+    "depthPreservedAndAsteroidRgb": true,
+    "readbackCap": true,
+    "completedFrames": true
+  },
+  "archive": "ps1-altitude-and-native-asteroid-fog.zip",
+  "archiveSha256": "0780857449d76b2a452da0c368537159629e05889a6d55d06bdd602d024e50d9"
+}
