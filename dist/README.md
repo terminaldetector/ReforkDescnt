@@ -1,3 +1,13 @@
+# Ungravity 1.1.35-ufo-dev.1
+
+Сборка для Minecraft 1.21.1, Fabric и Java 21. Исходники 9cdb8dd48ed84ac850547fdeb309688a8bb2ee05.
+
+[Скачать JAR](releases/1.1.35-ufo-dev.1/drmd-1.1.35-ufo-dev.1-fabric-1.21.1.jar) · [Установка](releases/1.1.35-ufo-dev.1/INSTALL_RU.txt) · [Тестовый мир](releases/1.1.35-ufo-dev.1/test-save.zip) · [Модлист](releases/1.1.35-ufo-dev.1/MODLIST.txt) · [Изменения](releases/1.1.35-ufo-dev.1/RELEASE_NOTES_RU.md) · [Проверки](releases/1.1.35-ufo-dev.1/VERIFICATION_RU.md) · [SHA-256](releases/1.1.35-ufo-dev.1/SHA256SUMS)
+
+Предыдущие снимки сохранены ниже.
+
+---
+
 [Текущий snapshot9226e7a0](snapshots/2026-11-18-9226e7a0/README.md) · [ZIP с игровым JAR](snapshots/2026-11-18-9226e7a0/UNGRAVITY-snapshot-9226e7a0.zip) · [Telegram](https://t.me/abadonsoft/294). Встроенный PS1-проход для Scout/Spider, общий таймлайн жёстко соединённых корпусов и подтверждённый проход с игроком через портал. Границы проверки и незакрытые ТЗ указаны в пакете.
 
 [Текущая рабочая сборка56c0049f](snapshots/2026-11-18-56c0049f/README.md) · [ZIP с JAR](snapshots/2026-11-18-56c0049f/UNGRAVITY-snapshot-56c0049f.zip) · [Telegram](https://t.me/abadonsoft/286). Двери движущихся корпусов, ограниченное обрушение построек, программируемые кассетные боеприпасы и параметры PS1. Проверки целевые; полное ТЗ остаётся в работе.

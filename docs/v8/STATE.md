@@ -1,3 +1,7 @@
+20 ноября 2026. Закрыты 99 из 99 пунктов реестра. Пакет Ungravity 1.1.35-ufo-dev.1 собран из 9cdb8dd48ed84ac850547fdeb309688a8bb2ee05. Прошли 1 248 модульных тестов, 713 серверных сценариев и три клиентских запуска портальной пушки. Все загрузки и ограничения проверенных конфигураций перечислены в пакете. [Пакет, установка и проверка](../../dist/releases/1.1.35-ufo-dev.1/VERIFICATION_RU.md)
+
+Серверный прогон с 2 432 МиБ дошёл до конца. Игрок с индексом 360 прошёл через сохранённый выход после его подгрузки. Парный сценарий на старом JAR воспроизвёл отказ уже с индексом 129. [Парная проверка холодного портала](./EVIDENCE/finish36-20261119/portal-roster-and-wall-repairs.json) · [Первый запуск с исчерпанной Java heap](./EVIDENCE/finish36-20261119/whole-9cdb-heap1856-crash.json)
+
 19 ноября. Третий цикл. Закрыто 20 из этой партии, 63/99 в реестре. Игровой источник `b6dbee75b3dfbef7b66a7f2e090e713d25ba32f3`. [Отчёт](TASK20_ROUND3_2026-11-19.md).
 
 19 November, second round. 20 additional tasks accepted on ec696a32. 43 completed and 56 open in the original ledger. [Exact source, tests and remaining scope](TASK20_ROUND2_2026-11-19.md). Earlier entries below are historical.

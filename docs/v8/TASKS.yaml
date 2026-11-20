@@ -1194,11 +1194,11 @@ tasks:
   owner: CODEX
   gate: G6
   depends_on_stages: *id018
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [../../dist/releases/1.1.35-ufo-dev.1/VERIFICATION_RU.md, ../../dist/releases/1.1.35-ufo-dev.1/SHA256SUMS, EVIDENCE/finish36-20261119/portal-roster-and-wall-repairs.json, EVIDENCE/finish36-20261119/whole-9cdb-heap1856-crash.json]
+  notes: "20 ноября 2026. Исходники 9cdb8dd48ed84ac850547fdeb309688a8bb2ee05, SHA-256 JAR ba12a496476041d2b6d224722e8b0b16c63306c5ef385f1f050d9df696fafe49. Прошли 1248 модульных тестов, 713 серверных сценариев и три клиентских запуска портальной пушки. Проверены модлист, тестовый мир и контрольные суммы. Границы каждой сцены и исходные сбои сохранены в отчёте."
 - id: S17-T04
   stage: S17
   stage_title: Integration, handoff and release candidate
