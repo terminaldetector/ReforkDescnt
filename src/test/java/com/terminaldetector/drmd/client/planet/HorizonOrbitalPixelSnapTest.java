@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.planet;
 
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
+import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class HorizonOrbitalPixelSnapTest {
         var slots=HorizonOrbitalPixelSnap.slots(keys);assertEquals(0,slots[0]);assertEquals(0,slots[1]);
         assertEquals(15,slots[16]);assertEquals(-1,slots[17]);assertEquals(16,HorizonOrbitalPixelSnap.objects(keys).size());
     }
-    @Test void currentProjectionSelectsOnlyTinyFarAsteroidAndTheDisabledPhaseClearsEverySlot(){
+    @Test void currentProjectionSelectsFarShapesAndTheDisabledPhaseClearsEverySlot(){
         var mark=asteroid(-1072);var key=new HorizonOrbitalHandoff.Key(mark,new HorizonOrbitalHandoff.Cube(-68,89,73));
         var keys=List.of(key);float pitch=(float)Math.atan2(1.119999885559,3071.5);
         var view=new Matrix4f().lookAlong(0,-(float)Math.sin(pitch),(float)Math.cos(pitch),0,(float)Math.cos(pitch),(float)Math.sin(pitch));
@@ -41,7 +42,14 @@ class HorizonOrbitalPixelSnapTest {
         assertArrayEquals(new float[32],HorizonOrbitalPixelSnap.shifts(keys,-1071.5,1445.619999885559,-1895.5,view,projection,640,360,0,217.6f,false));
         assertArrayEquals(new float[32],HorizonOrbitalPixelSnap.shifts(keys,-1071.5,1445.619999885559,664.5,view,projection,640,360,0,217.6f,true));
         var station=new HorizonLandmark(-1072,1444,1176,24,16,20,0xaaaaaa,MacroEntry.Kind.ORBITAL_STATION);
-        assertArrayEquals(new float[32],HorizonOrbitalPixelSnap.shifts(List.of(new HorizonOrbitalHandoff.Key(station,key.cube())),-1071.5,1445.619999885559,-1895.5,view,projection,640,360,0,217.6f,true));
+        var stationKeys=List.of(new HorizonOrbitalHandoff.Key(station,key.cube()));
+        var stationShift=HorizonOrbitalPixelSnap.shifts(stationKeys,-1071.5,1445.619999885559,-1895.5,view,projection,640,360,0,217.6f,true);
+        assertTrue(Math.abs(stationShift[0])+Math.abs(stationShift[1])>0);
+        assertTrue(Math.abs(stationShift[0]*320)<=.500001);
+        assertTrue(Math.abs(stationShift[1]*180)<=.500001);
+        assertArrayEquals(new float[32],HorizonOrbitalPixelSnap.shifts(stationKeys,-1071.5,1445.619999885559,664.5,view,projection,640,360,0,217.6f,true));
+        var sample=OrbitalObjectGeometry.stationDeckSample(24,16,20);
+        assertTrue(OrbitalObjectGeometry.cells(OrbitalObjectGeometry.Shape.STATION,24,16,20).contains(sample));
     }
     @Test void bothPassesUndoTheImageTranslationBeforeComputingTrueRayDepth(){
         var inverse=new Matrix4f().perspective((float)Math.toRadians(77),640f/360,.05f,256).invert();

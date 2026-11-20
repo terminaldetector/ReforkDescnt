@@ -1,13 +1,14 @@
 package com.terminaldetector.drmd.client.planet;
 
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
+import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** PS1 sample-grid stability for tiny solid FAR asteroids. Never changes source geometry or depth. */
+/** PS1 sample-grid stability for tiny authored FAR objects. Never changes source geometry or depth. */
 public final class HorizonOrbitalPixelSnap {
     public static final int MAX_OBJECTS=HorizonOrbitalHandoff.MAX_OBJECTS,COMPONENTS=MAX_OBJECTS*2;
     private HorizonOrbitalPixelSnap(){}
@@ -23,9 +24,12 @@ public final class HorizonOrbitalPixelSnap {
     }
     /** NDC translation: a subpixel axis, at most two pixels on the other, at most half a pixel per axis. */
     static float[] offset(double centreX,double centreY,double widthPx,double heightPx,int width,int height){
+        return offset(centreX,centreY,widthPx,heightPx,width,height,false);
+    }
+    private static float[] offset(double centreX,double centreY,double widthPx,double heightPx,int width,int height,boolean thinDeck){
         if(width<=0||height<=0||!Double.isFinite(centreX)||!Double.isFinite(centreY)
             ||!Double.isFinite(widthPx)||!Double.isFinite(heightPx)||widthPx<=0||heightPx<=0
-            ||Math.min(widthPx,heightPx)>=1||Math.max(widthPx,heightPx)>2
+            ||!thinDeck&&Math.min(widthPx,heightPx)>=1||Math.max(widthPx,heightPx)>2
             ||centreX<0||centreX>=width||centreY<0||centreY>=height)return new float[2];
         return new float[]{(float)((Math.floor(centreX)+.5-centreX)*2/width),
             (float)((Math.floor(centreY)+.5-centreY)*2/height)};
@@ -42,8 +46,8 @@ public final class HorizonOrbitalPixelSnap {
         var transform=new Matrix4f(projection).mul(view);var objects=objects(keys);
         for(int i=0;i<objects.size();i++){
             var mark=objects.get(i);
-            if(mark.kind()!=MacroEntry.Kind.ASTEROID||HorizonOrbitalProxy.tierAt(mark,eyeX,eyeY,eyeZ)
-                !=com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry.Tier.FAR)continue;
+            if(!HorizonOrbitalProxy.authored(mark.kind())||HorizonOrbitalProxy.tierAt(mark,eyeX,eyeY,eyeZ)
+                !=OrbitalObjectGeometry.Tier.FAR)continue;
             double x=mark.x()-eyeX,y=mark.y()-eyeY,z=mark.z()-eyeZ;
             var centre=clip(transform,x,y,z,inner,reach);if(!Float.isFinite(centre.w)||centre.w<=0)continue;
             double x0=Double.POSITIVE_INFINITY,y0=x0,x1=Double.NEGATIVE_INFINITY,y1=x1;boolean valid=true;
@@ -54,7 +58,14 @@ public final class HorizonOrbitalPixelSnap {
                 x0=Math.min(x0,px);x1=Math.max(x1,px);y0=Math.min(y0,py);y1=Math.max(y1,py);
             }
             if(!valid)continue;
-            var shift=offset((centre.x/centre.w*.5+.5)*width,(centre.y/centre.w*.5+.5)*height,x1-x0,y1-y0,width,height);
+            boolean station=mark.kind()==MacroEntry.Kind.ORBITAL_STATION;
+            if(station){
+                var deck=OrbitalObjectGeometry.stationDeckSample(mark.sizeX(),mark.sizeY(),mark.sizeZ());
+                centre=clip(transform,x+deck.x()+.5-mark.sizeX()*.5,y+deck.y()+.5-mark.sizeY()*.5,
+                    z+deck.z()+.5-mark.sizeZ()*.5,inner,reach);
+                if(!Float.isFinite(centre.w)||centre.w<=0)continue;
+            }
+            var shift=offset((centre.x/centre.w*.5+.5)*width,(centre.y/centre.w*.5+.5)*height,x1-x0,y1-y0,width,height,station);
             result[i*2]=shift[0];result[i*2+1]=shift[1];
         }
         return result;

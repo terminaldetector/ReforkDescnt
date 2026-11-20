@@ -22,6 +22,12 @@ public final class OrbitalObjectGeometry {
         if(shape==null||sx<8||sy<8||sz<8||(sx&1)!=0||(sy&1)!=0||(sz&1)!=0)return false;
         return shape==Shape.ASTEROID?sx<=24&&sy<=24&&sz<=24:sx>=16&&sy>=12&&sz>=16&&sx<=32&&sy<=32&&sz<=32;
     }
+    /** A real sample just outside the station's open central shaft, on the lower deck. */
+    public static Voxel stationDeckSample(int sx,int sy,int sz){
+        if(!supports(Shape.STATION,sx,sy,sz))throw new IllegalArgumentException("unsupported original station dimensions");
+        int x=sx/2+2,y=sy/4,z=sz/2;
+        return new Voxel(x,y,z,Objects.requireNonNull(material(Shape.STATION,x,y,z,sx,sy,sz)));
+    }
     public static List<Voxel> cells(Shape shape,int sx,int sy,int sz){
         if(!supports(shape,sx,sy,sz))throw new IllegalArgumentException("unsupported original orbital object dimensions");
         var out=new ArrayList<Voxel>();
