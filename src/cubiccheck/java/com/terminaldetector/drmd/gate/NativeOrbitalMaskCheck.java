@@ -1,5 +1,10 @@
 package com.terminaldetector.drmd.gate;
 
+import com.terminaldetector.drmd.client.config.DescentConfig;
+import com.terminaldetector.drmd.client.presentation.*;
+import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import com.terminaldetector.drmd.client.cloud.AltitudeCloudRenderer;
 import com.terminaldetector.drmd.client.planet.*;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
@@ -25,7 +30,14 @@ public final class NativeOrbitalMaskCheck {
     private static long lastEpoch=-1;private static volatile String failed;
     private record Region(String name,int x,int y,int width,int height,byte[] rgba,float[] depth) {}
     private record PixelPending(int stage,long epoch,PlanetSurfaceMesh source,List<Region> regions,int fullCubes,int totalCubes,double distance,int fbo,float[] view,float[] projection,HorizonLandmark selected) {}
-    private record Pixels(int stage,long epoch,Map<String,Object> receipt) {}
+    private record Pixels(int stage,long epoch,Map<String,Object> receipt,FogFrame fogFrame) {}
+    private record FogFrame(PixelPending draw,Region after,Vec3d eye,float[] mask,float[] originDelta,
+                            float[] pixelShift,float[] modulator,float outerRadius,float density,
+                            float[] sky,float alpha,float start,float end,int width,int height) {}
+    private static FogFrame fogBaseline;
+    private static int fogFrames,fogRearms;
+    private static Map<String,Object> fogPair=Map.of();
+    private static boolean fogPairObserved;
     private static PixelPending pixelPending;
     private static Pixels pixels;
     private static Map<String,Object> firstPixelFailure=Map.of();
@@ -37,6 +49,10 @@ public final class NativeOrbitalMaskCheck {
     private static int viewCase(){return NativeIntactAsteroidCheck.ENABLED?NativeIntactAsteroidCheck.viewCase():NativeOrbitalMissionCheck.fieldViewCase();}
     public static boolean fieldViewObserved(int stage){return stage>=0&&stage<4&&(fieldViewBits&(1<<stage))!=0;}
     public static boolean allFieldViewsObserved(){return fieldViewBits==15;}
+    static boolean asteroidFogObserved(){return fogPairObserved;}
+    private static boolean needsPixels(int stage){
+        return stage>=0&&(CASE_FRAMES[stage]<8||(stage==2&&NativeIntactAsteroidCheck.fogProbe()&&!fogPairObserved));
+    }
     public static String fieldViewFailure(){return failed;}
     public static Map<String,Object> fieldViewDiagnostic(){return lastViewAdmission;}
     private static void admission(int stage,String reason,Object... values){
@@ -50,7 +66,7 @@ public final class NativeOrbitalMaskCheck {
     /** Only the explicit post-success real-flight case is pixel-scanned; ordinary passive mode stays passive. */
     public static void beforeColour(PlanetSurfaceMesh source,org.joml.Matrix4f view){
         if(!ENABLED||failed!=null)return;int stage=viewCase();
-        if(stage<0||CASE_FRAMES[stage]>=8)return;
+        if(!needsPixels(stage))return;
         var c=MinecraftClient.getInstance();if(c.world==null||source==null||OffscreenWorldView.busy())return;
         try{
             long epoch=AltitudeCloudRenderer.stats().epoch();var eye=c.gameRenderer.getCamera().getPos();
@@ -154,18 +170,20 @@ public final class NativeOrbitalMaskCheck {
             byte[] colour=new byte[count*4];rgba.get(colour);float[] z=new float[count];depth.get(z);return new Region(name,x,y,width,height,colour,z);
         }finally{org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER,old);for(int i=0;i<4;i++)org.lwjgl.opengl.GL11.glPixelStorei(names[i],saved[i]);org.lwjgl.system.MemoryUtil.memFree(rgba);org.lwjgl.system.MemoryUtil.memFree(depth);}
     }
-    private static void afterColourPixels(PlanetSurfaceMesh source,long epoch){
+    private static void afterColourPixels(PlanetSurfaceMesh source,long epoch,ShaderProgram program){
         var pending=pixelPending;pixelPending=null;if(pending==null||pending.epoch!=epoch||pending.source!=source)return;
         if(viewCase()!=pending.stage)return;
         require(org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER_BINDING)==pending.fbo,"same actual scene target after orbital colour draw");
         var regionRows=new ArrayList<Map<String,Object>>();var rawRows=new ArrayList<Map<String,Object>>();boolean near=pending.stage==0||pending.stage==3;
         boolean depthBad=false,pixelsBad=false;
+        FogFrame fogFrame=null;
         for(var before:pending.regions){var after=read(before.name,before.x,before.y,before.width,before.height,pending.fbo);int changed=0,depthChanges=0;
             for(int i=0;i<before.depth.length;i++){
                 if(!(Math.abs(before.depth[i]-after.depth[i])<.000001))depthChanges++;
                 if(before.rgba[i*4]!=after.rgba[i*4]||before.rgba[i*4+1]!=after.rgba[i*4+1]||before.rgba[i*4+2]!=after.rgba[i*4+2])changed++;
             }
             depthBad|=depthChanges!=0;pixelsBad|=!(near?changed==0:changed>=(pending.stage==1?4:1));
+            if(pending.stage==2&&NativeIntactAsteroidCheck.fogProbe())fogFrame=readFogFrame(pending,after,program);
             regionRows.add(Map.of("name",before.name,"rect",List.of(before.x,before.y,before.width,before.height),"changedPixels",changed,"depthUnchanged",depthChanges==0));
             rawRows.add(Map.of("name",before.name,"rect",List.of(before.x,before.y,before.width,before.height),"changedPixels",changed,"depthChanges",depthChanges,
                 "beforeRgbaBottomLeftHex",java.util.HexFormat.of().formatHex(before.rgba),"afterRgbaBottomLeftHex",java.util.HexFormat.of().formatHex(after.rgba),
@@ -177,8 +195,142 @@ public final class NativeOrbitalMaskCheck {
             require(!pixelsBad,(near?"near opaque/window pixels changed in the WHOLE Horizon draw; layer attribution required: ":"actual MID/FAR authored station produced no colour pixels beyond residency: ")+regionRows);
         }
         pixels=new Pixels(pending.stage,epoch,Map.of("case",pending.stage,"actualDistance",pending.distance,"clientFullAabbCubes",pending.fullCubes,
-            "aabbCubes",pending.totalCubes,"actualSceneFbo",pending.fbo,"regions",regionRows));
+            "aabbCubes",pending.totalCubes,"actualSceneFbo",pending.fbo,"regions",regionRows),fogFrame);
     }
+    private static float[] uniform(ShaderProgram program,String name,int count){
+        int ref=program.getGlRef(),at=GL20.glGetUniformLocation(ref,name);
+        require(at>=0,"actual active field uniform "+name);
+        float[] values=new float[count];GL20.glGetUniformfv(ref,at,values);
+        for(float value:values)require(Float.isFinite(value),"non-finite actual field uniform "+name);
+        return values;
+    }
+
+    private static FogFrame readFogFrame(PixelPending draw,Region after,ShaderProgram program){
+        require(++fogFrames<=8,"at most eight extra distant ROI scans");
+        var c=MinecraftClient.getInstance();var eye=c.gameRenderer.getCamera().getPos();
+        int object=HorizonOrbitalPixelSnap.objects(draw.source.orbitalKeys).indexOf(draw.selected);
+        require(object>=0,"selected asteroid has an actual uploaded pixel shift slot");
+        var shift=uniform(program,"OrbitalPixelShift["+(object/2)+"]",4);
+        var selectedShift=Arrays.copyOfRange(shift,object%2*2,object%2*2+2);
+        require(Math.abs(selectedShift[0])+Math.abs(selectedShift[1])>0,"actual FAR asteroid snapped on the PS1 scene");
+        float density=uniform(program,"Ps1FarFogDensity",1)[0];
+        float skyMix=uniform(program,"Ps1SkyFogMix",1)[0];
+        float start=uniform(program,"Ps1FogStart",1)[0],end=uniform(program,"Ps1FogEnd",1)[0];
+        float[] sky=uniform(program,"Ps1SkyFogColor",3),fallback=uniform(program,"FogColor",4);
+        if(fogBaseline==null){
+            require(density==0&&skyMix==0&&start==0&&end==1&&Arrays.equals(sky,new float[3])
+                &&!Ps1WorldFog.active(),"actual neutral world and colour shader fog");
+        }else{
+            var expected=Ps1FogRange.at(eye.y,2,c.options.getClampedViewDistance()*16f).orElseThrow();
+            require(Math.abs(density-Ps1Atmosphere.density(eye.y,2))<1e-5&&skyMix==1&&start==expected.start()
+                &&Math.abs(end-expected.end())<.001f&&fallback[3]>0&&Ps1WorldFog.active(),"actual enabled world and colour shader fog");
+            var worldFog=com.mojang.blaze3d.systems.RenderSystem.getShaderFogColor();
+            for(int i=0;i<3;i++)require(Math.abs(worldFog[i]-sky[i])<1e-4,"same actual native terrain and Horizon sky target");
+        }
+        var modulator=uniform(program,"ColorModulator",4);
+        float outer=uniform(program,"FieldOuterRadius",1)[0];
+        require(Arrays.equals(modulator,new float[]{1,1,1,1})&&draw.distance+16<outer*.55,"opaque Horizon source before any outer fade");
+        return new FogFrame(draw,after,eye,colour.mask,uniform(program,"FieldOriginDelta",3),selectedShift,modulator,
+            outer,density,sky,fallback[3],start,end,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
+    }
+
+    private static boolean sameFogSource(FogFrame neutral,FogFrame styled){
+        var a=neutral.draw;var b=styled.draw;
+        return a.source==b.source&&a.fbo==b.fbo&&a.selected.equals(b.selected)&&neutral.eye.equals(styled.eye)
+            &&neutral.width==styled.width&&neutral.height==styled.height&&neutral.outerRadius==styled.outerRadius
+            &&Arrays.equals(a.view,b.view)&&Arrays.equals(a.projection,b.projection)
+            &&Arrays.equals(neutral.pixelShift,styled.pixelShift)&&Arrays.equals(neutral.mask,styled.mask)
+            &&Arrays.equals(neutral.originDelta,styled.originDelta)&&Arrays.equals(neutral.modulator,styled.modulator)
+            &&neutral.after.x==styled.after.x&&neutral.after.y==styled.after.y
+            &&neutral.after.width==styled.after.width&&neutral.after.height==styled.after.height;
+    }
+
+    /** Actual source face data from the uploaded mesh, at the same shifted sample centre as the colour draw. */
+    private static int coveringAsteroidFaces(FogFrame frame,int x,int y,int rgb){
+        var p=frame.draw;var source=p.source;
+        var transform=new Matrix4f().set(p.projection).mul(new Matrix4f().set(p.view));
+        double px=(x+.5)*2/frame.width-1,py=(y+.5)*2/frame.height-1;
+        int faces=0;
+        for(int q=0;q<source.quads;q++){
+            int slot=source.orbitalMasks[q];
+            if(slot<0||frame.mask[slot]!=1||!source.orbitalKeys.get(slot).mark().equals(p.selected)
+                ||source.colours[q]!=(0xff000000|rgb))continue;
+            var v=new Vector4f[4];
+            for(int i=0;i<4;i++){
+                int at=q*12+i*3;
+                float vx=source.positions[at]+frame.originDelta[0],vy=source.positions[at+1]+frame.originDelta[1],vz=source.positions[at+2]+frame.originDelta[2];
+                float scale=(float)HorizonProjection.factor(vx,vy,vz,inputInner,inputReach);
+                v[i]=new Vector4f(vx*scale,vy*scale,vz*scale,1).mul(transform);
+                require(v[i].w>0,"visible selected source face at positive clip W");
+                v[i].set(v[i].x/v[i].w+frame.pixelShift[0],v[i].y/v[i].w+frame.pixelShift[1],0,1);
+            }
+            if(inFrontTriangle(v[0],v[1],v[2],px,py)||inFrontTriangle(v[2],v[3],v[0],px,py))faces++;
+        }
+        return faces;
+    }
+
+    private static double side(Vector4f a,Vector4f b,double x,double y){
+        return (b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x);
+    }
+
+    private static boolean inFrontTriangle(Vector4f a,Vector4f b,Vector4f c,double x,double y){
+        return side(a,b,c.x,c.y)>0&&side(a,b,x,y)>=-1e-8&&side(b,c,x,y)>=-1e-8&&side(c,a,x,y)>=-1e-8;
+    }
+
+    private static List<Integer> rgb(Region region,int i){
+        return List.of(Byte.toUnsignedInt(region.rgba[i*4]),Byte.toUnsignedInt(region.rgba[i*4+1]),Byte.toUnsignedInt(region.rgba[i*4+2]));
+    }
+
+    private static void receiveFogPair(FogFrame styled) throws Exception{
+        if(fogBaseline==null){
+            fogBaseline=styled;DescentConfig.ps1FarFog=new Ps1FarFogOptions(2);return;
+        }
+        var neutral=fogBaseline;
+        if(!sameFogSource(neutral,styled)){
+            fogBaseline=null;fogRearms++;DescentConfig.ps1FarFog=new Ps1FarFogOptions(0);
+            admission(2,"AWAITING_SAME_SOURCE_FOG_PAIR","fogRearms",fogRearms,"fogScans",fogFrames);
+            return;
+        }
+        var a=neutral.draw.regions.get(0);var b=styled.draw.regions.get(0);
+        require(Arrays.equals(a.depth,neutral.after.depth)&&Arrays.equals(a.depth,b.depth)
+            &&Arrays.equals(a.depth,styled.after.depth),"same exact real sky-depth samples in all four readbacks");
+        var range=new Ps1FogRange(styled.start,styled.end);
+        double minAmount=range.amount(styled.draw.distance-12,styled.alpha),maxAmount=range.amount(styled.draw.distance+12,styled.alpha);
+        var rows=new ArrayList<Map<String,Object>>();
+        boolean match=false;
+        for(int i=0;i<a.depth.length;i++){
+            int x=a.x+i%a.width,y=a.y+i/a.width;
+            var raw=rgb(neutral.after,i);var hazy=rgb(styled.after,i);
+            int packed=(raw.get(0)<<16)|(raw.get(1)<<8)|raw.get(2);
+            int faces=coveringAsteroidFaces(neutral,x,y,packed);
+            int delta=0;boolean agrees=true;
+            for(int ch=0;ch<3;ch++){
+                double toward=styled.sky[ch]*255-raw.get(ch);
+                double p0=raw.get(ch)+toward*minAmount,p1=raw.get(ch)+toward*maxAmount;
+                agrees&=hazy.get(ch)>=Math.min(p0,p1)-2&&hazy.get(ch)<=Math.max(p0,p1)+2;
+                delta=Math.max(delta,Math.abs(hazy.get(ch)-raw.get(ch)));
+            }
+            boolean accepted=faces>0&&agrees&&delta>=4&&!raw.equals(rgb(a,i))&&!hazy.equals(rgb(b,i));
+            match|=accepted;
+            rows.add(Map.of("scenePixel",List.of(x,y),"neutralBackground",rgb(a,i),"neutralAfter",raw,
+                "enabledBackground",rgb(b,i),"enabledAfter",hazy,"depth",a.depth[i],"coveringOpaqueAsteroidFaces",faces,
+                "withinShaderFogAmount",agrees,"largestChannelDelta",delta,"witness",accepted));
+        }
+        var pair=new LinkedHashMap<String,Object>();
+        pair.put("outcome",match?"PASS":"FAIL");pair.put("sameActualSourceFboPoseMatricesAndMasks",true);
+        pair.put("sourceIdentity",System.identityHashCode(styled.draw.source));pair.put("fbo",styled.draw.fbo);
+        pair.put("epochs",List.of(neutral.draw.epoch,styled.draw.epoch));pair.put("actualEye",List.of(styled.eye.x,styled.eye.y,styled.eye.z));
+        pair.put("trueDistance",styled.draw.distance);pair.put("minimumAndMaximumAmount",List.of(minAmount,maxAmount));
+        pair.put("actualFogDensity",List.of(neutral.density,styled.density));pair.put("actualFogRange",List.of(styled.start,styled.end));
+        pair.put("actualSkyTarget",styled.sky);pair.put("actualFogAlpha",styled.alpha);pair.put("pixelShiftNdc",styled.pixelShift);
+        pair.put("fogScans",fogFrames);pair.put("fogRearms",fogRearms);pair.put("pixels",rows);
+        fogPair=Map.copyOf(pair);
+        require(match,"selected covering FAR asteroid pixel did not acquire the actual shader haze: "+rows);
+        var c=MinecraftClient.getInstance();var folder=c.runDirectory.toPath().resolve("orbital-mask-frames");
+        screenshot(folder.resolve("intact-asteroid-far-enabled-fog.png"));
+        fogPairObserved=true;
+    }
+
     private static void preservePixelFailure(PixelPending p,List<Map<String,Object>> regions){
         if(!firstPixelFailure.isEmpty())return;
         var c=MinecraftClient.getInstance();var row=new LinkedHashMap<String,Object>();
@@ -200,6 +352,7 @@ public final class NativeOrbitalMaskCheck {
     }
     private static void fieldViewReceipt(long epoch) throws Exception{
         if(pixels==null||pixels.epoch!=epoch)return;var pixel=pixels;pixels=null;
+        if(pixel.fogFrame!=null){receiveFogPair(pixel.fogFrame);return;}
         if(CASE_FRAMES[pixel.stage]>=8)return;
         require(CASE_RECEIPTS.size()<32,"four native view cases x8 actual frames cap32");var receipt=new LinkedHashMap<String,Object>(pixel.receipt);var client=MinecraftClient.getInstance();var eye=client.gameRenderer.getCamera().getPos();
         receipt.put("epoch",epoch);receipt.put("actualWorldTick",client.world.getTime());receipt.put("actualEye",List.of(eye.x,eye.y,eye.z));
@@ -239,8 +392,8 @@ public final class NativeOrbitalMaskCheck {
             if(removed>0)domains.add("REMOVED_CATALOGUE_ZERO_PROXY");
             // Once enough frames of a category are observed, do not add unbounded GL queries/rows.
             if(domains.stream().noneMatch(d->COUNTS.getOrDefault(d,0)<8)
-                &&(pixelPending==null||pixelPending.stage<0||CASE_FRAMES[pixelPending.stage]>=8)
-                &&(pixels==null||CASE_FRAMES[pixels.stage]>=8))return;
+                &&(pixelPending==null||!needsPixels(pixelPending.stage))
+                &&(pixels==null||!needsPixels(pixels.stage)))return;
             for(int i=0;i<108;i++) {
                 int location=GL20.glGetUniformLocation(program.getGlRef(),"OrbitalOpacity["+i+"]");
                 require(location>=0,"actual linked vec4 orbital uniform missing "+i);float[] actual=new float[4];
@@ -249,7 +402,7 @@ public final class NativeOrbitalMaskCheck {
                     "actual GPU orbital opacity differs at slot "+(i*4+c)+" expected="+expected[i*4+c]+" actual="+actual[c]);
             }
             var draw=new Draw(epoch,source,expected,Set.copyOf(domains),unique.size(),removed);
-            if(semanticPass)semantic=draw;else {colour=draw;afterColourPixels(source,epoch);}
+            if(semanticPass)semantic=draw;else {colour=draw;afterColourPixels(source,epoch,program);}
         }catch(Throwable problem){fail(problem);}
     }
     /** Actual GameRenderer RETURN. Colour and semantic inputs must belong to the same frame/VBO. */
@@ -289,6 +442,7 @@ public final class NativeOrbitalMaskCheck {
     private static void write() throws Exception {
         var report=new LinkedHashMap<String,Object>();report.put("scope","passive actual GPU-input/ABI witness; optional explicit physical mission extension adds real paired pixel/depth cases, not cold/global GPU-section completion");
         report.put("intactAsteroidMode",NativeIntactAsteroidCheck.ENABLED&&!NativeIntactAsteroidCheck.STATION);report.put("intactStationMode",NativeIntactAsteroidCheck.STATION);report.put("failure",failed);report.put("firstPixelFailure",firstPixelFailure);report.put("physicalFieldViewFrames",CASE_FRAMES);report.put("allFourPhysicalFieldViewsObserved",fieldViewBits==15);report.put("physicalFieldViews",CASE_RECEIPTS);report.put("actualReadbackBytes",readbackBytes);report.put("lastFieldViewAdmission",lastViewAdmission);report.put("counts",COUNTS);report.put("observations",RECEIPTS);
+        report.put("intactAsteroidFogPair",fogPair);
         report.put("allThreeDomainsObserved",COUNTS.getOrDefault("NEAR_FULL_ZERO_PROXY",0)>=8&&COUNTS.getOrDefault("MID_PROXY_INPUT",0)>=8&&COUNTS.getOrDefault("FAR_PROXY_INPUT",0)>=8);
         Files.writeString(MinecraftClient.getInstance().runDirectory.toPath().resolve("orbital-mask-observations.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));
     }

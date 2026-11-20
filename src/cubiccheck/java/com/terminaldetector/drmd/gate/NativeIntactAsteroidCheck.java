@@ -26,6 +26,8 @@ import java.util.*;
 public final class NativeIntactAsteroidCheck {
     public static final boolean STATION=Boolean.getBoolean("drmd.gate.intactStation");
     public static final boolean ENABLED=STATION||Boolean.getBoolean("drmd.gate.intactAsteroid");
+    private static final boolean FOG_PROOF=!STATION&&Boolean.getBoolean("drmd.gate.intactAsteroidFog");
+    private static boolean fogProbe;
     private static final String PLAN="b0c0be5305a458b766aea230a700f435b95e2279328a5afb6a9b2588e4fef8d9";
     private static final Vec3d CENTRE=STATION?new Vec3d(-1112,1416,1206):new Vec3d(-1072,1444,1176);
     private static final int TOTAL_CELLS=STATION?7680:2304;
@@ -51,6 +53,7 @@ public final class NativeIntactAsteroidCheck {
         deadline=System.nanoTime()+260_000_000_000L;
         ClientTickEvents.END_CLIENT_TICK.register(NativeIntactAsteroidCheck::tick);
     }
+    static boolean fogProbe(){return FOG_PROOF&&fogProbe&&!done;}
     public static Vec3d centre(){return CENTRE;}
     public static boolean selected(HorizonLandmark mark){
         return mark.kind()==(STATION?MacroEntry.Kind.ORBITAL_STATION:MacroEntry.Kind.ASTEROID)
@@ -136,7 +139,16 @@ public final class NativeIntactAsteroidCheck {
             c.player.setPitch((float)Math.toDegrees(Math.atan2(c.player.getEyeY()-(CENTRE.y+.5),ahead)));
             require(NativeOrbitalMaskCheck.fieldViewFailure()==null,"actual orbital draw failure: "+NativeOrbitalMaskCheck.fieldViewFailure());
             if((renderedBits&(1<<stage))==0)return;
-            if(stage==2){finish(c,"PASS","same intact native "+(STATION?"original station":"outer asteroid")+" near/MID/FAR in actual PS1 world; not an atmosphere or physical-flight proof");return;}
+            if(stage==2){
+                if(FOG_PROOF&&!NativeOrbitalMaskCheck.asteroidFogObserved()){
+                    if(!fogProbe){fogProbe=true;phaseTicks=0;}
+                    return;
+                }
+                finish(c,"PASS",FOG_PROOF
+                    ?"same closed native asteroid near/MID/FAR and real FAR paired fog/neutral colour"
+                    :"same intact native "+(STATION?"original station":"outer asteroid")+" near/MID/FAR in actual PS1 world; not an atmosphere or physical-flight proof");
+                return;
+            }
             stage++;phaseTicks=0;serverReady=false;
         }catch(Throwable problem){finish(c,"FAIL",problem.toString());}
     }
@@ -156,6 +168,7 @@ public final class NativeIntactAsteroidCheck {
     private static void finish(MinecraftClient c,String status,String why){
         if(done)return;done=true;
         try{var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("intactStationMode",STATION);report.put("reason",why);report.put("stage",stage);report.put("verifiedOriginalCells",verified);
+            report.put("intactAsteroidFogMode",FOG_PROOF);report.put("asteroidFogPairObserved",NativeOrbitalMaskCheck.asteroidFogObserved());
             report.put("rows",ROWS);report.put("setupTeleports",setupTeleports);report.put("fixtureBlockWrites",0);report.put("fixtureCatalogueWrites",0);report.put("actualReadback",NativeOrbitalMaskCheck.fieldViewDiagnostic());
             Files.writeString(c.runDirectory.toPath().resolve(STATION?"intact-station-outcome.json":"intact-asteroid-outcome.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));
         }catch(Exception problem){throw new IllegalStateException(problem);}finally{c.scheduleStop();}
