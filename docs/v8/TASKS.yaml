@@ -241,11 +241,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id004
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/native-reactor-placement.json, EVIDENCE/finish36-20261119/native-reactor-placement.zip, EVIDENCE/finish36-20261119/four-height-flight-and-cold.json]
+  notes: "Перенесён промышленный генератор и реакторный старт. На 3d792abb после обычной загрузки 150 реальных FULL-кубов BCC вокруг центра Y1648 штатная команда /d6 start построила площадку и реактор, создала корабль и пять дронов. Запрос генерации по тем же X/Z на недоступной высоте отклонён без загрузки куба или изменения каталога. Результат относится к промышленной подсистеме, другие генераторы биомов в этом прогоне не запускались."
 - id: S03-T03
   stage: S03
   stage_title: Migrate world gameplay and structures

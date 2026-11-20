@@ -1,0 +1,36 @@
+{
+  "source": "3d792abbcaab0c823dea96ddefba17c9c18f43e3",
+  "nativeProcessExit": 0,
+  "observation": {
+    "status": "OBSERVED_NATIVE_INDUSTRIAL_PLACEMENT_PASS",
+    "ordinaryAdmissionTicks": 333,
+    "nativeFullCubes": 150,
+    "registeredCommandResult": 1,
+    "center": [
+      40,
+      1648,
+      40
+    ],
+    "rejectedSameColumnCube": [
+      2,
+      119,
+      2
+    ],
+    "rejectedCubeStillUnavailable": true,
+    "observerWorldWrites": 0,
+    "observerTickets": 0
+  },
+  "setup": "Manual confirmation of the experimental settings warning in the copied test save. All placement observations came from the test addon.",
+  "archive": "native-reactor-placement.zip",
+  "archiveSha256": "6991d8e6e5b6f0aefbc5e9b2b056ee53ec470a4e2fae1ae8ffc9c32c950d7bd1",
+  "memberSha256": {
+    "native.log": "aa10a64d6dee6355aa407431cc1de1897d5a009704d7805f2e34d3d94f95ba5b",
+    "native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "prep.log": "5b6e13e045f5f2b822002c7c85edac0724674aa8b8ab55428093d2a66d3cee11",
+    "backup-screen.png": "0d9d1e9dff57ff29dfe8f2afda0d7554ae212097fa7888cb0a60dbf4b7e197bc",
+    "closed-copied-save.json": "e281ef923882055f31b8bc5dd1588d2d1bf46bac4c4aa792a237832bf68a3895",
+    "cubic-client-automation/native-industrial-placement.json": "f19c08e1b3e432c6e9c0689f63f2087b30490fb2aeb09ed566951f0b1d2a7ddd",
+    "cubic-client-automation/inputs.json": "80ec678fb1a314a6083830562bf3bdffbd8ed949078dd7a400560408de02c10f",
+    "cubic-client-automation/launch.json": "5883fbef9e0f06b5b4df81a19f20a68da5ac1c0685f2b2e5177a16f15d5e0648"
+  }
+}
