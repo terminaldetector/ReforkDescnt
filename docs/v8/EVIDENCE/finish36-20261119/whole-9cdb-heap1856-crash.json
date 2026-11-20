@@ -1,0 +1,31 @@
+{
+  "receipt": {
+    "source": "9cdb8dd48ed84ac850547fdeb309688a8bb2ee05",
+    "namedGameSource": "9cdb8dd48ed84ac850547fdeb309688a8bb2ee05",
+    "exit": 1,
+    "processPid": 165598,
+    "started": 1795172714.6467862,
+    "ended": 1795173400.6847792,
+    "validatedAfterRun": true
+  },
+  "jvmMaxHeapMiB": 1856,
+  "category": "infrastructure: Java heap space exhausted before the final case completed",
+  "lastObservedProgress": {
+    "+": 710,
+    "X": 0,
+    "x": 0,
+    "_": 0,
+    " ": 3
+  },
+  "junitWritten": false,
+  "archive": "whole-9cdb-heap1856-crash.zip",
+  "archiveSha256": "daa8e881680bb2a8bade1c270e94275a831b9dffba65374ca3798c57a09fd477",
+  "memberSha256": {
+    "receipt.json": "d28d100733f377d8b98b1ba8021c83387eec728d9979a64d14f8f75b47b1cce9",
+    "inputs.json": "dabe4aee3cc437581e9a107e288fc74d5e2a7364e5af2f941dcf06ed31c285cb",
+    "launch.cfg": "873744d667af323650bda117306b92cb2a27a033a3ee0a45428cb8ad5462e639",
+    "game.log": "7305c23b9c001b8eceee93fbb2ee1d0a7fe72f6ff716101ce1781f5b1602f778",
+    "runtime/world-closed.json": "b0fa818c7c19fd3f4fe0e1e3ff8f048593cd3ac2361a2a50c483f8a16128c490",
+    "runtime/crash-reports/crash-2026-11-20_11.16.34-server.txt": "02f65ce794468815171dd109cb7f07ae5c87818a64e29bedcb8c9816d5514091"
+  }
+}
