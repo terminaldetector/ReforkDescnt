@@ -112,7 +112,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
             var blueprint=SkyUfoHull.TEMPLATE.cells().entrySet().stream().filter(e->!e.getValue().isAir())
                 .map(e->new Cell(new BlockPos(e.getKey().x(),e.getKey().y(),e.getKey().z()),e.getValue())).toList();
             // The legacy virtual hull used the saved entity position as its template origin.
-            // Migrate its vanilla Motion before the first physical step.
+            // Cruise used vanilla Motion. A virtual crash advanced its separate descent curve.
             var origin=getPos();initializeLocal(blueprint,origin);
             if(legacyMotionPending)restoreLegacyMotion(origin);
             initialized=true;cruiseAltitude=massPosition().y();
@@ -147,10 +147,19 @@ public class SkyUfoEntity extends BlockBodyEntity {
 
     private void restoreLegacyMotion(Vec3d origin) {
         var yaw=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,1,0),-MathHelper.wrapDegrees(cruiseYaw));
-        var motion=getVelocity().multiply(com.terminaldetector.drmd.DescentMod.TICKS_PER_SECOND);
+        double ticksPerSecond=com.terminaldetector.drmd.DescentMod.TICKS_PER_SECOND;
+        Vec3 velocity;
+        if(crashing){
+            // The old crash tick moved by fallSpeed(age), then incremented age. Its
+            // persisted vanilla Motion still described the preceding horizontal cruise.
+            velocity=crashTicks==0?ZERO:new Vec3(0,-StructureCrash.fallSpeed(crashTicks-1)*ticksPerSecond,0);
+            crashTicks=0;
+        }else{
+            var motion=getVelocity().multiply(ticksPerSecond);
+            velocity=Double.isFinite(motion.lengthSquared())?new Vec3(motion.x,motion.y,motion.z):ZERO;
+        }
         var centre=yaw.rotate(localCentre());
-        physics().withRotation(yaw).withLinearVelocity(Double.isFinite(motion.lengthSquared())
-            ?new Vec3(motion.x,motion.y,motion.z):ZERO);
+        physics().withRotation(yaw).withLinearVelocity(velocity);
         physics().limitMotion();
         setPosition(origin.x+centre.x(),origin.y+centre.y(),origin.z+centre.z());
         legacyMotionPending=false;
@@ -288,6 +297,15 @@ public class SkyUfoEntity extends BlockBodyEntity {
         reactorWarningSent=false; // Reannounce actual remaining time on return, never restart the clock.
         if(!Double.isFinite(cruiseYaw)||!Double.isFinite(cruiseAltitude))throw new IllegalArgumentException("non-finite UFO controller");
         if(n.contains("destructionMode"))destructionMode=DestructionMode.valueOf(n.getString("destructionMode"));
+        if(legacyMotionPending&&crashing){
+            // Historical fall age is unrelated to the modern reactor clock.
+            reactorEscapeTicks=0;
+            destructionMode=DestructionMode.CRASH;
+            if(n.contains("crashReason",NbtElement.STRING_TYPE)){
+                String reason=n.getString("crashReason");
+                if(!reason.isBlank())reactorFailureCause=reason.substring(0,Math.min(96,reason.length()));
+            }
+        }
         laserCooldown=MathHelper.clamp(n.getInt("laserCooldown"),0,8);rocketCooldown=MathHelper.clamp(n.getInt("rocketCooldown"),0,24);
         turret=n.contains("turret",NbtElement.COMPOUND_TYPE)?SkyUfoTurret.read(n.getCompound("turret")):null;
         swarm.clear();var saved=n.getList("swarm",NbtElement.COMPOUND_TYPE);

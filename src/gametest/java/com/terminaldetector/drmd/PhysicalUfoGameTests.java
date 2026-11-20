@@ -376,13 +376,47 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="physical-ufo-legacy-fall",tickLimit=60)
     public void legacyCrashingSaveMigratesToAPhysicalFallWithoutRecreatingWorldBlocks(TestContext c) {
-        var original=create(c);SkyUfoEntity migrated=null;
+        var world=c.getWorld();
+        var at=c.getAbsolutePos(new BlockPos(8,190,8));
+        for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++) world.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
+        var origin=new Vec3d(at.getX()+.5,at.getY()+.625,at.getZ()+.25);
+        var old=legacyVirtualHull(origin,new Vec3d(-.28,.015,0));
+        old.putBoolean("crashing",true);
+        old.putInt("crashTicks",23);
+        old.putString("crashReason","original virtual crash");
+        var materialBefore=world.getBlockState(at.up());
+        var staged=ModEntities.SKY_UFO.create(world);
+        var migrated=ModEntities.SKY_UFO.create(world);
+        var roundTrip=ModEntities.SKY_UFO.create(world);
         try {
-            var old=original.writeNbt(new NbtCompound());old.remove("shape");old.remove("body");old.remove("physicalUfoSchema");old.putBoolean("crashing",true);
-            migrated=ModEntities.SKY_UFO.create(c.getWorld());migrated.readNbt(old);migrated.setUuid(java.util.UUID.randomUUID());migrated.setAutopilot(false);
-            c.assertTrue(c.getWorld().spawnEntity(migrated),"load legacy UFO as the same registered entity class");migrated.tick();
-            c.assertTrue(migrated.isMaterialized()&&migrated.isCrashing()&&migrated.physicsGravity()&&migrated.passengerGravity().lengthSquared()==0,"legacy crash cannot turn into an artificially powered hovering wreck");
-        } finally {if(migrated!=null)migrated.discard();original.discard();}c.complete();
+            staged.readNbt(old);
+            migrated.readNbt(staged.writeNbt(new NbtCompound()));
+            c.assertTrue(world.spawnEntity(migrated),"load the old falling entity under its original identity");
+            migrated.tick();
+            double expectedFallSpeed=(.05+.02*22)*20+9.81*.05;
+            var velocity=migrated.physics().linearVelocity();
+            var after=migrated.localToWorld(Vec3d.ZERO);
+            c.assertTrue(migrated.getUuid().equals(old.getUuid("UUID"))&&migrated.isMaterialized()
+                &&migrated.isCrashing()&&migrated.physicsGravity()&&migrated.passengerGravity().lengthSquared()==0,
+                "legacy crash becomes the same inert falling physical hull");
+            c.assertTrue(Math.abs(velocity.y()+expectedFallSpeed)<1e-8&&Math.abs(velocity.x())<1e-9&&Math.abs(velocity.z())<1e-9
+                &&Math.abs(after.x-origin.x)<1e-8&&Math.abs(after.z-origin.z)<1e-8&&after.y<origin.y,
+                "last completed legacy fall sample becomes vertical velocity before the first physical gravity step");
+            c.assertTrue(migrated.reactorEscapeTicks()==0&&!migrated.reactorDetonated()
+                &&migrated.reactorFailureCause().equals("original virtual crash"),
+                "fall age does not arm the modern reactor countdown and the saved reason survives");
+            c.assertTrue(world.getBlockState(at.up()).equals(materialBefore),"migration writes no terrain blocks");
+            var saved=migrated.writeNbt(new NbtCompound());
+            roundTrip.readNbt(saved);
+            c.assertTrue(saved.getInt("physicalUfoSchema")==2&&saved.getInt("crashTicks")==0&&!saved.contains("legacyMotionPending")
+                &&roundTrip.isCrashing()&&roundTrip.reactorEscapeTicks()==0&&roundTrip.physics().linearVelocity().equals(velocity),
+                "current schema restores the physical fall without reapplying the old curve");
+        } finally {
+            staged.discard();
+            roundTrip.discard();
+            migrated.discard();
+        }
+        c.complete();
     }
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="physical-ufo-legacy-cruise",tickLimit=60)
@@ -392,17 +426,7 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
         for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++) world.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
         var origin=new Vec3d(at.getX()+.5,at.getY()+.625,at.getZ()+.25);
         var perTick=new Vec3d(-.125,.03125,.25);
-        var old=new NbtCompound();
-        old.putUuid("UUID",java.util.UUID.randomUUID());
-        old.put("Pos",legacyVector(origin));
-        old.put("Motion",legacyVector(perTick));
-        var yawPitch=new net.minecraft.nbt.NbtList();
-        yawPitch.add(net.minecraft.nbt.NbtFloat.of(90));
-        yawPitch.add(net.minecraft.nbt.NbtFloat.of(0));
-        old.put("Rotation",yawPitch);
-        old.putFloat("cruise",90);
-        old.putBoolean("hull",true);
-        old.putBoolean("NoGravity",true);
+        var old=legacyVirtualHull(origin,perTick);
         var materialBefore=world.getBlockState(at.add(0,1,0));
         var staged=ModEntities.SKY_UFO.create(world);
         var migrated=ModEntities.SKY_UFO.create(world);
@@ -437,6 +461,21 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             migrated.discard();
         }
         c.complete();
+    }
+
+    private static NbtCompound legacyVirtualHull(Vec3d origin,Vec3d perTick) {
+        var old=new NbtCompound();
+        old.putUuid("UUID",java.util.UUID.randomUUID());
+        old.put("Pos",legacyVector(origin));
+        old.put("Motion",legacyVector(perTick));
+        var yawPitch=new net.minecraft.nbt.NbtList();
+        yawPitch.add(net.minecraft.nbt.NbtFloat.of(90));
+        yawPitch.add(net.minecraft.nbt.NbtFloat.of(0));
+        old.put("Rotation",yawPitch);
+        old.putFloat("cruise",90);
+        old.putBoolean("hull",true);
+        old.putBoolean("NoGravity",true);
+        return old;
     }
 
     private static net.minecraft.nbt.NbtList legacyVector(Vec3d vector) {
