@@ -1,0 +1,470 @@
+{
+  "status": "PASS",
+  "source": "0178e6c841d25f489f6be612b9e16cfdcb391be1",
+  "modHashes": {
+    "game": "c381db97961597ff64ba5bd49e2ed3055d205bed6eb5444323d72926572eb713",
+    "observer": "04a1398aff3ea42c4cc81494341d2d4b80eef95a2ca033dc84c3091fad087d46",
+    "bcc": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+    "api": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+    "sodium": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d"
+  },
+  "writerObserverSha256": "04a1398aff3ea42c4cc81494341d2d4b80eef95a2ca033dc84c3091fad087d46",
+  "readerObserverSha256": "00af40410755b977341ea38a89ea722a6de07fadc578d7fe0718a390176806ed",
+  "lateAcknowledgement": {
+    "placement": {
+      "liveFeetAtSend": [
+        190.0183131357187,
+        157.93137793707598,
+        9.303768683280813
+      ],
+      "originalTarget": [
+        190.0183131357187,
+        157.93137793707598,
+        9.303768683280813
+      ],
+      "id": 2,
+      "tick": 1334
+    },
+    "before": {
+      "tick": 1349,
+      "epochBefore": 2,
+      "advancedSincePlacement": 4.542151837896514,
+      "originalPlacement": [
+        190.0183131357187,
+        157.93137793707598,
+        9.303768683280813
+      ],
+      "ticksSincePlacement": 15,
+      "id": 2,
+      "pendingAtObserverEntry": [
+        190.0183131357187,
+        157.93137793707598,
+        9.303768683280813
+      ],
+      "leaseBefore": true,
+      "feetBefore": [
+        194.5342196358236,
+        157.44403696207127,
+        9.318953376178781
+      ]
+    },
+    "after": {
+      "tick": 1349,
+      "epochAfter": 2,
+      "rewindDistance": 0.0,
+      "leaseAfter": true,
+      "vanillaPendingCleared": true,
+      "id": 2,
+      "feetAfter": [
+        194.5342196358236,
+        157.44403696207127,
+        9.318953376178781
+      ]
+    }
+  },
+  "nativeMotorWalk": {
+    "ready": {
+      "tick": 1354,
+      "acknowledgment": 2,
+      "localFeet": [
+        6.997707585146753,
+        1.0011676105542866,
+        6.629132715987515
+      ],
+      "consecutiveGroundedNeutral": 3,
+      "epoch": 2
+    },
+    "keyboard": {
+      "normalKeyPressedTicks": 8,
+      "directMovementPacketsByObserver": 0,
+      "epoch": 2,
+      "pid": 159564,
+      "predictionSequence": 73
+    },
+    "applied": {
+      "horizontalLocalDistance": 1.4308080342104963,
+      "acceptedForwardPackets": 8,
+      "field": "b51a438a-df19-4d40-a756-1051719c7150",
+      "groundedNeutralAfter": 3,
+      "beforeSequence": 64,
+      "epoch": 2,
+      "deck": "e33e8f7d-3cb3-4cde-bc57-dde75a38b4ba",
+      "beforeLocalFeet": [
+        6.9981159829230695,
+        1.001477928982724,
+        6.628127563708825
+      ],
+      "afterLocalFeet": [
+        8.414204247396324,
+        1.0023098052238966,
+        6.423418848744289
+      ],
+      "samples": [
+        {
+          "localFeet": [
+            6.9981159829230695,
+            1.001477928982724,
+            6.628127563708825
+          ],
+          "jump": false,
+          "tick": 1418,
+          "strafe": 0.0,
+          "sequence": 64,
+          "grounded": true,
+          "forward": 0.0
+        },
+        {
+          "localFeet": [
+            7.014172175803589,
+            1.0014653066995385,
+            6.626217662608985
+          ],
+          "jump": false,
+          "tick": 1419,
+          "strafe": 0.0,
+          "sequence": 65,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            7.058971937889139,
+            1.0014876060487097,
+            6.620535484632581
+          ],
+          "jump": false,
+          "tick": 1420,
+          "strafe": 0.0,
+          "sequence": 66,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            7.132030277602866,
+            1.0015399928308983,
+            6.6108998960608005
+          ],
+          "jump": false,
+          "tick": 1421,
+          "strafe": 0.0,
+          "sequence": 67,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            7.2328857675327916,
+            1.0016175745741813,
+            6.597142481753494
+          ],
+          "jump": false,
+          "tick": 1422,
+          "strafe": 0.0,
+          "sequence": 68,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            7.361101406890534,
+            1.0017158870878249,
+            6.57912525373039
+          ],
+          "jump": false,
+          "tick": 1423,
+          "strafe": 0.0,
+          "sequence": 69,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            7.516266426815374,
+            1.0018312075585656,
+            6.556764152610214
+          ],
+          "jump": false,
+          "tick": 1424,
+          "strafe": 0.0,
+          "sequence": 70,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            7.698001029233209,
+            1.0019607139265776,
+            6.530078269967977
+          ],
+          "jump": false,
+          "tick": 1425,
+          "strafe": 0.0,
+          "sequence": 71,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            7.902956300420093,
+            1.0020995681207987,
+            6.49991845398283
+          ],
+          "jump": false,
+          "tick": 1426,
+          "strafe": 0.0,
+          "sequence": 72,
+          "grounded": true,
+          "forward": 0.98
+        },
+        {
+          "localFeet": [
+            8.098221529958245,
+            1.002169485973256,
+            6.470976332806421
+          ],
+          "jump": false,
+          "tick": 1427,
+          "strafe": 0.0,
+          "sequence": 73,
+          "grounded": true,
+          "forward": 0.0
+        },
+        {
+          "localFeet": [
+            8.268684910505137,
+            1.0022542793057012,
+            6.445385835976502
+          ],
+          "jump": false,
+          "tick": 1428,
+          "strafe": 0.0,
+          "sequence": 74,
+          "grounded": true,
+          "forward": 0.0
+        },
+        {
+          "localFeet": [
+            8.414204247396324,
+            1.0023098052238966,
+            6.423418848744289
+          ],
+          "jump": false,
+          "tick": 1429,
+          "strafe": 0.0,
+          "sequence": 75,
+          "grounded": true,
+          "forward": 0.0
+        }
+      ],
+      "groundedForwardCommands": 8,
+      "appliedForwardCommands": 8,
+      "afterSequence": 75,
+      "serverTicks": 11
+    }
+  },
+  "writerQualificationReplay": null,
+  "writerChildren": {
+    "server": 0,
+    "crew": 0,
+    "late": 0
+  },
+  "readerChildren": {
+    "server": 0,
+    "crew": 0,
+    "late": 0
+  },
+  "writerServerPid": 158023,
+  "readerServerPid": 159425,
+  "proof": {
+    "exactOriginalIds": true,
+    "acceptedForwardPackets": 8,
+    "serverSidePlacementCalls": 1,
+    "realLocalWalk": 1.4308080342104963,
+    "beforeLateTurnRadians": 0.31674188293855565,
+    "tick": 1441,
+    "manualBodyTicks": 0,
+    "crewAirborneConcurrent": 0,
+    "crewAirborneBeforeLate": 6,
+    "beforeLateDistance": 7.6026473432544215,
+    "lateAirborneConcurrent": 0,
+    "finalConsecutiveDualGrounded": 12,
+    "continuedShipDistance": 23.92899346105019,
+    "bothTCPPlayersConcurrent": true
+  },
+  "reciprocalNativeFrames": {
+    "crew": {
+      "receipt": {
+        "localEpoch": 1,
+        "own": "24c98560-a636-3248-8c84-e61946af9011",
+        "predictionSequence": 969,
+        "deck": "e33e8f7d-3cb3-4cde-bc57-dde75a38b4ba",
+        "field": "b51a438a-df19-4d40-a756-1051719c7150",
+        "freshNativeFrames": 4,
+        "renderSize": [
+          640,
+          360
+        ],
+        "nativeTCP": true,
+        "peer": "6a3f84d9-131f-3ad8-af78-985e43fec3f2"
+      },
+      "pngSha256": "5fb5be1e3b78c1eb33379112aff1e5c5097a0342f5b237afadaa2cf93902dcb3"
+    },
+    "late": {
+      "receipt": {
+        "renderSize": [
+          640,
+          360
+        ],
+        "freshNativeFrames": 4,
+        "field": "b51a438a-df19-4d40-a756-1051719c7150",
+        "deck": "e33e8f7d-3cb3-4cde-bc57-dde75a38b4ba",
+        "predictionSequence": 92,
+        "own": "6a3f84d9-131f-3ad8-af78-985e43fec3f2",
+        "localEpoch": 2,
+        "peer": "24c98560-a636-3248-8c84-e61946af9011",
+        "nativeTCP": true
+      },
+      "pngSha256": "75fc90c98c5441fb10409154bc07b57b8e24eb23198dc9163eb7281c7b78030e"
+    }
+  },
+  "scope": "Dedicated TCP with a FIXED deck/field pair in a loaded original world and two independent real Fabric/BCC/Sodium clients. Optional VS Unofficial has no tested published Fabric 1.21.1 artifact.",
+  "archive": "dedicated-boarding-reconnect.zip",
+  "archiveSHA256": "002281c8891932612cc80d9e1862244ed3c4eaef275905a4052b2f68f88d054b",
+  "memberSHA256": {
+    "dedicated-boarding-writer-07/actual-close.json": "c43bd4a7bc5dd076ba060aefd57cf978beafa2318623cf0e2d43a407a90d1a58",
+    "dedicated-boarding-writer-07/actual-start.json": "3f6cdf317debc16a405ae870fe689f61703f048de5d8c0b12f102239dda03763",
+    "dedicated-boarding-writer-07/crew-child-start.json": "d8c9f9251a7de1b89a1a6f99c540f40ff0bb2ab4c386a85b434983a40669244a",
+    "dedicated-boarding-writer-07/crew-first.log": "0d1da9902430163bd25f2672acf3ebbd547f6f7eea9b76b9640838fd929ac69a",
+    "dedicated-boarding-writer-07/late-child-start.json": "f2aa05b456925f1fa9df02aed2d9b3b6309dd3d829774e6480411d385c872a66",
+    "dedicated-boarding-writer-07/late-first.log": "5d7de9aa6185f99f45380644229b955ef18628116e69cf60aa654e1967539d76",
+    "dedicated-boarding-writer-07/qualified-proof.json": "e4a51f8caa52aaf266e93fc59ec08eeb6c03ec6ea0fbd8e00cac10d811af1d2d",
+    "dedicated-boarding-writer-07/server-child-start.json": "4970a9972b3c645e8b9e591c52963eb5229bec41455ea09e4467bc8b0adc7b75",
+    "dedicated-boarding-writer-07/server-first.log": "2bcc7d42747d999805ffed3193f07514093c22f34942fd831327e3705840e322",
+    "dedicated-boarding-writer-07/server-started.json": "e5acb3d3af3767bdbb0dddd4c09b8cdb9e2dde46deea84d519d292a5d6b603ae",
+    "dedicated-boarding-writer-07/staging.json": "9697cfe0c45228e3e0a4b779d2c64cc73b463886ec643e5762fa81271e818929",
+    "dedicated-boarding-writer-07/tcp-listener-accepted.json": "8975ad0fc99968a3a82dfc935c750038b84715466ef5d09d842cfb31c13e2eea",
+    "dedicated-boarding-writer-07/writer-body-b51a438a-df19-4d40-a756-1051719c7150.snbt": "2ec5124eb8c5d3f31f234a6559d1b3614c50e35dc6f3722b60c547866d9ad5e9",
+    "dedicated-boarding-writer-07/writer-body-e33e8f7d-3cb3-4cde-bc57-dde75a38b4ba.snbt": "3f2abd2f46b315600ff9c48271f1baa2f247fa3f3cfb9a66fc6bae6a69a459ce",
+    "dedicated-boarding-writer-07/writer-crew-boarded.json": "9ba42b7dda47387929b2426862c45663f58e99a774540347ac9d4d3ca24406d3",
+    "dedicated-boarding-writer-07/writer-crew-connected.json": "4d24d8ef220c4b5d0dbfaac65a2f845a57e40c05fd32653a61dc65f1970af14d",
+    "dedicated-boarding-writer-07/writer-crew-placement.json": "62403cb8f8fe624dfdabb70e0d17c081c6e4008372b1d84b846fb5e324a419d2",
+    "dedicated-boarding-writer-07/writer-crew-shutdown.json": "61a4cf1c976ff7c9055e743c8b30491de3c701f837d8f6fdfa8e4c48843e23f3",
+    "dedicated-boarding-writer-07/writer-crew.json": "2ad07089173957331c1da28403e8e0bdb19a7fc1c207812ea11d4c74470ca41b",
+    "dedicated-boarding-writer-07/writer-departure-impulse.json": "94beef86298f4d4c326df95586749e6e9e0cac9e357fea45b07b4433953be0de",
+    "dedicated-boarding-writer-07/writer-late-connected.json": "349bb5265233924fc719fc3caa252f1810085e5854f9c4911b725a178c6bf1d3",
+    "dedicated-boarding-writer-07/writer-late-launch.json": "e6de0e65bf31304f420f62df8f28fea9af252d92dd310c4e74a9c461c4377f1d",
+    "dedicated-boarding-writer-07/writer-late-shutdown.json": "1b31b9de1e4a9b4aed0467588911a566cd6702d42400cae02a9c5faaa3086286",
+    "dedicated-boarding-writer-07/writer-passenger-boarded.json": "1ba8396b4f76c94b21fee9ba4a8d78ea240b3832ae4c87663636b08365ffc8b3",
+    "dedicated-boarding-writer-07/writer-passenger-live-target.json": "6bb3dfc1509fbbb5e2c9666a41618eebae66baf1500b92b7dad973072115b32b",
+    "dedicated-boarding-writer-07/writer-passenger-placement.json": "630eb2a16d39ec8e60654acec7c81046e54d747a6cb4ef88b59c31b580c43c0b",
+    "dedicated-boarding-writer-07/writer-passenger.json": "af57083315e9db7f874d45fc42aeb278215c08f4be2a82b433506fed36db4360",
+    "dedicated-boarding-writer-07/writer-ship-balance.json": "be073ff3705f01de2230c5641a155b11a550aa2b7437f38616fa56e756e5b7b6",
+    "dedicated-boarding-writer-07/writer-ship.json": "93ee3c6085a0316202f1dbd732cd98ba791c1ec6859cff5dd3d3427bffb0fe05",
+    "dedicated-boarding-writer-07/writer-stopping.json": "24dd5fadbfd7bac0dbe7944f1200f2e8f66d02cafd396b1b6ee692ce1d9cce8e",
+    "dedicated-boarding-writer-07/xvfb-display.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "dedicated-boarding-writer-07/xvfb-first.log": "87e9572cf030493a1f7ba83d385129046b224374ca1414911674b30fc44276d7",
+    "dedicated-boarding-reader-05/actual-close.json": "f73cd335b87e0fb2348741016b85b7cce01e73772b759324aa017894866691bc",
+    "dedicated-boarding-reader-05/actual-start.json": "4652ef19eec2265904bb4c7559acc99d4f7b222812f2221467f86a526833efd5",
+    "dedicated-boarding-reader-05/crew-child-start.json": "e6749bdbf1a25a516099548a935556a45c52c974cb9f1c4a220fef82273b0177",
+    "dedicated-boarding-reader-05/crew-first.log": "89683493dd0c946f90d29a46d4a58ddfc860d8b41c0ed221127c5a4ec1088554",
+    "dedicated-boarding-reader-05/late-child-start.json": "0d65c8889de54a84ee52c09cc4ab105f723b2e8e77e5c0b72b047e2d4cc95ee8",
+    "dedicated-boarding-reader-05/late-first.log": "73137a5fd8199cd545eb44d5b767b344c7e57e00c1e7d563eae9411c367da505",
+    "dedicated-boarding-reader-05/qualified-proof.json": "50fe3aecb10eb1a32949f69f4161abd2e440379436d68830e6a2cf553d534858",
+    "dedicated-boarding-reader-05/reader-capture.json": "75af0a500e07b4dcbd0639a6090bc695f0b86e4eb35c553bd95f7c46a0f6e313",
+    "dedicated-boarding-reader-05/reader-crew-connected.json": "c3bb9bface5855980789ae7b3932c511d02e46c9738d3d52130fcd5bae6fec70",
+    "dedicated-boarding-reader-05/reader-crew-frame.json": "02a2320de971d0dee01b8a3796d90a202b7598d1488a1112e5739ed22d90df7d",
+    "dedicated-boarding-reader-05/reader-crew-frame.png": "5fb5be1e3b78c1eb33379112aff1e5c5097a0342f5b237afadaa2cf93902dcb3",
+    "dedicated-boarding-reader-05/reader-crew-shutdown.json": "f6a1d592e9f0a56a89f58722d9b948454e9fa8ac76a4694d54b2643cc9d4c9a6",
+    "dedicated-boarding-reader-05/reader-done.json": "6debc18f35cf986d8b1be226e375f5666ce11e16292bec624e3e5caae5d464de",
+    "dedicated-boarding-reader-05/reader-key-ready.json": "f786a47266801a357647848092fd4e60fe713ed7e4fb10de6eb6ce7b4b29029c",
+    "dedicated-boarding-reader-05/reader-late-ack-after.json": "dd0c642f611386d4c9a488461b4b30a2ac92229872e2cec43389baaf63e5b8fb",
+    "dedicated-boarding-reader-05/reader-late-ack-begin.json": "0b5a6842537831fb2edebe52f7a770fec0dd832e04ca5dd7fa2be7f27a603b8c",
+    "dedicated-boarding-reader-05/reader-late-connected.json": "401223abd5e12c77c34fb4d11c432d15be66a6350d6aa705013fcf92f9c48862",
+    "dedicated-boarding-reader-05/reader-late-frame.json": "45d9e52b88fe66332b1d63d61bb95d8983ccd872e2db503d3dc51ceb69818fcf",
+    "dedicated-boarding-reader-05/reader-late-frame.png": "75fc90c98c5441fb10409154bc07b57b8e24eb23198dc9163eb7281c7b78030e",
+    "dedicated-boarding-reader-05/reader-late-joined.json": "fef6f012f8c1940a27bb2a8c159d28896a3ff38336477bd5002b2be7e256725d",
+    "dedicated-boarding-reader-05/reader-late-keyboard.json": "990d1a4a2f0dbdb99b82cc354ac0ebed77449930ba575b83498169b9c9b6b231",
+    "dedicated-boarding-reader-05/reader-late-launch.json": "8ab79fdd5211c93949772a8aeb432ef4460a335912da37ccba8a34492a40fc73",
+    "dedicated-boarding-reader-05/reader-late-placement.json": "9cb52d5512284a9225eb3b3156ac14d14278a44580ab57344acd64a4da9e5709",
+    "dedicated-boarding-reader-05/reader-late-shutdown.json": "4c6ac7db08aefffd6eb8a9beb0b6f1f3b4a56e0eff5509935330064e2f8bd355",
+    "dedicated-boarding-reader-05/reader-motor-walk.json": "251ac7d57334de08833dd07519b5e077c9294f0ed00fc4e62030fadcbef2325c",
+    "dedicated-boarding-reader-05/reader-native-before-tick-b51a438a-df19-4d40-a756-1051719c7150.json": "4c4604eab078495e125a50b091588932c4bbc2e517ceca371de4542e968f8e25",
+    "dedicated-boarding-reader-05/reader-native-before-tick-e33e8f7d-3cb3-4cde-bc57-dde75a38b4ba.json": "ab7699f6540782611ba3329297f71bcaf9172658db62f0445c0fc386610623a5",
+    "dedicated-boarding-reader-05/reader-stopping.json": "0afc4290f659f2ed4bd805e61970b618895587beb0a2f25ce19b05d37fca30a8",
+    "dedicated-boarding-reader-05/reader-walk.json": "fccdc24a734a844a9a26d5bfc3ffe7b47024832e0c71b375b872bf2ea1bb47ce",
+    "dedicated-boarding-reader-05/server-child-start.json": "7f087a83fe1b311a4ae113df0e1edd381a5552adba685b7baf73337bff05152e",
+    "dedicated-boarding-reader-05/server-first.log": "94702cec23fb476d83cee5a8e05b4047aef444a02ef27e747c20ce2f104a8d41",
+    "dedicated-boarding-reader-05/server-started.json": "efc947fd1929bbc0bdeabaf3d8ab7e46dbe259abef3cbb5e51df72ce6bb8d835",
+    "dedicated-boarding-reader-05/staging.json": "40a94e8ea0054635b7f7f03f24485b02b8eeeb55e672faaa224e706f8d7553fd",
+    "dedicated-boarding-reader-05/tcp-listener-accepted.json": "a4cdcacc4c2fe2b7940a39239a8f857d6353b12ba0bebb89128c5b5b2c2f530d",
+    "dedicated-boarding-reader-05/writer-body-b51a438a-df19-4d40-a756-1051719c7150.snbt": "2ec5124eb8c5d3f31f234a6559d1b3614c50e35dc6f3722b60c547866d9ad5e9",
+    "dedicated-boarding-reader-05/writer-body-e33e8f7d-3cb3-4cde-bc57-dde75a38b4ba.snbt": "3f2abd2f46b315600ff9c48271f1baa2f247fa3f3cfb9a66fc6bae6a69a459ce",
+    "dedicated-boarding-reader-05/writer-crew.json": "2ad07089173957331c1da28403e8e0bdb19a7fc1c207812ea11d4c74470ca41b",
+    "dedicated-boarding-reader-05/writer-departure-impulse.json": "94beef86298f4d4c326df95586749e6e9e0cac9e357fea45b07b4433953be0de",
+    "dedicated-boarding-reader-05/writer-passenger.json": "af57083315e9db7f874d45fc42aeb278215c08f4be2a82b433506fed36db4360",
+    "dedicated-boarding-reader-05/writer-ship-balance.json": "be073ff3705f01de2230c5641a155b11a550aa2b7437f38616fa56e756e5b7b6",
+    "dedicated-boarding-reader-05/writer-ship.json": "93ee3c6085a0316202f1dbd732cd98ba791c1ec6859cff5dd3d3427bffb0fe05",
+    "dedicated-boarding-reader-05/xvfb-display.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "dedicated-boarding-reader-05/xvfb-first.log": "87e9572cf030493a1f7ba83d385129046b224374ca1414911674b30fc44276d7",
+    "dedicated-boarding-writer-01/actual-close.json": "bc92909073126fb02156fd3d66358250c4722cde60f18188b1953fa60a6bead6",
+    "dedicated-boarding-writer-01/server-first.log": "bc1b35de7706ebebe921813a74918cc4fd6100e2a14aee1df17eb11e0bc8e292",
+    "dedicated-boarding-writer-02/actual-close.json": "bf0cf019ac48614cef94d510b694c59583bd471f7483a6589201d4d371528ea0",
+    "dedicated-boarding-writer-02/server-first.log": "27db49210203b48c7323216c2db3bd5c10595b721cd4851dcf2e9f25e79d2da7",
+    "dedicated-boarding-writer-02/crash/crash-2026-11-20_09.04.06-server.txt": "3fed31bba0d042125c2f3090ce501cc59a3fdcaecb4942285e889e150daeb2bb",
+    "dedicated-boarding-writer-03/actual-close.json": "9b2c23335ad9e7948b9831ac930283ba6227d35a679fd434a546eed6edf45a5f",
+    "dedicated-boarding-writer-03/server-first.log": "7033bfd854b49e253a56f0e367c7ac441b64b10ce7fba5fd958c8ff4719ab3a7",
+    "dedicated-boarding-writer-03/writer-ship.json": "6599df2283a561c489ff93917b233a161b09d5bb88229065882bc287f4c02646",
+    "dedicated-boarding-writer-04/actual-close.json": "2326c78864c151e14e30d299478c848cfe0661da964d22e69fc87036cf7e5e44",
+    "dedicated-boarding-writer-04/server-first.log": "77a93747133379fc495e548111476032635e786030d4cf4511a57b0ad9aa326e",
+    "dedicated-boarding-writer-04/writer-ship.json": "70fb8211c9962319291524d4049cd1f398a1eb17a5fe423b6886b623d11d222b",
+    "dedicated-boarding-writer-04/writer-crew.json": "3fbfda51ad0d38aa6c2fe3cecef2b201c8658695a140dcfff1d3dbadeb1210d5",
+    "dedicated-boarding-writer-04/writer-passenger-placement.json": "d512b0d873a65f69d2a62568c99a1b603e47f0d0702125fed821e17b99f8ee91",
+    "dedicated-boarding-writer-04/controlled-stop.txt": "cecc0be0b727aa0078d55c6d2a8995242148f7fa22cd7655a7d68c48088ef563",
+    "dedicated-boarding-writer-05/actual-close.json": "cece239085c9cd08b4e54cfc049b1cfe75b1180111c51384ea5f45c8fc6abf52",
+    "dedicated-boarding-writer-05/server-first.log": "d4cf9dfeb7d20866284fe9bfcdf43e6434e8be2605d103079f32f8bc504f8a27",
+    "dedicated-boarding-writer-05/writer-ship.json": "3c6d44ba85fdadcec94e50c95f38e3dc3c3bc333c474f21a6b6b4c900a0c2533",
+    "dedicated-boarding-writer-05/writer-crew.json": "1210e2892a07896d8750aabdcd45237be10ddba2b147ef6056802d9b24b39716",
+    "dedicated-boarding-writer-05/writer-passenger-placement.json": "f28d1aa40f996877bc935098fb162a48bcd19dde8c0d603f64f6fe275a5a1c47",
+    "dedicated-boarding-writer-06/actual-close.json": "e8796e61ca2902edb5816b5ea0c55c39d9e65e6e21ffc79791fc73fb1987b8bd",
+    "dedicated-boarding-writer-06/server-first.log": "297b7da8da36d31402476d5c54a1b77a52d657eb204daaa6e98f1662b12722f6",
+    "dedicated-boarding-writer-06/writer-ship.json": "3d5dfa156608dd13c2b9fe6e2825ca15132b2977d5c2b850b7c629f321335d60",
+    "dedicated-boarding-writer-06/writer-crew.json": "d248ad7c54ca01e3ccab33d31e1ce4afc503e865f9e4d54bcdb4a76b9f439360",
+    "dedicated-boarding-writer-06/writer-passenger-placement.json": "67826d7341476a1f9cdd2609af0b85e7cdccf32ce6a41aefb001a3f156b7fd61",
+    "dedicated-boarding-reader-01/actual-close.json": "520eff48f4c9f799ef3ebcf33e49178ddb5f57e9ebbae699b1dd3a65c6f0851f",
+    "dedicated-boarding-reader-01/server-first.log": "47605b94d889c7bdce2fc0b422dc060630e2658fd593396ce6cd998cb1115b37",
+    "dedicated-boarding-reader-01/writer-ship.json": "3c6d44ba85fdadcec94e50c95f38e3dc3c3bc333c474f21a6b6b4c900a0c2533",
+    "dedicated-boarding-reader-01/writer-crew.json": "1210e2892a07896d8750aabdcd45237be10ddba2b147ef6056802d9b24b39716",
+    "dedicated-boarding-reader-01/crash/crash-2026-11-20_09.35.36-server.txt": "1b7d9d40ab7238b1bf3eea1103e5efdc8df945d3a29b26284049a883b3dcd0e9",
+    "dedicated-boarding-reader-02/actual-close.json": "14d11c95d1ff26a525c799856db89940f8849b9195941c877581a4f163cbabe2",
+    "dedicated-boarding-reader-02/server-first.log": "0397a273a11f32aed1919f3f7803a91afb0eebe1594fb87c5bfb571062971e17",
+    "dedicated-boarding-reader-02/writer-ship.json": "3c6d44ba85fdadcec94e50c95f38e3dc3c3bc333c474f21a6b6b4c900a0c2533",
+    "dedicated-boarding-reader-02/writer-crew.json": "1210e2892a07896d8750aabdcd45237be10ddba2b147ef6056802d9b24b39716",
+    "dedicated-boarding-reader-02/crash/crash-2026-11-20_09.42.38-server.txt": "67f3499145241aca25051d0ab9f295aec994c67477e20a9f64265777c416afb6",
+    "dedicated-boarding-reader-03/actual-close.json": "253bbde2fe0a2ee66294a5913515841de275dc088babfd0dfa681323aa65209f",
+    "dedicated-boarding-reader-03/server-first.log": "393c6c705fbb7131992a5e68a776e989712728ce2e6bbf3fb6572fa2f0085cbf",
+    "dedicated-boarding-reader-03/writer-ship.json": "3d5dfa156608dd13c2b9fe6e2825ca15132b2977d5c2b850b7c629f321335d60",
+    "dedicated-boarding-reader-03/writer-crew.json": "d248ad7c54ca01e3ccab33d31e1ce4afc503e865f9e4d54bcdb4a76b9f439360",
+    "dedicated-boarding-reader-03/crash/crash-2026-11-20_09.50.34-server.txt": "e9ae49fc851b175c655c16855ae2310357d6ff5be97a346aecac280e4b02e2d2",
+    "dedicated-boarding-reader-04/actual-close.json": "e54dd85aa4d80a1307a6aa28afef0cd6639a789bbd647fb036ab7e83514134ba",
+    "dedicated-boarding-reader-04/server-first.log": "121b796f39ba586c13ef9596cb60ea673c108e34c7129e9ee94c9cdcbd4acdfa",
+    "dedicated-boarding-reader-04/writer-ship.json": "93ee3c6085a0316202f1dbd732cd98ba791c1ec6859cff5dd3d3427bffb0fe05",
+    "dedicated-boarding-reader-04/writer-crew.json": "2ad07089173957331c1da28403e8e0bdb19a7fc1c207812ea11d4c74470ca41b",
+    "dedicated-boarding-reader-04/controlled-stop.txt": "5a3131dcfd68af1ab12ea0196902399f45d39c2055f1394379f90f2b1a1530a0",
+    "reproduce/HANDOFF.md": "213bf51b4f805180ac181c9b791924ad53e3745725720c9ae4f4cb2a90400a64",
+    "reproduce/run_once.py": "be366cdb6d449cf8a18629d960ffe57965673a245ca81e6df8e3500a52e3ed82",
+    "reproduce/stage.py": "bcfe3d3d787b602ec55aee9bcedcecd74c7fb4d75e24303c0c69c94af107a6df",
+    "reproduce/verify_linkage.py": "990b6748fd68358f0760a08ac6a4e631a378f07c5da7f9b7fde264498529ce5e",
+    "reproduce/source-manifest.json": "4eed48fca1ff962c6304f4516c7ac9b185c82d6ca9bbe0b3415f596de2438d61",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/DedicatedBoardingClient.java": "df94047a0d1e74755b1e56ee85f12d01422bf07f82839d0452e13c8b53589558",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/DedicatedBoardingServer.java": "579c74a8d35f2d42ac6c3dd65ff8617e30ebc565a36693bf3312e04e6deb8d94",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/Gate.java": "e541d3545ed6945d434df9e9ad6ba2fb6baf6a8466acf320bb004f35fc4b4d50",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/mixin/BodyNbtProbe.java": "4b2fbd0a3db0989581a2cb3645f1740dba0eb0a68431913100489d8f3d1e1375",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/mixin/FrameProbe.java": "b3f5e8c9bc86adb6867adbe5a4c2d6c75d3b3479da043f93cb455b177c5846a9",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/mixin/InputProbe.java": "95b6af6ca78fcfad8dc1aa540ee9dc0ccdfad431baee8b15a1fe43af00e338a6",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/mixin/MotorAckProbe.java": "b07bc6582f9a4550cf13ca23b10bc225fe4f76188c919c801d89510492bea209",
+    "reproduce/src/java/com/terminaldetector/drmd/lateboardcheck/mixin/PositionProbe.java": "7bf9518ae2d9f08a23227079bbe916a0dc14853241f15701da125f4ee7f0fa33",
+    "reproduce/src/resources/drmd.lateboardcheck.mixins.json": "ede23f38bda34ef88fc62ea043bde54377d3b65a22111af5334df2e6e33e3070",
+    "reproduce/src/resources/fabric.mod.json": "ce131d02e4151e38312a56496a8e2e4c259fb399827fced197e0d79bdb65a6f2"
+  }
+}
