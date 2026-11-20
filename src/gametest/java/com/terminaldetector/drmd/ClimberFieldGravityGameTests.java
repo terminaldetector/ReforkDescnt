@@ -23,7 +23,7 @@ import net.minecraft.world.RaycastContext;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 
-/** First-entry physics ownership and independent native-floor-AI admission, not wall navigation proof. */
+/** Native climber and ground-mob gravity, targeting and locomotion. */
 public final class ClimberFieldGravityGameTests implements FabricGameTest {
     private static final EntityType<?>[] TYPES={EntityType.SPIDER,EntityType.CAVE_SPIDER};
     private static final Direction[] AXES={Direction.EAST,Direction.UP,Direction.DOWN,Direction.NORTH,Direction.SOUTH,Direction.WEST};
@@ -554,6 +554,66 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
     public void ordinaryUnframedZombieKeepsTheNativeFourBlockVerticalMobSearchBand(TestContext c){nativeMobCandidates(c,false,true,false);}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-opaque-selection-control",tickLimit=320)
     public void actualOpaqueWallStillRefusesNativeC1MobTargetSelection(TestContext c){nativeMobCandidates(c,true,false,true);}
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c2-wall-golem-selection",tickLimit=320)
+    public void nativeSpiderAndCaveSpiderAcquireAndPursueGolemsUpTheirWallTangent(TestContext c) {
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));
+        var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var up=new Vec3d(1,0,0);
+        var cases=new ArrayList<NativeCandidate>();
+        boolean[] enabled={false};
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;
+            room.build();
+            if(cases.isEmpty()) {
+                room.field(centre,up.negate());
+                var wall=Vec3d.ofCenter(centre).subtract(up.multiply(7.5));
+                for(int i=0;i<TYPES.length;i++) {
+                    double lane=i==0?-3:3;
+                    var actor=(SpiderEntity)TYPES[i].create(room.world);
+                    var target=EntityType.IRON_GOLEM.create(room.world);
+                    c.assertTrue(!actor.isAiDisabled()&&!actor.hasNoGravity(),"native C2 starts with ordinary AI and gravity");
+                    actor.setAiDisabled(true);actor.setPersistent();actor.setPosition(wall.add(.02,-4,lane));
+                    target.setAiDisabled(true);target.setPersistent();target.setPosition(wall.add(.72,4,lane));
+                    c.assertTrue(ActorFrames.trySetUp(actor,up),"checked actual wall pose before registration");
+                    c.assertTrue(room.world.isSpaceEmpty(actor)&&room.world.isSpaceEmpty(target),"initial body and real candidate are clear");
+                    room.spawn(target);room.spawn(actor);cases.add(new NativeCandidate(actor,target));
+                }
+                return false;
+            }
+            if(!enabled[0]) {
+                for(var r:cases) {
+                    if(r.actor.age<2||r.target.age<2||!room.dark(r.actor.getEyePos())||!EntityGravitySystem.suppressesVanillaGravity(r.actor))return false;
+                    groundSupport(c,r.actor,up);
+                    double range=r.actor.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_FOLLOW_RANGE);
+                    c.assertTrue(!r.actor.getBoundingBox().expand(range,4,range).intersects(r.target.getBoundingBox()),
+                        "native non-player candidate is outside the old world-Y acquisition band");
+                    c.assertTrue(r.actor.canSee(r.target),"native spider sees the actual golem from its physical eye");
+                }
+                for(var r:cases)r.enable();
+                enabled[0]=true;return false;
+            }
+            boolean ready=true;
+            for(var r:cases) {
+                var actor=r.actor;
+                if(actor.age==r.age){ready=false;continue;}
+                r.step=Math.max(r.step,actor.getPos().distanceTo(r.last)/Math.max(1,actor.age-r.age));
+                r.last=actor.getPos();r.age=actor.age;
+                groundSupport(c,actor,up);
+                c.assertTrue(actor.isAlive()&&!actor.isAiDisabled()&&actor.getNavigation()==r.navigation
+                    &&actor.getMoveControl()==r.control&&r.step<=1,"actual native C2 control and supported motion stay intact");
+                r.selected|=actor.getTarget()==r.target;
+                r.path|=actor.getNavigation().getCurrentPath() instanceof com.terminaldetector.drmd.world.gravity.LocalSurfacePath;
+                if(!(r.selected&&r.path&&actor.getY()-r.start.y>=1)) {
+                    c.assertTrue(actor.age-r.born<120,"native C2 must select and pursue on its wall: "+actor.getType()+" selected="+r.selected+" path="+r.path+" rise="+(actor.getY()-r.start.y));
+                    ready=false;
+                }
+            }
+            if(ready)for(var r:cases)System.out.println("C2_NATIVE_WALL_PURSUIT type="+r.actor.getType()+" target="+r.target.getType()
+                +" ordinaryActorTicks="+(r.age-r.born)+" rise="+(r.actor.getY()-r.start.y)+" maxStep="+r.step+" observerSetTarget=false");
+            return ready;
+        });
+    }
 
     private static final class NativeCandidate {
         final net.minecraft.entity.mob.MobEntity actor,target;final Object navigation,control;Vec3d start,last;

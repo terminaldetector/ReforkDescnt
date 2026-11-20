@@ -337,6 +337,66 @@ public final class EntityFieldGravityGameTests implements FabricGameTest {
         });
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,tickLimit=40,batchId="native-standing-medium-transition")
+    public void nativeCowAndSpiderReleaseStandingFramesInWaterAndReacquireThemOnDryTicks(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));var id=UUID.randomUUID();
+        var min=centre.add(-4,-3,-4);var max=centre.add(4,3,4);
+        var actors=new java.util.ArrayList<net.minecraft.entity.mob.MobEntity>();
+        var navigators=new java.util.ArrayList<net.minecraft.entity.ai.pathing.EntityNavigation>();
+        var controls=new java.util.ArrayList<net.minecraft.entity.ai.control.MoveControl>();
+        long chunk=new ChunkPos(centre).toLong();boolean forced=world.getForcedChunks().contains(chunk);
+        world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),true);
+        Runnable dry=()->{for(var p:BlockPos.iterate(min,max))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);};
+        Runnable clean=()->{
+            GravityFields.remove(id);for(var actor:actors)actor.discard();tick(c);dry.run();
+            if(!forced)world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),false);
+        };
+        try {
+            dry.run();
+            actors.add(EntityType.COW.create(world));actors.add(EntityType.SPIDER.create(world));
+            for(int i=0;i<actors.size();i++) {
+                var actor=actors.get(i);actor.setAiDisabled(true);actor.setPersistent();actor.setPosition(Vec3d.ofCenter(centre).add(0,0,i==0?-2:2));
+                navigators.add(actor.getNavigation());controls.add(actor.getMoveControl());
+                c.assertTrue(world.spawnEntity(actor),"actual standing species registered before dry contact");
+            }
+            field(c,id,centre,new Vec3d(-1,0,0),1);tick(c);
+            for(var actor:actors)c.assertTrue(ActorFrames.active(actor)&&ActorFrames.up(actor).dotProduct(new Vec3d(1,0,0))>.99999,
+                "dry standing species begins with the actual wall frame");
+        } catch(Throwable failure) {clean.run();throw failure;}
+        c.runAtTick(2,()->{for(var p:BlockPos.iterate(min,max))world.setBlockState(p,Blocks.WATER.getDefaultState(),2);});
+        c.runAtTick(8,()->{
+            try {
+                var propulsion=new Vec3d(.17,.03,-.04);
+                var wetPositions=actors.stream().map(Entity::getPos).toList();
+                for(var actor:actors) {
+                    c.assertTrue(actor.age>=3&&actor.isTouchingWater()&&!ActorFrames.active(actor),
+                        "ordinary native water ticks release the rotated standing-only body");
+                    actor.setVelocity(propulsion);
+                }
+                tick(c);
+                for(int i=0;i<actors.size();i++) {
+                    var actor=actors.get(i);var position=wetPositions.get(i);var sample=GravityFields.sample(world,position);
+                    c.assertTrue(sample!=null&&actor.getPos().equals(position)
+                        &&actor.getVelocity().distanceTo(propulsion.add(sample.upDir().normalize().multiply(-.06*sample.strength())))<1e-8,
+                        "a wet standing species receives only the sampled force, without a dry snap or damping");
+                    c.assertTrue(!actor.hasNoGravity()&&EntityGravitySystem.suppressesVanillaGravity(actor),"saved native flag and force lease have separate owners");
+                }
+                dry.run();
+            } catch(Throwable failure) {clean.run();throw failure;}
+        });
+        c.runAtTick(15,()->{
+            try {
+                for(int i=0;i<actors.size();i++) {
+                    var actor=actors.get(i);
+                    c.assertTrue(actor.age>=8&&!actor.isTouchingWater()&&ActorFrames.active(actor)&&!actor.hasNoGravity()
+                        &&actor.getNavigation()==navigators.get(i)&&actor.getMoveControl()==controls.get(i),
+                        "ordinary dry ticks reacquire the safe standing frame and preserve native controllers");
+                }
+            } finally {clean.run();}
+            c.complete();
+        });
+    }
+
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-family-real-torch-nbt")
     public void sevenActualFamiliesRetainNativeIdentityAndPoseAcrossRealTorchTurnsAndNbt(TestContext c) {
         var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));

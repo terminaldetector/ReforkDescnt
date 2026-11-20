@@ -105,7 +105,11 @@ public final class EntityGravitySystem {
         // Every unframed family has a predictable force-only fallback. Native pose, goals,
         // medium drag and propulsion remain theirs; unknown actors never borrow foot mounting.
         boolean forceOnly=policy==ActorPhysicsProfile.GravityPolicy.FORCE_ONLY;
-		if(policy==ActorPhysicsProfile.GravityPolicy.FRAMED_GROUND) {
+        if(forceOnly) {
+            // Retain the last collision-safe body if its native pose cannot fit yet.
+            // The medium still owns propulsion, so retry the release on the next pass.
+            ActorFrames.tryRelease(entity);
+        } else {
 			if(!ActorFrames.trySetUp(entity,up))return;
 			up=ActorFrames.up(entity);
 		}

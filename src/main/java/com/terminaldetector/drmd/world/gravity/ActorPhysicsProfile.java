@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.entity.mob.*;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import com.terminaldetector.drmd.world.end.EndReactorBossEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.mob.FlyingEntity;
 import net.minecraft.entity.mob.VexEntity;
 import net.minecraft.entity.passive.AllayEntity;
@@ -40,7 +41,10 @@ public final class ActorPhysicsProfile {
     }
     public static GravityPolicy gravityPolicy(Entity entity) {
         if(nativeConstraint(entity))return GravityPolicy.NATIVE_CONSTRAINT;
-        return ActorFrames.supported(entity)?GravityPolicy.FRAMED_GROUND:GravityPolicy.FORCE_ONLY;
+        // The standing adapter must relinquish contact and damping when native
+        // travel changes its medium or pose, even for a supported species.
+        return ActorFrames.supported(entity)&&entity.getPose()==EntityPose.STANDING
+            &&!entity.isTouchingWater()&&!entity.isInLava()?GravityPolicy.FRAMED_GROUND:GravityPolicy.FORCE_ONLY;
     }
     /** Known water locomotion families; medium state remains owned by the native entity. */
     public static boolean aquatic(Entity entity) {
