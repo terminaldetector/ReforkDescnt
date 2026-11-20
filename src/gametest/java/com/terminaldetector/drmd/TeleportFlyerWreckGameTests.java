@@ -52,7 +52,7 @@ public final class TeleportFlyerWreckGameTests implements FabricGameTest {
                 var field=RagdollEntity.class.getDeclaredField("POSE");field.setAccessible(true);
                 @SuppressWarnings("unchecked") var key=(TrackedData<NbtCompound>)field.get(null);var tracked=corpse.getDataTracker().get(key);
                 c.assertTrue(tracked.getString("flightHull").equals("teleport_flyer")&&tracked.getInt("rigVersion")==1&&tracked.getList("parts",NbtElement.COMPOUND_TYPE).size()==1,"actual tracked pose carries the matching family/part identity");
-                var directory=Path.of(System.getProperty("drmd.test.u07ProofDir"));var path=directory.resolve("actual-corpse-"+corpse.getUuid()+".dat");c.assertTrue(!Files.exists(path),"fresh actual compressed corpse save");NbtIo.writeCompressed(savedTag,path);disk[0]=NbtIo.readCompressed(path,NbtSizeTracker.of(2*1024*1024));savedIdentity[0]=corpse.getUuid();
+                var directory=TeleportFlyerTestProbe.proofDirectory(r.world.getServer());var path=directory.resolve("actual-corpse-"+corpse.getUuid()+".dat");c.assertTrue(!Files.exists(path),"fresh actual compressed corpse save");NbtIo.writeCompressed(savedTag,path);disk[0]=NbtIo.readCompressed(path,NbtSizeTracker.of(2*1024*1024));savedIdentity[0]=corpse.getUuid();
                 saved[0]=true;corpse.discard();return;
             }
             if(restored[0]==null){

@@ -128,7 +128,9 @@ public final class FlyingRosterGravityGameTests implements FabricGameTest {
         for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
         for(var p:BlockPos.iterate(centre.add(3,-4,-4),centre.add(3,6,4)))world.setBlockState(p,Blocks.BRICKS.getDefaultState(),2);
         var id=UUID.randomUUID();
-        EntityType<?>[] types={EntityType.BAT,EntityType.PARROT,EntityType.WITHER,EntityType.VILLAGER,EntityType.RABBIT,EntityType.SLIME};
+        // Exact villagers now have their own checked ground/Brain wall adapter.
+        // Keep an actually unadapted native merchant in this force-only cohort.
+        EntityType<?>[] types={EntityType.BAT,EntityType.PARROT,EntityType.WITHER,EntityType.WANDERING_TRADER,EntityType.RABBIT,EntityType.SLIME};
         try {
             for(var type:types)for(boolean originalNoGravity:new boolean[]{false,true}) {
                 var actor=(MobEntity)type.create(world);MobEntity copy=null;
@@ -136,7 +138,10 @@ public final class FlyingRosterGravityGameTests implements FabricGameTest {
                 actor.setAiDisabled(true);actor.setNoGravity(originalNoGravity);actor.setPosition(Vec3d.ofCenter(centre));
                 if(actor instanceof net.minecraft.entity.passive.BatEntity bat)bat.setRoosting(false);
                 if(actor instanceof net.minecraft.entity.passive.ParrotEntity parrot)parrot.setInSittingPose(false);
-                actor.setOnGround(false);actor.setYaw(37);actor.setPitch(-23);world.spawnEntity(actor);
+                actor.setOnGround(false);actor.setYaw(37);actor.setPitch(-23);
+                c.assertTrue(!ActorFrames.supported(actor)&&ActorPhysicsProfile.gravityPolicy(actor)==ActorPhysicsProfile.GravityPolicy.FORCE_ONLY,
+                    "fallback fixture requires a genuinely force-only family; adapted ground villagers have their own native Brain route proof: "+type);
+                world.spawnEntity(actor);
                 var navigation=actor.getNavigation();var controller=actor.getMoveControl();var start=actor.getPos();var propulsion=new Vec3d(.17,.03,-.04);
                 try {
                     for(var direction:FIELD_AXES) {

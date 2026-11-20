@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.entity.*;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
 import net.minecraft.entity.*;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.*;
 import java.io.*;
 import java.nio.file.*;
@@ -23,6 +24,7 @@ final class TeleportFlyerTestProbe {
     }
     record Death(Vec3d feet,Vec3d centre,Vec3d velocity,float yaw,float pitch,float bank,Vec3d cause,long tick){}
     private static final Map<TeleportFlyerFixture,Record> ACTIVE=new IdentityHashMap<>();
+    private static final Map<MinecraftServer,Path> DEFAULT_PROOF_DIRECTORIES=new WeakHashMap<>();
     static {
         ServerTickEvents.END_WORLD_TICK.register(world->{
             for(var entry:List.copyOf(ACTIVE.entrySet()))if(entry.getKey().world==world)observe(entry.getKey(),entry.getValue());
@@ -45,10 +47,22 @@ final class TeleportFlyerTestProbe {
         ServerWorldEvents.UNLOAD.register((server,world)->{for(var rig:List.copyOf(ACTIVE.keySet()))if(rig.world==world)close(rig);});
     }
     private TeleportFlyerTestProbe(){}
+    static synchronized Path proofDirectory(MinecraftServer server)throws IOException{
+        String configured=System.getProperty("drmd.test.u07ProofDir");
+        if(configured!=null&&!configured.isBlank())return Files.createDirectories(Path.of(configured));
+
+        var directory=DEFAULT_PROOF_DIRECTORIES.get(server);
+        if(directory==null){
+            var reports=server.getRunDirectory().resolve("reports").resolve("teleport-flyer-proof");
+            directory=Files.createTempDirectory(Files.createDirectories(reports),"run-");
+            DEFAULT_PROOF_DIRECTORIES.put(server,directory);
+            System.out.println("U07_PROOF_DIRECTORY "+directory.toAbsolutePath());
+        }
+        return directory;
+    }
     static void attach(TeleportFlyerFixture rig){
         if(ACTIVE.size()>=4)throw new IllegalStateException("bounded4 U07 probe rigs");
-        String dir=System.getProperty("drmd.test.u07ProofDir");if(dir==null||dir.isBlank())throw new IllegalStateException("fresh u07ProofDir required");
-        try{var parent=Path.of(dir);Files.createDirectories(parent);ACTIVE.put(rig,new Record(parent.resolve("u07-"+rig.actor.getUuid()+".jsonl")));}
+        try{var parent=proofDirectory(rig.world.getServer());ACTIVE.put(rig,new Record(parent.resolve("u07-"+rig.actor.getUuid()+".jsonl")));}
         catch(IOException e){throw new IllegalStateException(e);}
     }
     static Record record(TeleportFlyerFixture rig){return ACTIVE.get(rig);}

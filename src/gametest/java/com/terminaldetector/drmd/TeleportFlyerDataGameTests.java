@@ -26,7 +26,7 @@ public final class TeleportFlyerDataGameTests implements FabricGameTest {
             actor.setPosition(Vec3d.ofCenter(c.getAbsolutePos(new BlockPos(6,9,6))));actor.setVelocity(.1,.2,-.1);actor.setFlightRoll(45);
             var tag=new NbtCompound();c.assertTrue(actor.saveSelfNbt(tag),"actual independent factory save");
             var pending=new NbtCompound();pending.putInt("schema",1);pending.putString("phase","WARN");pending.putInt("remaining",1);pending.putInt("cooldown",0);tag.put("u07Teleport",pending);
-            String directory=System.getProperty("drmd.test.u07ProofDir");c.assertTrue(directory!=null,"fresh data proof namespace supplied");var parent=Path.of(directory);Files.createDirectories(parent);
+            var parent=TeleportFlyerTestProbe.proofDirectory(c.getWorld().getServer());
             var file=parent.resolve("pending-flyer-"+actor.getUuid()+".dat");c.assertTrue(!Files.exists(file),"compressed save is fresh");NbtIo.writeCompressed(tag,file);
             var disk=NbtIo.readCompressed(file,NbtSizeTracker.of(2*1024*1024));var copy=(TeleportFlyerEntity)EntityType.getEntityFromNbt(disk,c.getWorld()).orElseThrow();owned.add(copy);
             c.assertTrue(copy.getType()==ModEntities.TELEPORT_FLYER&&copy.getUuid().equals(actor.getUuid())&&copy.getRole()==AiRole.INTERCEPTOR&&copy.getVelocity().equals(actor.getVelocity())
