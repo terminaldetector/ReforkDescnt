@@ -1,0 +1,85 @@
+{
+  "cases": {
+    "writer": {
+      "source": "84fcc9bb9000951583d6232ede5055eb532832dc",
+      "nativeExit": 0,
+      "result": {
+        "status": "READY_FOR_NATIVE_SPAWNER_SAVE",
+        "stage": "writer",
+        "cases": [
+          {
+            "retainedType": "minecraft:mob_spawner",
+            "missingOwnerCount": 2,
+            "retainedSpawnCount": 13,
+            "signedY": -512,
+            "actualFullCube": true
+          },
+          {
+            "retainedType": "minecraft:mob_spawner",
+            "missingOwnerCount": 2,
+            "retainedSpawnCount": 18,
+            "signedY": 2150,
+            "actualFullCube": true
+          }
+        ],
+        "fixtureStateWrites": 10,
+        "ordinaryResidencySites": 2,
+        "backend": "NATIVE_CUBIC",
+        "worldSeed": 271026,
+        "observerTickets": 0,
+        "initialPendingInputsValid": true
+      },
+      "archivedSaveSha256": "3e5019079480c763f1b5c0d25fbfa5110a32d5ae7b11161bddecca6751ed93ff"
+    },
+    "reader": {
+      "source": "84fcc9bb9000951583d6232ede5055eb532832dc",
+      "nativeExit": 0,
+      "result": {
+        "status": "OBSERVED_NATIVE_SIGNED_SPAWNER_COLD_PASS",
+        "stage": "reader",
+        "cases": [
+          {
+            "missingOwnerCount": 2,
+            "retainedType": "minecraft:mob_spawner",
+            "actualFullCube": true,
+            "signedY": -512,
+            "retainedSpawnCount": 13
+          },
+          {
+            "missingOwnerCount": 2,
+            "retainedType": "minecraft:mob_spawner",
+            "actualFullCube": true,
+            "signedY": 2150,
+            "retainedSpawnCount": 18
+          }
+        ],
+        "fixtureStateWrites": 0,
+        "ordinaryResidencySites": 2,
+        "backend": "NATIVE_CUBIC",
+        "worldSeed": 271026,
+        "observerTickets": 0,
+        "initialPendingInputsValid": false
+      },
+      "archivedSaveSha256": "64cef76fc8959000f3938bd0a85755400df0596a289a0f0c89a330c88ee1976a"
+    }
+  },
+  "archive": "signed-spawner-replacement-cold.zip",
+  "archiveSha256": "8f004b83a5838bd0b61467498cb69a7aab6f15884cab66549b95639eab712610",
+  "memberSha256": {
+    "writer/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "writer/native.log": "ce8f7684ba356a14e2f193c5757bb6035ba4a60281955e52505c60ac3844aae6",
+    "writer/prep.log": "4d32a0e1a794602019f1c7a581254e0e988e81b84c9513ee576b608e20bc91a6",
+    "writer/closed-copied-save.json": "55649961a3d825731ed4267319a35a629f4c27b8024c945e0c0cea446a819dc1",
+    "writer/cubic-client-automation/inputs.json": "cd9a2f8ae29fc29be0b6c091cd05c75c55173ba665dbe8c44aff1b59596b9fe5",
+    "writer/cubic-client-automation/launch.json": "1ae3eda903d7d71137a3ff7c74ffe07dbe5fa041627ea42c5477cdcb95635eec",
+    "writer/cubic-client-automation/native-deferred-spawner-writer-ready.json": "f66083040219300da5d6d2e77b853b6a11f8cbf3122723f25707ef4017ae2f96",
+    "reader/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reader/native.log": "f543e17a0864664c51bc5b2f0741c67d1d59072c3aa46658b12b8417cd30b860",
+    "reader/prep.log": "a31b5219dc7b06453da079695bb8d0d68b1a1a90785f0a0852c9cd7c8aa801dd",
+    "reader/closed-copied-save.json": "2677b9d2f591f1fb0194b7dccc924bdd6e45c61f4b1654c7cdbfee887dbca02c",
+    "reader/cubic-client-automation/inputs.json": "7073dcd8de519630d665bf7aa53a10d412b070c7c3b1d000caaf89debb304db2",
+    "reader/cubic-client-automation/launch.json": "ff9fc73baf3fa2e06af5fd7f92ef803e9a12a98590b7dff56b37b3cc460e2c75",
+    "reader/cubic-client-automation/native-deferred-spawner-reader.json": "cc184bfa60c854dd494d6f9d836dd4a34da6b18488fb289aa1fd316779b9a23e"
+  },
+  "scope": "Native valid pending DUMMY and typed spawner replacement. Writer introduces the valid fixtures through the ordinary world API. Cold reader performs zero fixture writes. The archived historical vanilla generator is a separate source of evidence."
+}
