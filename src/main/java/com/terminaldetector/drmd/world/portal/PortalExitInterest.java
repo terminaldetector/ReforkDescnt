@@ -17,6 +17,9 @@ public final class PortalExitInterest {
     public static final int MAX_CANDIDATES=256,MAX_LINKS=8,MAX_COLUMNS_PER_LINK=9,MAX_CUBES_PER_LINK=27;
     public static final int PROBES_PER_TICK=32,REQUESTS_PER_TICK=16,NEARBY_DISTANCE=32;
     private static final int MAX_PLAYERS_EXAMINED=128,EXPIRY_TICKS=2;
+    // Optional prefetch needs FULL data only. Radius2 additionally requests entity ticking
+    // and a two-column FULL halo; travellers acquire ordinary interest after transfer.
+    private static final int FULL_TICKET_RADIUS=0;
     private static final ChunkTicketType<UUID> TICKET=ChunkTicketType.create("drmd_portal_exit",Comparator.<UUID>naturalOrder());
     private record NativeOwner(UUID link,long column) {}
     private static final class Candidate {
@@ -119,11 +122,12 @@ public final class PortalExitInterest {
         if(!world.getWorldBorder().contains(min)||!world.getWorldBorder().contains(max)
                 ||!min.equals(BlockPos.fromLong(min.asLong()))||!max.equals(BlockPos.fromLong(max.asLong())))return false;
         if(backend==CubicAvailability.Backend.NATIVE_CUBIC&&!BodyVolumeLeases.requestNativeInterest(world,new NativeOwner(owner,column.key()),column))return false;
-        // Vanilla fallback is a real asynchronous column ticket; it never asserts cube readiness.
-        world.getChunkManager().addTicket(TICKET,new ChunkPos(column.x(),column.z()),2,owner);return true;
+        // Both backends retain an asynchronous FULL-only vanilla column ticket. Native cube
+        // ownership above remains unchanged; neither ticket asserts destination readiness.
+        world.getChunkManager().addTicket(TICKET,new ChunkPos(column.x(),column.z()),FULL_TICKET_RADIUS,owner);return true;
     }
     private static void drop(ServerWorld world,Lease lease,BodyVolumePlan.Column column){
-        world.getChunkManager().removeTicket(TICKET,new ChunkPos(column.x(),column.z()),2,lease.owner);
+        world.getChunkManager().removeTicket(TICKET,new ChunkPos(column.x(),column.z()),FULL_TICKET_RADIUS,lease.owner);
         if(CubicAvailability.backend(world)!=CubicAvailability.Backend.STOCK)
             BodyVolumeLeases.releaseNativeInterest(world,new NativeOwner(lease.owner,column.key()));
         lease.held.remove(column.key());
