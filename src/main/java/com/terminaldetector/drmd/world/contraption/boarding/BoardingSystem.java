@@ -73,6 +73,13 @@ public final class BoardingSystem {
             BoardingRestore.holds(p);
             Lease l=LEASES.get(p.getUuid());Vec3 feet=pure(p.getPos());
             if(!eligible(p)||!ready(p)) {if(l!=null)release(p,l,pure(p.getVelocity()).scaled(20));PREVIOUS.put(p.getUuid(),new Previous(new WeakReference<>(world),feet));continue;}
+            var resume=DescentPlayerData.get(p).pendingBoardingResume();
+            if(l==null&&resume!=null&&resume.anchor()!=null){
+                l=admitSavedDeck(p,resume.anchor());
+                if(l!=null){LEASES.put(p.getUuid(),l);BoardingRestore.remember(p,l.state);publish.put(p,l);}
+                PREVIOUS.put(p.getUuid(),new Previous(new WeakReference<>(world),pure(p.getPos())));
+                continue;
+            }
             var candidates=new ArrayList<>(com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(world,p.getBoundingBox().expand(4+Math.min(8,p.getVelocity().length()))));
             candidates.sort(Comparator.comparingInt(BlockBodyEntity::getId));
             var near=new ArrayList<BodyMotion>();
@@ -116,6 +123,25 @@ public final class BoardingSystem {
         PREVIOUS.entrySet().removeIf(e->e.getValue().world.get()==world&&!present.contains(e.getKey()));
         READY.entrySet().removeIf(e->{var p=e.getValue().get();return p==null||p.isRemoved();});
     }
+    private static Lease admitSavedDeck(ServerPlayerEntity p,DescentPlayerData.BoardingAnchor anchor){
+        if(p.networkHandler==null)return null;
+        var state=BoardingRestore.localAdmission(p,anchor);
+        if(state==null)return null;
+        var feet=state.feet();
+        // The login placement is sent once, before the new lease starts. Later motion uses
+        // the ordinary collision/impulse motor and cannot reuse the consumed saved anchor.
+        if(pure(p.getPos()).minus(feet).lengthSquared()>1e-10){
+            var look=pure(Vec3d.fromPolar(p.getPitch(),p.getYaw()));
+            look=state.frame().rotate(BoardingPose.frame(p).inverse().rotate(look));
+            var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);
+            p.networkHandler.requestTeleport(feet.x(),feet.y(),feet.z(),(float)angles.yawDegrees(),(float)angles.pitchDegrees(),Set.of());
+        }
+        BoardingPose.publish(p,state.frame());
+        p.setVelocity(mc(state.velocity().scaled(.05)));p.setOnGround(true);p.fallDistance=0;
+        if(p.networkHandler instanceof BoardingConnection connection)connection.drmd$bodyMovementOwned();
+        return new Lease(p,state,++epoch);
+    }
+
     private static Lease acquire(ServerPlayerEntity p,List<BodyMotion> bodies) {
         Vec3 feet=pure(p.getPos());
         var resume=DescentPlayerData.get(p).pendingBoardingResume();

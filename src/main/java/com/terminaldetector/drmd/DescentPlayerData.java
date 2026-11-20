@@ -1,8 +1,11 @@
 package com.terminaldetector.drmd;
 
+import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
+import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.energy.EnergyPreset;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -59,11 +62,16 @@ public class DescentPlayerData {
     /** Presence of a persisted mode distinguishes a returning walker from a new player. */
     private boolean savedFlightMode;
     public boolean hasSavedFlightMode(){return savedFlightMode;}
-    public record BoardingResume(UUID body,String dimension,com.terminaldetector.drmd.client.portal.PortalTransform.Quat frame) {}
+    /** Local feet and velocity belong to the solid support, orientation to the field if present. */
+    public record BoardingAnchor(UUID support,UUID gravityOwner,Vec3 feet,Vec3 velocity,Quat frame) {}
+    public record BoardingResume(UUID body,String dimension,Quat frame,BoardingAnchor anchor) {}
     private BoardingResume boardingResume;
     private boolean boardingResumePending;
     public BoardingResume pendingBoardingResume(){return boardingResumePending?boardingResume:null;}
-    public void rememberBoarding(UUID body,String dimension,com.terminaldetector.drmd.client.portal.PortalTransform.Quat frame){boardingResume=new BoardingResume(body,dimension,frame);boardingResumePending=false;}
+    public void rememberBoarding(UUID body,String dimension,Quat frame){rememberBoarding(body,dimension,frame,null);}
+    public void rememberBoarding(UUID body,String dimension,Quat frame,BoardingAnchor anchor){
+        boardingResume=new BoardingResume(body,dimension,frame,anchor);boardingResumePending=false;
+    }
     public void clearBoardingResume(){boardingResume=null;boardingResumePending=false;}
 	private boolean flightAssist = true;
 	private boolean alwaysRun;
@@ -174,13 +182,47 @@ public class DescentPlayerData {
 		d.putBoolean("radar", radarEnabled);
 		d.putBoolean("sessionWelcomed", sessionWelcomed);
         if(boardingResume!=null&&!enabled) {
-            d.putInt("boardingResumeSchema",1);d.putUuid("boardingBody",boardingResume.body());d.putString("boardingDimension",boardingResume.dimension());
+            var anchor=boardingResume.anchor();
+            d.putInt("boardingResumeSchema",anchor==null?1:2);
+            d.putUuid("boardingBody",boardingResume.body());d.putString("boardingDimension",boardingResume.dimension());
             var q=boardingResume.frame();d.putDouble("boardingQx",q.x());d.putDouble("boardingQy",q.y());d.putDouble("boardingQz",q.z());d.putDouble("boardingQw",q.w());
+            if(anchor!=null){
+                var a=new NbtCompound();a.putUuid("support",anchor.support());
+                if(anchor.gravityOwner()!=null)a.putUuid("gravity",anchor.gravityOwner());
+                writeBoardingVector(a,"feet",anchor.feet());writeBoardingVector(a,"velocity",anchor.velocity());
+                var frame=anchor.frame();a.putDouble("qx",frame.x());a.putDouble("qy",frame.y());a.putDouble("qz",frame.z());a.putDouble("qw",frame.w());
+                d.put("boardingAnchor",a);
+            }
         }
 		if (lastShipUuid != null) d.putUuid("lastShip", lastShipUuid);
 		if (lastShipPos != null) d.putLong("lastShipPos", lastShipPos.asLong());
 		nbt.put("DrmdData", d);
 	}
+
+    private static void writeBoardingVector(NbtCompound n,String key,Vec3 v){
+        n.putDouble(key+"x",v.x());n.putDouble(key+"y",v.y());n.putDouble(key+"z",v.z());
+    }
+
+    private static Vec3 readBoardingVector(NbtCompound n,String key){
+        if(!n.contains(key+"x",NbtElement.NUMBER_TYPE)||!n.contains(key+"y",NbtElement.NUMBER_TYPE)
+            ||!n.contains(key+"z",NbtElement.NUMBER_TYPE))return null;
+        var v=new Vec3(n.getDouble(key+"x"),n.getDouble(key+"y"),n.getDouble(key+"z"));
+        return Double.isFinite(v.lengthSquared())?v:null;
+    }
+
+    private static Quat readBoardingFrame(NbtCompound n,String prefix){
+        var q=new Quat(n.getDouble(prefix+"x"),n.getDouble(prefix+"y"),n.getDouble(prefix+"z"),n.getDouble(prefix+"w"));
+        double norm=q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w();
+        return Double.isFinite(norm)&&norm>1e-8?q.normalized():null;
+    }
+
+    private static BoardingAnchor readBoardingAnchor(NbtCompound n,UUID body){
+        if(!n.containsUuid("support")||(n.contains("gravity")&&!n.containsUuid("gravity")))return null;
+        UUID support=n.getUuid("support"),gravity=n.containsUuid("gravity")?n.getUuid("gravity"):null;
+        if(!body.equals(gravity==null?support:gravity))return null;
+        var feet=readBoardingVector(n,"feet");var velocity=readBoardingVector(n,"velocity");var frame=readBoardingFrame(n,"q");
+        return feet==null||velocity==null||frame==null?null:new BoardingAnchor(support,gravity,feet,velocity,frame);
+    }
 
 	public void readNbt(NbtCompound nbt) {
 		savedFlightMode=false;
@@ -189,10 +231,13 @@ public class DescentPlayerData {
 		NbtCompound d = nbt.getCompound("DrmdData");
 		savedFlightMode=d.contains("enabled");
 		enabled = d.getBoolean("enabled");
-        if(!enabled&&d.getInt("boardingResumeSchema")==1&&d.containsUuid("boardingBody")&&net.minecraft.util.Identifier.tryParse(d.getString("boardingDimension"))!=null) {
-            var q=new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(d.getDouble("boardingQx"),d.getDouble("boardingQy"),d.getDouble("boardingQz"),d.getDouble("boardingQw"));
-            double norm=q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w();
-            if(Double.isFinite(norm)&&norm>1e-8){boardingResume=new BoardingResume(d.getUuid("boardingBody"),d.getString("boardingDimension"),q.normalized());boardingResumePending=true;}
+        int boardingSchema=d.getInt("boardingResumeSchema");
+        if(!enabled&&(boardingSchema==1||boardingSchema==2)&&d.containsUuid("boardingBody")&&net.minecraft.util.Identifier.tryParse(d.getString("boardingDimension"))!=null) {
+            UUID body=d.getUuid("boardingBody");var q=readBoardingFrame(d,"boardingQ");
+            var anchor=boardingSchema==2?readBoardingAnchor(d.getCompound("boardingAnchor"),body):null;
+            if(q!=null&&(boardingSchema==1||anchor!=null)){
+                boardingResume=new BoardingResume(body,d.getString("boardingDimension"),q,anchor);boardingResumePending=true;
+            }
         }
 		flightAssist = d.contains("flightAssist") ? d.getBoolean("flightAssist") : true;
 		alwaysRun = d.getBoolean("alwaysRun");

@@ -242,7 +242,7 @@ public final class DynamicBodyAttachment {
         for(var normal:normals){double closing=velocity.dot(normal);if(closing<0)velocity=velocity.minus(normal.scaled(closing));}
         return velocity;
     }
-    private static boolean canOrient(Vec3 feet,Quat frame,List<BodyMotion> bodies,double t,double width,double height,Motion world) {
+    static boolean canOrient(Vec3 feet,Quat frame,List<BodyMotion> bodies,double t,double width,double height,Motion world) {
         if(!world.canOrient(feet,frame))return false;
         Vec3 up=PassengerFrame.up(frame);
         for(var b:bodies)for(var c:b.query(t).contacts(PassengerFrame.box(feet,width,height,frame),0))

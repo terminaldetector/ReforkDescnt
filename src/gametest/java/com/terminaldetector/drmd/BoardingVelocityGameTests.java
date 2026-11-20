@@ -21,8 +21,9 @@ public final class BoardingVelocityGameTests implements FabricGameTest {
     private record User(ServerPlayerEntity player,EmbeddedChannel channel,ClientConnection connection) implements AutoCloseable {
         public void close(){player.getServer().getNetworkIo().getConnections().remove(connection);BoardingSystem.externalTeleport(player);player.getServer().getPlayerManager().remove(player);player.discard();channel.finishAndReleaseAll();}
     }
-    private static User user(TestContext c,String name,Vec3d position){
-        var w=c.getWorld();var client=ConnectedClientData.createDefault(new GameProfile(UUID.randomUUID(),name),false);
+    private static User user(TestContext c,String name,Vec3d position){return user(c,new GameProfile(UUID.randomUUID(),name),position);}
+    private static User user(TestContext c,GameProfile profile,Vec3d position){
+        var w=c.getWorld();var client=ConnectedClientData.createDefault(profile,false);
         var p=new ServerPlayerEntity(w.getServer(),w,client.gameProfile(),client.syncedOptions());var connection=new ClientConnection(NetworkSide.SERVERBOUND);var channel=new EmbeddedChannel(connection);
         w.getServer().getPlayerManager().onPlayerConnect(connection,p,client);var user=new User(p,channel,connection);
         try{
@@ -34,6 +35,91 @@ public final class BoardingVelocityGameTests implements FabricGameTest {
             c.assertTrue(!w.getServer().getNetworkIo().getConnections().contains(connection),"no double scheduling of an actual fixture connection");w.getServer().getNetworkIo().getConnections().add(connection);return user;
         }catch(ReflectiveOperationException error){user.close();throw new RuntimeException(error);}catch(RuntimeException|Error error){user.close();throw error;}
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-late-ready-loaded-deck")
+    public void reconnectAfterARotatedDeckLeavesTheSavedWorldPositionRestoresItsRealSupport(TestContext c){lateDeck(c,false);}
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-late-ready-obstructed-deck")
+    public void reconnectNeverPlacesAPassengerInAnObstructedSavedDeckLocation(TestContext c){lateDeck(c,true);}
+
+    private static void lateDeck(TestContext c,boolean obstructed){
+        var world=c.getWorld();
+        var at=c.getAbsolutePos(new BlockPos(8,140,8));
+        var profile=new GameProfile(UUID.randomUUID(),"late-deck");
+        try(var chunks=new AiFixtureChunks(world,at,2)){
+            var cells=new ArrayList<BlockBodyEntity.Cell>();
+            for(int x=0;x<3;x++)for(int z=0;z<3;z++)
+                cells.add(new BlockBodyEntity.Cell(new BlockPos(x,0,z),Blocks.IRON_BLOCK.getDefaultState()));
+            var deck=BlockBodyEntity.createLocal(world,cells,Vec3d.of(at));
+            var field=BlockBodyEntity.createLocal(world,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),Vec3d.of(at.add(0,0,-2)));
+            try{
+                field.setPassengerGravity(new Vec3(0,-16,0));
+                var start=deck.localToWorld(new Vec3d(1.5,1.001,1.5));
+                var saved=new net.minecraft.nbt.NbtCompound();
+                Vec3d localFeet,worldFeet;
+                int oldEpoch;
+                try(var original=user(c,profile,start)){
+                    var p=original.player();
+                    BoardingSystem.ready(p,BoardingNetworking.PROTOCOL);
+                    deck.tick();field.tick();BoardingSystem.tick(world);
+                    deck.tick();field.tick();BoardingSystem.tick(world);
+                    var state=BoardingSystem.state(p);
+                    c.assertTrue(state!=null&&state.grounded()&&state.support()==deck.getId()&&state.gravityOwner()==field.getId(),"real deck contact and independent field before save: "+state);
+                    oldEpoch=BoardingSystem.epoch(p);
+                    localFeet=deck.worldToLocal(p.getPos());worldFeet=p.getPos();
+                    p.writeNbt(saved);
+                    c.assertTrue(saved.getCompound("DrmdData").getInt("boardingResumeSchema")==2,"real grounded player serialization contains the new local snapshot");
+                }
+
+                for(var body:List.of(deck,field)){
+                    body.physics().withLinearVelocity(new Vec3(18,0,0)).withAngularVelocity(new Vec3(0,.5,0));
+                }
+                for(int i=0;i<10;i++){deck.tick();field.tick();}
+                var expected=deck.localToWorld(localFeet);
+                c.assertTrue(expected.distanceTo(worldFeet)>7&&Math.abs(deck.rotation().y())>.1,"real physics moved and turned the original deck clear of the old player");
+                var blocked=BlockPos.ofFloored(expected).up();var originalBlock=world.getBlockState(blocked);
+                if(obstructed)world.setBlockState(blocked,Blocks.STONE.getDefaultState());
+                try(var late=user(c,profile,worldFeet)){
+                    var p=late.player();p.readNbt(saved);
+                    var data=DescentPlayerData.get(p);var hint=data.pendingBoardingResume();
+                    c.assertTrue(hint!=null&&hint.anchor()!=null&&hint.anchor().support().equals(deck.getUuid())
+                        &&hint.anchor().gravityOwner().equals(field.getUuid())&&p.getPos().distanceTo(worldFeet)<1e-8,
+                        "ordinary player NBT read preserved stale world feet and both exact body identities");
+                    int baseline=placements(late).size();
+                    BoardingSystem.tick(world);
+                    c.assertTrue(!BoardingSystem.drives(p)&&p.getPos().distanceTo(worldFeet)<1e-8
+                        &&placements(late).size()==baseline,"no saved position or lease is used before the current login's Ready");
+                    BoardingSystem.ready(p,BoardingNetworking.PROTOCOL);BoardingSystem.tick(world);
+                    var packets=placements(late);
+                    if(obstructed){
+                        c.assertTrue(!BoardingSystem.drives(p)&&data.pendingBoardingResume()==null
+                            &&p.getPos().distanceTo(worldFeet)<1e-8&&packets.size()==baseline,
+                            "resolved ship with obstructed local feet declines placement without moving the player");
+                    }else{
+                        var state=BoardingSystem.state(p);
+                        c.assertTrue(state!=null&&state.grounded()&&state.support()==deck.getId()&&state.gravityOwner()==field.getId()
+                            &&BoardingSystem.epoch(p)>oldEpoch&&p.getPos().distanceTo(expected)<1e-8&&packets.size()==baseline+1
+                            &&data.pendingBoardingResume()==null,"one native position packet follows exact live support and establishes a fresh server lease: "+state);
+                        var relative=deck.rotation().rotate(hint.anchor().velocity());
+                        var pointSpeed=BoardingSystem.pure(deck.surfaceVelocityAt(expected));
+                        c.assertTrue(state.velocity().minus(pointSpeed.plus(relative)).length()<1e-8,"resume restores current point velocity plus saved relative motion");
+                        var last=packets.getLast();late.channel().writeInbound(new net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket(last.getTeleportId()));
+                        deck.tick();field.tick();BoardingSystem.tick(world);
+                        c.assertTrue(BoardingSystem.drives(p)&&p.getPos().distanceTo(expected)>.2&&placements(late).size()==packets.size(),
+                            "the following tick moves through contact without another placement or a saved-position anchor");
+                    }
+                }finally{if(obstructed)world.setBlockState(blocked,originalBlock);}
+            }finally{deck.discard();field.discard();BoardingSystem.tick(world);}
+        }
+        c.complete();
+    }
+
+    private static List<net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket> placements(User user){
+        user.channel().runPendingTasks();user.channel().flushOutbound();
+        return user.channel().outboundMessages().stream()
+            .filter(net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket.class::isInstance)
+            .map(net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket.class::cast).toList();
+    }
+
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-native-small-momentum",tickLimit=160)
     public void actualLowFieldAccumulatesMomentumAndExternalImpulseWhileUnownedActorsKeepNativeCleanup(TestContext c){
         var w=c.getWorld();var at=c.getAbsolutePos(new BlockPos(8,140,8));var chunks=new AiFixtureChunks(w,at,1);
