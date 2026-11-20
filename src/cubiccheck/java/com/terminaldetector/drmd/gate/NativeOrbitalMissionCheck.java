@@ -254,8 +254,9 @@ public final class NativeOrbitalMissionCheck {
                 if(DescentClientState.enabled){if(footRequestLeg!=missionLeg){net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));footRequestLeg=missionLeg;}return;}
                 // Empty hands + ordinary H-off avoid both 6DoF combat RMB ownership and vanilla sneak-item bypass.
                 int empty=-1;for(int slot=0;slot<9;slot++)if(c.player.getInventory().getStack(slot).isEmpty()){empty=slot;break;}require(empty>=0,"real actor retains an empty contact slot without deleting collected loot");c.player.getInventory().selectedSlot=empty;if(!c.player.getMainHandStack().isEmpty()||!c.player.getOffHandStack().isEmpty())return;
-                aim(c,Vec3d.ofCenter(herald).add(0,0,-.5));c.options.sneakKey.setPressed(missionLeg!=6);
-                if(c.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit&&hit.getBlockPos().equals(herald))c.options.useKey.setPressed(true);return;
+                c.options.sneakKey.setPressed(missionLeg!=6);
+                if(aimAtBlock(c,herald,-.5))c.options.useKey.setPressed(true);
+                return;
             }
             if(!DescentClientState.enabled){clearKeys(c);if(flightRequestLeg!=missionLeg){net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new ModNetworking.ActionPayload("enable"));flightRequestLeg=missionLeg;}return;}
             c.player.getInventory().selectedSlot=1;if(!c.player.getMainHandStack().isOf(net.minecraft.item.Items.DIAMOND_PICKAXE))return;
@@ -265,8 +266,8 @@ public final class NativeOrbitalMissionCheck {
                 clearKeys(c);
                 var velocity=c.player.getVelocity().multiply(20);
                 if(at.distanceTo(goal())>1.1||velocity.length()>1.2){steer(c,at,goal(),.4);return;}
-                aim(c,Vec3d.ofCenter(target).add(0,0,-.375));miningAimTicks++;
-                if(c.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit&&hit.getBlockPos().equals(target)){
+                miningAimTicks++;
+                if(aimAtBlock(c,target,-.375)){
                     if(!alreadyPressed){
                         var key=net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.getBoundKeyOf(c.options.attackKey);
                         net.minecraft.client.option.KeyBinding.onKeyPressed(key);miningAttackEdges++;
@@ -376,6 +377,14 @@ public final class NativeOrbitalMissionCheck {
         synchronized(STATE_ROWS){require(STATE_ROWS.size()<512,"bounded native state journal512");STATE_ROWS.add(Map.of("side",side,"tick",tick,"position",xyz(position),"velocityMps",xyz(velocity),"passed",passed,"heldForward",held));}
     }
     private static void aim(MinecraftClient c,Vec3d target){var delta=target.subtract(c.player.getEyePos()).normalize();ShipAttitudeClient.acceptPortalFrame(c.player,delta,Math.abs(delta.y)>.94?new Vec3d(0,0,1):new Vec3d(0,1,0));}
+    private static boolean aimAtBlock(MinecraftClient c,BlockPos target,double zOffset){
+        aim(c,Vec3d.ofCenter(target).add(0,0,zOffset));
+        // Vanilla normally refreshes this cache on render. The native gate changes its
+        // aim at END_CLIENT_TICK, which may run several times between rendered frames.
+        c.gameRenderer.updateCrosshairTarget(1f);
+        return c.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit
+            &&hit.getType()==net.minecraft.util.hit.HitResult.Type.BLOCK&&hit.getBlockPos().equals(target);
+    }
     private static void clearKeys(MinecraftClient c){
         c.options.attackKey.setPressed(false);c.options.useKey.setPressed(false);
         c.options.forwardKey.setPressed(false);c.options.backKey.setPressed(false);c.options.leftKey.setPressed(false);c.options.rightKey.setPressed(false);c.options.jumpKey.setPressed(false);c.options.sneakKey.setPressed(false);
