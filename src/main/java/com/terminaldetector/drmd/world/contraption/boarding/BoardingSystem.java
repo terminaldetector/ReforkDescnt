@@ -130,7 +130,8 @@ public final class BoardingSystem {
         var feet=state.feet();
         // The login placement is sent once, before the new lease starts. Later motion uses
         // the ordinary collision/impulse motor and cannot reuse the consumed saved anchor.
-        if(pure(p.getPos()).minus(feet).lengthSquared()>1e-10){
+        boolean relocated=pure(p.getPos()).minus(feet).lengthSquared()>1e-10;
+        if(relocated){
             var look=pure(Vec3d.fromPolar(p.getPitch(),p.getYaw()));
             look=state.frame().rotate(BoardingPose.frame(p).inverse().rotate(look));
             var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);
@@ -138,8 +139,12 @@ public final class BoardingSystem {
         }
         BoardingPose.publish(p,state.frame());
         p.setVelocity(mc(state.velocity().scaled(.05)));p.setOnGround(true);p.fallDistance=0;
-        if(p.networkHandler instanceof BoardingConnection connection)connection.drmd$bodyMovementOwned();
-        return new Lease(p,state,++epoch);
+        var lease=new Lease(p,state,++epoch);
+        if(p.networkHandler instanceof BoardingConnection connection){
+            if(relocated)connection.drmd$preserveBoardingPlacementOnConfirm(lease.epoch);
+            connection.drmd$bodyMovementOwned();
+        }
+        return lease;
     }
 
     private static Lease acquire(ServerPlayerEntity p,List<BodyMotion> bodies) {

@@ -102,10 +102,17 @@ public final class BoardingVelocityGameTests implements FabricGameTest {
                         var relative=deck.rotation().rotate(hint.anchor().velocity());
                         var pointSpeed=BoardingSystem.pure(deck.surfaceVelocityAt(expected));
                         c.assertTrue(state.velocity().minus(pointSpeed.plus(relative)).length()<1e-8,"resume restores current point velocity plus saved relative motion");
+                        int resumedEpoch=BoardingSystem.epoch(p);
+                        for(int i=0;i<2;i++){deck.tick();field.tick();BoardingSystem.tick(world);}
+                        var advanced=p.getPos();
+                        c.assertTrue(BoardingSystem.drives(p)&&advanced.distanceTo(expected)>.2,
+                            "actual contact advances the player while the original placement waits for confirmation");
                         var last=packets.getLast();late.channel().writeInbound(new net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket(last.getTeleportId()));
+                        c.assertTrue(p.getPos().distanceTo(advanced)<1e-8&&BoardingSystem.epoch(p)==resumedEpoch,
+                            "confirming the original placement preserves the advanced feet and the current lease");
                         deck.tick();field.tick();BoardingSystem.tick(world);
-                        c.assertTrue(BoardingSystem.drives(p)&&p.getPos().distanceTo(expected)>.2&&placements(late).size()==packets.size(),
-                            "the following tick moves through contact without another placement or a saved-position anchor");
+                        c.assertTrue(BoardingSystem.drives(p)&&p.getPos().distanceTo(advanced)>.2&&placements(late).size()==packets.size(),
+                            "contact keeps advancing after the confirmation without another placement packet");
                     }
                 }finally{if(obstructed)world.setBlockState(blocked,originalBlock);}
             }finally{deck.discard();field.discard();BoardingSystem.tick(world);}

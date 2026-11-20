@@ -3,8 +3,10 @@ package com.terminaldetector.drmd.mixin;
 import com.terminaldetector.drmd.world.contraption.boarding.*;
 import net.minecraft.network.NetworkThreadUtils;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
 import net.minecraft.server.network.*;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -14,13 +16,36 @@ public abstract class BoardingServerMovementMixin implements BoardingConnection 
     @Shadow public ServerPlayerEntity player;
     @Shadow private boolean floating;
     @Shadow private int floatingTicks;
+    @Shadow private int requestedTeleportId;
+    @Shadow private Vec3d requestedTeleportPos;
     @Shadow public abstract void syncWithPlayerPosition();
+    @Unique private int drmd$boardingPlacementEpoch=-1;
+    @Unique private int drmd$boardingPlacementId;
+
     @Override public void drmd$bodyMovementOwned(){floating=false;floatingTicks=0;syncWithPlayerPosition();}
+    @Override public void drmd$preserveBoardingPlacementOnConfirm(int epoch){
+        drmd$boardingPlacementEpoch=epoch;
+        drmd$boardingPlacementId=requestedTeleportId;
+    }
+
     @Inject(method="requestTeleport(DDDFFLjava/util/Set;)V",at=@At("HEAD"))
     private void externalPosition(CallbackInfo ci) {
+        drmd$boardingPlacementEpoch=-1;
         BoardingSystem.externalTeleport(player);
         FlightBodySystem.discontinuity(player);
     }
+
+    @Inject(method="onTeleportConfirm",at=@At(value="INVOKE",target="Lnet/minecraft/network/packet/c2s/play/TeleportConfirmC2SPacket;getTeleportId()I"))
+    private void confirmBoardingPlacement(TeleportConfirmC2SPacket packet,CallbackInfo ci) {
+        if(drmd$boardingPlacementEpoch<0||packet.getTeleportId()!=drmd$boardingPlacementId
+                ||requestedTeleportId!=drmd$boardingPlacementId||requestedTeleportPos==null)return;
+        // The contact motor has already advanced on the moving deck while this confirmation
+        // was in flight. Vanilla still validates and clears the request using the current feet.
+        if(BoardingSystem.drives(player)&&BoardingSystem.epoch(player)==drmd$boardingPlacementEpoch)
+            requestedTeleportPos=player.getPos();
+        drmd$boardingPlacementEpoch=-1;
+    }
+
     @Inject(method="onPlayerMove",at=@At("HEAD"),cancellable=true)
     private void bodyMove(PlayerMoveC2SPacket packet,CallbackInfo ci) {
         var handler=(ServerPlayNetworkHandler)(Object)this;
