@@ -1,0 +1,13 @@
+{
+  "source": "0df9b0645827a20b0d38e28fe61565209d466661",
+  "exactReplayQueries": 24000,
+  "actualGradleTests": 6,
+  "exactNativeFormationActors": 1024,
+  "reductionBytesPerQueryPercent": {
+    "radius25": 51.02,
+    "radius32": 54.07
+  },
+  "archive": "swarm-query-scratch-reuse.zip",
+  "archiveSha256": "0ea3026c2934cfa41a7a4f8bfab8aa4d15c7a8e771e69f836d8f7c8f8bc80967",
+  "scope": "Measured allocated bytes in the authored formation replay. No comparison of game TPS or FPS with the change enabled."
+}

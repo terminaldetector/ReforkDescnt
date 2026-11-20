@@ -1,0 +1,229 @@
+{
+  "source": "de7554d3c180196a4c48bc09dcc1d281c42c5f9f",
+  "seed": 271026,
+  "gameAndObserverJars": {
+    "drmd-6dof-1.1.35-ufo-dev.1.jar": "b210aaf41c71c67eaf516a37695af75cf4d8ed4a0bfc55fc0a3818e004621260",
+    "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c1880b752747bba870bdca874f74dd64fd61e5b4999422862256b859c4d2ff60"
+  },
+  "nativeExits": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "backend": "Better Cubic Chunks 0.1.1 with Sodium 0.8.13 and Mesa llvmpipe GL 3.3",
+  "cohorts": {
+    "32": {
+      "fullActiveActors": 32,
+      "aggregateActors": 0,
+      "coastingUpdates": 0,
+      "detailedUpdates": 1251,
+      "shots": 310,
+      "rendered": 22,
+      "drawMin": 11,
+      "drawMedian": 15,
+      "drawMax": 22,
+      "frames": 69,
+      "tps": 19.97826197945177,
+      "mspt": {
+        "p50": 32.14731,
+        "p95": 54.541448,
+        "p99": 147.716434
+      },
+      "frameMsP95": 68.442661,
+      "fps": 23.369760914289262,
+      "heapMax": 996697888,
+      "loaded": {
+        "size": [
+          7,
+          9,
+          9
+        ],
+        "full": 567
+      },
+      "trace": "/tmp/ungravity-finish-36/s16-sixth-build-marked-de7554d3-matrix/32.trace",
+      "traceSha256": "99cf40344280153c0e4bae99079fc49cba96f18acb53b3eb7ea1dccafc3864c2"
+    },
+    "128": {
+      "fullActiveActors": 128,
+      "aggregateActors": 0,
+      "coastingUpdates": 0,
+      "detailedUpdates": 5083,
+      "shots": 1811,
+      "rendered": 102,
+      "drawMin": 14,
+      "drawMedian": 18,
+      "drawMax": 48,
+      "frames": 39,
+      "tps": 17.76312274887927,
+      "mspt": {
+        "p50": 46.218339,
+        "p95": 122.206118,
+        "p99": 187.951842
+      },
+      "frameMsP95": 143.613066,
+      "fps": 11.94184112095368,
+      "heapMax": 779491840,
+      "loaded": {
+        "size": [
+          7,
+          9,
+          9
+        ],
+        "full": 505
+      },
+      "trace": "/tmp/ungravity-finish-36/s16-sixth-build-marked-de7554d3-matrix/128.trace",
+      "traceSha256": "146f84a0bb36ed7791e458abfcd10343d2750bc2edcb4b550f809d87a5c16b71"
+    },
+    "256": {
+      "fullActiveActors": 256,
+      "aggregateActors": 0,
+      "coastingUpdates": 0,
+      "detailedUpdates": 10208,
+      "shots": 3797,
+      "rendered": 222,
+      "drawMin": 17,
+      "drawMedian": 25.0,
+      "drawMax": 68,
+      "frames": 60,
+      "tps": 12.155786471048845,
+      "mspt": {
+        "p50": 79.650645,
+        "p95": 151.336907,
+        "p99": 173.789576
+      },
+      "frameMsP95": 123.76469,
+      "fps": 12.35239350404013,
+      "heapMax": 769836800,
+      "loaded": {
+        "size": [
+          7,
+          9,
+          9
+        ],
+        "full": 475
+      },
+      "trace": "/tmp/ungravity-finish-36/s16-sixth-build-marked-de7554d3-matrix/256.trace",
+      "traceSha256": "6e654fc625415b6ba11d2cbb498b2966746bff7106fe91afd5c68009b66a8ce1"
+    },
+    "512": {
+      "fullActiveActors": 512,
+      "aggregateActors": 0,
+      "coastingUpdates": 0,
+      "detailedUpdates": 20401,
+      "shots": 8194,
+      "rendered": 449,
+      "drawMin": 11,
+      "drawMedian": 27.5,
+      "drawMax": 91,
+      "frames": 62,
+      "tps": 9.274564497683285,
+      "mspt": {
+        "p50": 100.988258,
+        "p95": 150.140403,
+        "p99": 167.895521
+      },
+      "frameMsP95": 167.48159,
+      "fps": 9.813069313703748,
+      "heapMax": 891954368,
+      "loaded": {
+        "size": [
+          7,
+          9,
+          9
+        ],
+        "full": 477
+      },
+      "trace": "/tmp/ungravity-finish-36/s16-sixth-build-marked-de7554d3-matrix/512.trace",
+      "traceSha256": "d16bcf45861d65cd4e92b0eadbb2f9895a1ea96ce3650b9cf5e27f50aa9e7910"
+    },
+    "1024": {
+      "fullActiveActors": 1024,
+      "aggregateActors": 0,
+      "coastingUpdates": 0,
+      "detailedUpdates": 40831,
+      "shots": 18737,
+      "rendered": 917,
+      "drawMin": 14,
+      "drawMedian": 24,
+      "drawMax": 140,
+      "frames": 103,
+      "tps": 5.397348020120839,
+      "mspt": {
+        "p50": 169.206891,
+        "p95": 296.414759,
+        "p99": 413.212642
+      },
+      "frameMsP95": 178.319309,
+      "fps": 9.30055532767976,
+      "heapMax": 896185336,
+      "loaded": {
+        "size": [
+          7,
+          9,
+          9
+        ],
+        "full": 478
+      },
+      "trace": "/tmp/ungravity-finish-36/s16-sixth-retry-long-trace-marked-de7554d3-matrix/1024.trace",
+      "traceSha256": "52e07b279be2420aac3c0834faf59d1d139cab7bc2c83c6f1b3d64ea65117562"
+    }
+  },
+  "first1024TraceTruncated": {
+    "reason": "64 MiB file-size cap before a complete marker interval",
+    "sha256": "2a99c72c22b4208716ec4f5b46a90866774d9a677910a849364cc9d63a32d4b2",
+    "retryCapBytes": 117440512
+  },
+  "scope": "Actual whole-renderer GL submissions and software timings while traced. Counts are not per-draw primitive totals or hardware GPU benchmarks. The close combat cohorts contain no aggregate physics actors. Separate remote planning tests establish wake and physical collision but do not scale remote aggregate physics.",
+  "archive": "swarm-native-draw-matrix.zip",
+  "archiveSha256": "0f3771a929b890cfd4e2c3256fcd9586ee5a539ecd18dbf941d985b4eb1144ef",
+  "memberSha256": {
+    "submission-1/inputs.json": "146a9011e8fb3b7c04dd37d34793378bdb49495a39d7e519276306dae60a8aef",
+    "submission-1/actual-process-exits.txt": "66ccbda930c88ffe6d90917caeb8ccf3837cf65135e173f2002cbf00bf10be98",
+    "submission-2/inputs.json": "e3cf8031bea008c726c31b10d4e1878929416c2b21b8e5936e107a4628a3fe6e",
+    "submission-2/actual-process-exits.txt": "33f574ece9992203ca8958f97376952d20da86f9978b61fc31751f1fc43fa952",
+    "32/32-draws.json": "40b2e656f630e154618e760fa63cc6fb805ddf9b57da4ce543b77c2327c2d166",
+    "32/32-draws.calls.gz": "c023c69b5d714794e0cff169ffa11a0801227e639db55a7c499b21eab369764b",
+    "32/native.log": "59353f965bc05face5c0828771e9c4ca376f124a1620eb158a8bcfed17d73627",
+    "32/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "32/swarm-capacity-32.json": "f8853b62b81741f01d2469764161d48a2956e88666406cb23ef05cf01d2becea",
+    "32/inputs.json": "4a07af7ec9673dfed3ce523a935524236bdb0c60d841c343e7768d8c51f1994e",
+    "32/swarm-baseline.csv": "56734cba611e431c9d293e5f140bc60c0e6946c88016d0a3f8e30e839c8f1fab",
+    "32/swarm-32-height-2156.png": "96f1a7ac539c3bdfe6e9e735093b6ec921abc5e75963cb3b0f0567e573fd387b",
+    "128/128-draws.json": "ff4ce602d9cecb422e4c5862e240e42237f7d447ffcf3690feedcf1994e236ac",
+    "128/128-draws.calls.gz": "caf63ad6b2243c2586a2013cc85f4d169d1d2d67a261d4ba259af4eddb8e3bc4",
+    "128/native.log": "e4d6f59fff1e5558e995901e9db44f31ab04f259b9a2bc65cd545138fc159596",
+    "128/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "128/swarm-capacity-128.json": "ffef4d10e2819cb2bb4c98bbc39644f3d26235943928fc8dfcd4883435fbb819",
+    "128/inputs.json": "4a07af7ec9673dfed3ce523a935524236bdb0c60d841c343e7768d8c51f1994e",
+    "128/swarm-baseline.csv": "2f7a62eb9d3b71962d4de93c252fc3e8c593f2a8184eb2a278b32f8ae02a435d",
+    "128/swarm-128-height-2156.png": "0bc61847f5f42096410d4bfbda59fa9b632daca64a322eb4be0e5e515233965f",
+    "256/256-draws.json": "cf0c5c6886af309d840c9838f3b7b819a62b6be38669bacc1666d9cd0fa60d56",
+    "256/256-draws.calls.gz": "29cd867fd23fef8c7ab3e04577547ea80a3da8c84496422ade32cdcf2de0711a",
+    "256/native.log": "6342596a2024458dc585d7510965b20f309a0ea3dbe08cc30d03a047c2e824c5",
+    "256/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "256/swarm-capacity-256.json": "5e352812ea14b75156a50ea514d28e464eb0a0bbb5934e90ff68a40d407b02da",
+    "256/inputs.json": "4a07af7ec9673dfed3ce523a935524236bdb0c60d841c343e7768d8c51f1994e",
+    "256/swarm-baseline.csv": "2e9331cb2843e31e5a5ec7ee556b452d5095b8f1aba93df78ddebdff891d9c16",
+    "256/swarm-256-height-2156.png": "481d5a4e3e4565b5b6f3b9d0975119cceb126c740b78b5650532706251d2b976",
+    "512/512-draws.json": "0c3723739ad474f07b164f65634a835006b4068f0a7149a5484014ba41d2d950",
+    "512/512-draws.calls.gz": "6c56a8cf48e97c67dbb3cdc840c94c99bea48fd23d8454ae4622a9cfea8c1e7e",
+    "512/native.log": "bc23a51273ad1af3c2d89882f07f2adaaf7babdbf9a5ba4070e89aefab9fc7e3",
+    "512/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "512/swarm-capacity-512.json": "051453b3fadcd56e462c19a8e499720132e1b20fdf3f2eadad03f91859d2a877",
+    "512/inputs.json": "4a07af7ec9673dfed3ce523a935524236bdb0c60d841c343e7768d8c51f1994e",
+    "512/swarm-baseline.csv": "8d7f9a38152f99c8d7151acb475ad67c8fbd8a9fa9ccb57afb6af6da5a0fdea8",
+    "512/swarm-512-height-2156.png": "1bf82e667547a7cbadd386fce9ebf1616d941083dff9b8b9771b049a2c9c4108",
+    "1024/1024-draws.json": "a38c28421017d6f9c06a3646d713ea4fabdc9c072dce14c3af3a851d6151d8c4",
+    "1024/1024-draws.calls.gz": "0d726f5e4f4f84a88c649d0971934852929984cf6f97827dba7834f6c2f6e2cd",
+    "1024/native.log": "b7947f7bca2d56a9d2451123ed0b540fc7e2d63e09fb13efffb6314ea408c8fb",
+    "1024/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "1024/swarm-capacity-1024.json": "f078a318af8e54814715b080ed692d44f7a1802a6c8540ec958a79cc03254b8b",
+    "1024/inputs.json": "4a07af7ec9673dfed3ce523a935524236bdb0c60d841c343e7768d8c51f1994e",
+    "1024/swarm-baseline.csv": "8e819fedfbf4920a72c645c8ea999509628d36f2cc39f46ca9adccebff5fba7a",
+    "1024/swarm-1024-height-2156.png": "15ded1faa81a16bf36d032217454a96bdcb0db93d3c8036b432bf67d68a93926",
+    "1024-first-truncated/native.log": "d2e3fd379c11907ebbdff8df4968c3073b169e0f4bc4c6f6c6db714e051143b0",
+    "1024-first-truncated/swarm-capacity-1024.json": "92c2a61fa803fee71e3e218f6f4ad18055c58bb4acd140d1d10399a0544aefe8"
+  }
+}

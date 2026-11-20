@@ -806,11 +806,11 @@ tasks:
   owner: AI
   gate: G4
   depends_on_stages: *id012
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/finish36-20261119/swarm-capacity-observed.json, EVIDENCE/finish36-20261119/swarm-capacity-observed.zip, EVIDENCE/finish36-20261119/swarm-key-reuse-jfr.json]
-  notes: "В пяти нативных сериях 32/128/256/512/1024 все акторы двигались и синхронизировались. Исходные 1024 дали 3.106 TPS и p95 498.75 мс. JFR засёк 60 обычных тиков боя с 1024 активными дронами в каждом из трёх прогонов. Переиспользование ключа и обход занятых ячеек снизили выделения широкого запроса на 73.69% на детерминированном тесте. Нагрузочный дальний сценарий и улучшение TPS остаются открытыми."
+  evidence: [EVIDENCE/finish36-20261119/swarm-capacity-observed.json, EVIDENCE/finish36-20261119/swarm-key-reuse-jfr.json, EVIDENCE/finish36-20261119/swarm-native-draw-matrix.json, EVIDENCE/finish36-20261119/swarm-native-draw-matrix.zip, EVIDENCE/finish36-20261119/legacy-ufo-migration-and-remote-drone.json]
+  notes: "На de7554d3 измерены 32, 128, 256, 512 и 1024 активных дрона с обычной физикой, движением, выстрелами и синхронизацией. В этих ближних боях агрегированных акторов было 0. Дальнее планирование отдельно проверено по пробуждению от реальной цели и попадания. Дальние группы 5000/10000 остаются исследовательским масштабом. При 1024 в замере с GL-трассировкой получено 5,40 TPS и p95 296,41 мс. Обычная производительность и цифры аппаратного GPU этими числами не установлены."
 - id: S11-T05
   stage: S11
   stage_title: ORB/ROCKET/JET swarms
@@ -1121,11 +1121,11 @@ tasks:
   owner: QA
   gate: G6
   depends_on_stages: *id017
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [BENCHMARK_CONTEXT.md, EVIDENCE/integrated-5839062.zip, NATIVE_BENCHMARK_RECORDER_2026-11-17.md, EVIDENCE/finish36-20261119/swarm-capacity-observed.json, EVIDENCE/finish36-20261119/swarm-capacity-observed.zip, EVIDENCE/finish36-20261119/swarm-key-reuse-jfr.json, EVIDENCE/finish36-20261119/swarm-key-reuse-jfr.zip]
-  notes: "В пяти нативных сериях сохранены границы серверного тика, интервалы кадров, выборки heap и окно из 567 кубов. Реальные GL draw submissions измерены для 32 дронов, для 128/256/512/1024 ещё требуются. Отдельный JFR содержит три фактические записи нагрузки при 1024 активных дронах и отдельно проверенные выделения памяти пространственного индекса."
+  evidence: [BENCHMARK_CONTEXT.md, EVIDENCE/finish36-20261119/swarm-capacity-observed.json, EVIDENCE/finish36-20261119/swarm-key-reuse-jfr.json, EVIDENCE/finish36-20261119/swarm-native-draw-matrix.json, EVIDENCE/finish36-20261119/swarm-native-draw-matrix.zip]
+  notes: "Пять нативных серий de7554d3 с одинаковыми JAR, модами и исходным миром содержат 60 серверных измерений каждая, реальные интервалы кадров, heap, окно из 567 кубов и вызовы draw на потоке рендера Mesa llvmpipe. Первая трасса на 1024 оборвалась на 64 МиБ и сохранена. Повтор с достаточным лимитом имеет полную последовательность маркеров и 1024 активных дрона. Представлены программные замеры, включая накладные расходы трассировки."
 - id: S16-T03
   stage: S16
   stage_title: Full performance and regression testing
