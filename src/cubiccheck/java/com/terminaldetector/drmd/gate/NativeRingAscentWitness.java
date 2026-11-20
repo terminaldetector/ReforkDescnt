@@ -32,13 +32,15 @@ import java.util.Map;
 /** Samples actual main-world pixels during the unchanged native flight input/movement harness. */
 final class NativeRingAscentWitness {
     private static final int[] HEIGHTS={155,320,450,700,1020,1300,1440};
+    private static final BlockPos SURFACE_TILE=new BlockPos(197,68,255);
     private static final BlockPos RING_TILE=new BlockPos(192,1416,256);
     private static final int SIZE=5;
-    private static final int MAX_SAMPLES=512;
+    private static final int MAX_SAMPLES=1024;
     private static final int[] PACK={GL11.GL_PACK_ALIGNMENT,GL11.GL_PACK_ROW_LENGTH,GL11.GL_PACK_SKIP_ROWS,GL11.GL_PACK_SKIP_PIXELS};
     private record Pixels(int[] rgba,float[] depth) {}
     private static Pixels before;
-    private static Map<String,Object> pending,firstFailure=Map.of();
+    private static Map<String,Object> pending,firstFailure=Map.of(),firstUnreadySurface=Map.of(),admittedSurface=Map.of();
+    private static int surfaceDrawAttempts,consecutiveSurfaceFrames;
     private static final List<Map<String,Object>> frames=new ArrayList<>(),landmarks=new ArrayList<>();
     private static int sampleAttempt,qualifiedRing,maxMissing,missing;
     private static double lastEye=Double.NaN,maxHeightGap;
@@ -55,14 +57,19 @@ final class NativeRingAscentWitness {
 
     static void beforeFrame(){before=null;pending=null;}
 
-    static void beforeHorizon(){
-        var c=MinecraftClient.getInstance();
+    private static void countDraw(boolean staging){
+        if(staging){require(++surfaceDrawAttempts<=MAX_SAMPLES,"bounded stationary native surface draws");return;}
         require(++sampleAttempt<=MAX_SAMPLES,"bounded actual ascent world draws");
+    }
+
+    static void beforeHorizon(boolean staging){
+        var c=MinecraftClient.getInstance();
+        countDraw(staging);
         int w=c.getFramebuffer().textureWidth,h=c.getFramebuffer().textureHeight;
         before=read(c,w/2-SIZE/2,h/2-SIZE/2,SIZE,SIZE);
     }
 
-    static void afterHorizon(Matrix4f view){
+    static void afterHorizon(Matrix4f view,boolean staging){
         if(before==null)return;
         var c=MinecraftClient.getInstance();
         var eye=c.gameRenderer.getCamera().getPos();
@@ -87,24 +94,61 @@ final class NativeRingAscentWitness {
         row.put("actualFogDensity",density[0]);
         row.put("actualSceneFbo",c.getFramebuffer().fbo);
         if(eye.y>=1431&&eye.y<=1485)row.put("westRingDeck",ringDeck(c,view,eye));
+        if(staging)row.putAll(surfacePixels(c,view,eye,before));
         pending=Map.copyOf(row);
-        if(uncovered>0&&firstFailure.isEmpty())firstFailure=pending;
+        if(!staging&&uncovered>0&&firstFailure.isEmpty())firstFailure=pending;
     }
 
-    static void residentSurfaceWithoutHorizon(){
+    static void residentSurfaceWithoutHorizon(Matrix4f view,boolean staging){
         if(pending!=null||before!=null)return;
         var c=MinecraftClient.getInstance();
         var eye=c.gameRenderer.getCamera().getPos();
         if(eye.y>=320||!ScenePresentation.inLowResolutionWorld())return;
-        require(++sampleAttempt<=MAX_SAMPLES,"bounded actual ascent world draws");
+        countDraw(staging);
         int w=c.getFramebuffer().textureWidth,h=c.getFramebuffer().textureHeight;
         var sample=read(c,w/2-SIZE/2,h/2-SIZE/2,SIZE,SIZE);
         int resident=0;
         for(float depth:sample.depth)if(depth<.999995f)resident++;
-        pending=Map.of("eye",List.of(eye.x,eye.y,eye.z),"residentPixels",resident,"horizonPixels",0,
+        var row=new LinkedHashMap<String,Object>(Map.of("eye",List.of(eye.x,eye.y,eye.z),"residentPixels",resident,"horizonPixels",0,
             "uncoveredPixels",SIZE*SIZE-resident,"actualSceneFbo",c.getFramebuffer().fbo,
-            "nativeTerrainWithoutHorizon",true,"styledWorldFogActive",Ps1WorldFog.active());
-        if(resident!=SIZE*SIZE&&firstFailure.isEmpty())firstFailure=pending;
+            "nativeTerrainWithoutHorizon",true,"styledWorldFogActive",Ps1WorldFog.active()));
+        if(staging)row.putAll(surfacePixels(c,view,eye,sample));
+        pending=Map.copyOf(row);
+        if(!staging&&resident!=SIZE*SIZE&&firstFailure.isEmpty())firstFailure=pending;
+    }
+
+    static boolean nativeSurfacePresent(net.minecraft.world.World world){
+        return WorldAccess.of(world).readIfLoaded(SURFACE_TILE)
+            .filter(state->state.isOf(net.minecraft.block.Blocks.GRASS_BLOCK)).isPresent();
+    }
+
+    private static Map<String,Object> surfacePixels(MinecraftClient c,Matrix4f view,Vec3d eye,Pixels sample){
+        var state=WorldAccess.of(c.world).readIfLoaded(SURFACE_TILE);
+        var point=Vec3d.ofCenter(SURFACE_TILE).add(0,.5,0).subtract(eye);
+        var clip=new Vector4f((float)point.x,(float)point.y,(float)point.z,1)
+            .mul(new Matrix4f(RenderSystem.getProjectionMatrix()).mul(view));
+        require(clip.isFinite()&&clip.w>0,"actual stationary grass upper face projects in front of the native camera");
+        float expected=clip.z/clip.w*.5f+.5f;
+        int matches=0;
+        for(float depth:sample.depth)if(depth<.999995f&&Math.abs(depth-expected)<=.00002f)matches++;
+        return Map.of("nativeSurfacePosition",List.of(SURFACE_TILE.getX(),SURFACE_TILE.getY(),SURFACE_TILE.getZ()),
+            "nativeSurfaceMaterial",state.map(s->Registries.BLOCK.getId(s.getBlock()).toString()).orElse("unloaded"),
+            "surfaceExpectedDepth",expected,"surfaceDepth",sample.depth,"surfacePixelsAtNativeDepth",matches);
+    }
+
+    static boolean admitStationarySurface(MinecraftClient c){
+        if(pending==null){consecutiveSurfaceFrames=0;return false;}
+        requireScene();
+        if(!"minecraft:grass_block".equals(pending.get("nativeSurfaceMaterial"))
+            ||!Integer.valueOf(SIZE*SIZE).equals(pending.get("surfacePixelsAtNativeDepth"))){
+            if(firstUnreadySurface.isEmpty())firstUnreadySurface=pending;
+            consecutiveSurfaceFrames=0;
+            return false;
+        }
+        if(++consecutiveSurfaceFrames<3)return false;
+        admittedSurface=pending;
+        capture(c,"stationary-native-surface");
+        return true;
     }
 
     private static Map<String,Object> ringDeck(MinecraftClient c,Matrix4f view,Vec3d eye){
@@ -128,16 +172,13 @@ final class NativeRingAscentWitness {
     static boolean rendered(MinecraftClient c,Vec3d eye){
         if(pending==null){
             maxMissing=Math.max(maxMissing,++missing);
-            require(maxMissing<=8,"actual world lost the Horizon draw for more than eight frames");
-            return false;
+            throw new IllegalStateException("airborne frame has neither native surface depth nor an actual Horizon draw at "+eye);
         }
-        missing=0;
-        var scene=ScenePresentation.stats();
-        require(scene.sceneWidth()<scene.outputWidth()&&scene.sceneHeight()==360&&!scene.inWorldPass()
-            &&scene.fallbackFrames()==0&&GL11.glGetError()==GL11.GL_NO_ERROR,"actual completed low-resolution world scene");
+        requireScene();
         require((Integer)pending.get("uncoveredPixels")==0,"ground has an uncovered real scene pixel at "+pending);
         if(!Double.isFinite(lastEye)){
-            require(eye.y>=154&&eye.y<=171,"first actual covered frame must be inside the surface start window");
+            double departureEye=((List<Double>)admittedSurface.get("eye")).get(1);
+            require(eye.y>=departureEye-.3&&eye.y<=departureEye+4,"first covered flight frame must follow the admitted stationary surface");
         }else{
             require(eye.y>=lastEye-.3,"non-monotonic physical ascent");
             maxHeightGap=Math.max(maxHeightGap,eye.y-lastEye);
@@ -156,6 +197,12 @@ final class NativeRingAscentWitness {
             if(++qualifiedRing==1)capture(c,"actual-west-ring-deck");
         }
         return landmarks.size()==HEIGHTS.length&&qualifiedRing>=3;
+    }
+
+    private static void requireScene(){
+        var scene=ScenePresentation.stats();
+        require(scene.sceneWidth()<scene.outputWidth()&&scene.sceneHeight()==360&&!scene.inWorldPass()
+            &&scene.fallbackFrames()==0&&GL11.glGetError()==GL11.GL_NO_ERROR,"actual completed low-resolution world scene");
     }
 
     private static void capture(MinecraftClient c,String name){
@@ -193,8 +240,11 @@ final class NativeRingAscentWitness {
     private static void require(boolean valid,String why){if(!valid)throw new IllegalStateException(why);}
 
     static Map<String,Object> report(){
-        return Map.of("actualCompletedWorldFrames",frames,"altitudeCaptures",landmarks,"actualDrawAttempts",sampleAttempt,
-            "maximumAltitudeGap",maxHeightGap,"maximumMissingFrames",maxMissing,"actualRingDeckFrames",qualifiedRing,
-            "firstUncoveredFrame",firstFailure,"authoredWorldWrites",0);
+        return Map.ofEntries(Map.entry("actualCompletedWorldFrames",frames),Map.entry("altitudeCaptures",landmarks),
+            Map.entry("actualDrawAttempts",sampleAttempt),Map.entry("maximumAltitudeGap",maxHeightGap),
+            Map.entry("maximumMissingFrames",maxMissing),Map.entry("actualRingDeckFrames",qualifiedRing),
+            Map.entry("firstUncoveredFrame",firstFailure),Map.entry("authoredWorldWrites",0),
+            Map.entry("stationarySurfaceDrawAttempts",surfaceDrawAttempts),Map.entry("consecutiveStationarySurfaceFrames",consecutiveSurfaceFrames),
+            Map.entry("firstUnreadyStationarySurface",firstUnreadySurface),Map.entry("admittedStationaryNativeSurface",admittedSurface));
     }
 }

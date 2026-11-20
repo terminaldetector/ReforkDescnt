@@ -48,7 +48,7 @@ public final class NativeHighAltitudeLodCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.highAltitudeLod");
     private static final boolean TRACE = Boolean.getBoolean("drmd.gate.highAltitudeTrace");
     private static final boolean RING_ASCENT = Boolean.getBoolean("drmd.gate.highAltitudeRingAscent");
-    private static final Vec3d START = RING_ASCENT ? new Vec3d(197.5,155,256.5) : new Vec3d(40.5, 2272, 40.5);
+    private static final Vec3d START = RING_ASCENT ? new Vec3d(197.5,104,255.5) : new Vec3d(40.5, 2272, 40.5);
     private static final Vec3d FORWARD = RING_ASCENT ? new Vec3d(0,-1,0) : Vec3d.fromPolar(88f, 0);
     private static final Vec3d UP = RING_ASCENT ? new Vec3d(0,0,1) : new Vec3d(0, 1, 0)
         .subtract(FORWARD.multiply(FORWARD.y)).normalize();
@@ -58,7 +58,9 @@ public final class NativeHighAltitudeLodCheck {
     private static final List<Map<String, Object>> SERVER = new ArrayList<>();
 
     private static volatile UUID player;
-    private static volatile boolean staged, armed, done;
+    private static volatile boolean staged, armed, done, ringSurfaceAdmitted;
+    private static boolean ringFlightEnabled;
+    private static int ringHoverTicks;
     private static volatile String failure;
     private static volatile int serverSamples, teleports;
     private static int ticks, frames, mark, actualMoves, fastRollingFrames, fadedFrames, fullMeshFrames;
@@ -78,8 +80,9 @@ public final class NativeHighAltitudeLodCheck {
         started = System.nanoTime();
         ClientTickEvents.END_CLIENT_TICK.register(NativeHighAltitudeLodCheck::client);
         if (RING_ASCENT) net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(context->{
-            if (!armed||done||OffscreenWorldView.busy()) return;
-            try { NativeRingAscentWitness.residentSurfaceWithoutHorizon(); }
+            boolean staging=observingRingSurface();
+            if ((!armed&&!staging)||done||OffscreenWorldView.busy()) return;
+            try { NativeRingAscentWitness.residentSurfaceWithoutHorizon(context.positionMatrix(),staging); }
             catch (RuntimeException bad) { failure=bad.toString(); }
         });
         ServerTickEvents.END_SERVER_TICK.register(NativeHighAltitudeLodCheck::server);
@@ -111,13 +114,27 @@ public final class NativeHighAltitudeLodCheck {
             }
             p.stopRiding();
             p.changeGameMode(GameMode.CREATIVE);
+            if(RING_ASCENT){
+                FlightSystem.disable(p,data);
+                p.getAbilities().allowFlying=true;
+                p.getAbilities().flying=true;
+                p.sendAbilitiesUpdate();
+            }
             p.teleport(world, START.x, START.y, START.z, Set.of(), 0, RING_ASCENT?90:88);
             teleports++;
-            FlightSystem.enableWithoutMount(p, data);
-            data.setShipAttitude((float) FORWARD.x, (float) FORWARD.y, (float) FORWARD.z,
-                (float) UP.x, (float) UP.y, (float) UP.z);
-            ModNetworking.syncPlayer(p, data);
+            if(!RING_ASCENT) enableFlight(p,data);
             staged = true;
+            return;
+        }
+        if(RING_ASCENT&&!ringFlightEnabled){
+            if(!ringSurfaceAdmitted)return;
+            if(!p.isCreative()||!p.getAbilities().flying||data.isEnabled()||p.getPos().distanceTo(START)>.08
+                ||!NativeRingAscentWitness.nativeSurfacePresent(world)){
+                failure="stationary rendered floor failed its same loaded server palette or hover check";
+                return;
+            }
+            enableFlight(p,data);
+            ringFlightEnabled=true;
             return;
         }
         if (!armed) return;
@@ -130,6 +147,21 @@ public final class NativeHighAltitudeLodCheck {
             SERVER.add(Map.of("tick", server.getTicks(), "position", xyz(p.getPos()),
                 "speed", data.getFlightVelocity().length(), "full", true));
         }
+    }
+
+    private static void enableFlight(net.minecraft.server.network.ServerPlayerEntity p,DescentPlayerData data){
+        FlightSystem.enableWithoutMount(p,data);
+        data.setShipAttitude((float) FORWARD.x,(float) FORWARD.y,(float) FORWARD.z,(float) UP.x,(float) UP.y,(float) UP.z);
+        ModNetworking.syncPlayer(p,data);
+    }
+
+    private static boolean observingRingSurface(){
+        if(!RING_ASCENT||!staged||armed||ringSurfaceAdmitted||done)return false;
+        var c=MinecraftClient.getInstance();
+        return c.player!=null&&c.world!=null&&c.currentScreen==null&&!DescentClientState.enabled
+            &&c.player.isCreative()&&c.player.getAbilities().flying&&c.player.getPos().distanceTo(START)<=.08
+            &&c.gameRenderer.getCamera().getPos().distanceTo(START.add(0,c.player.getEyeY()-c.player.getY(),0))<=.1
+            &&c.gameRenderer.getCamera().getHorizontalPlane().y<-.995;
     }
 
     private static void client(MinecraftClient client) {
@@ -159,6 +191,12 @@ public final class NativeHighAltitudeLodCheck {
             player = client.player.getUuid();
         }
         DescentClient.markUserFlightChoice();
+        if(RING_ASCENT&&staged&&!ringSurfaceAdmitted){
+            client.options.backKey.setPressed(false);
+            DescentKeybinds.alwaysRun.setPressed(false);
+            if(++ringHoverTicks>900)finish(client,false,"stationary native grass and 25 mapped opaque pixels were never admitted");
+            return;
+        }
         if (!staged || !DescentClientState.enabled || !FlightBodyClient.active()) return;
         if (!armed) {
             if (!full(client.world, client.player.getPos()) || client.player.getPos().distanceTo(START) > 1
@@ -211,9 +249,10 @@ public final class NativeHighAltitudeLodCheck {
     }
 
     public static void beforeHorizon() {
-        if (!armed || done || OffscreenWorldView.busy()) return;
+        boolean staging=observingRingSurface();
+        if ((!armed&&!staging) || done || OffscreenWorldView.busy()) return;
         if (RING_ASCENT) {
-            try { NativeRingAscentWitness.beforeHorizon(); }
+            try { NativeRingAscentWitness.beforeHorizon(staging); }
             catch (RuntimeException bad) { failure=bad.toString(); }
         }
         if (!TRACE) return;
@@ -249,12 +288,13 @@ public final class NativeHighAltitudeLodCheck {
     }
 
     public static void horizon(Matrix4f view) {
-        if (!armed || done || OffscreenWorldView.busy() || !view.isFinite()) return;
+        boolean staging=observingRingSurface();
+        if ((!armed&&!staging) || done || OffscreenWorldView.busy() || !view.isFinite()) return;
         var mesh = PlanetClientState.INSTANCE.currentMesh();
         if (mesh != null && RenderSystem.getShader() == HorizonShader.program()) {
             drawnOpacity = RenderSystem.getShaderColor()[3];
             quads = mesh.quads;
-            if (RING_ASCENT) try { NativeRingAscentWitness.afterHorizon(view); }
+            if (RING_ASCENT) try { NativeRingAscentWitness.afterHorizon(view,staging); }
             catch (RuntimeException bad) { failure=bad.toString(); }
             if (traceStage != null) {
                 var client = MinecraftClient.getInstance();
@@ -270,6 +310,11 @@ public final class NativeHighAltitudeLodCheck {
 
     public static void rendered(float tickDelta) {
         var client = MinecraftClient.getInstance();
+        if(observingRingSurface()){
+            try { ringSurfaceAdmitted=NativeRingAscentWitness.admitStationarySurface(client); }
+            catch (RuntimeException bad) { finish(client,false,bad.toString()); }
+            return;
+        }
         if (!armed || done || client.player == null || client.world == null || client.currentScreen != null) return;
         frames++;
         var camera = client.gameRenderer.getCamera();
