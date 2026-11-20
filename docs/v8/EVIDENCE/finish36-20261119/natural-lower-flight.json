@@ -1,0 +1,239 @@
+{
+  "status": "PASS",
+  "historicalPositive": "v1.1.14-audit.4-controlled-no-boundary-recovery",
+  "qualifications": {
+    "v1.1.6-pressure-control": {
+      "classification": "UNOBSERVED",
+      "missingReceipts": [
+        "proof/server-result.json",
+        "proof/client-result.json"
+      ],
+      "case": "/tmp/s01-t02-natural-lower-flight-20261120/historical-compact-warm"
+    },
+    "v1.1.6-watchdog": {
+      "classification": "UNOBSERVED",
+      "missingReceipts": [
+        "proof/server-result.json"
+      ],
+      "case": "/tmp/s01-t02-natural-lower-flight-20261120/historical-compact-resource-retry"
+    },
+    "v1.1.6-watchdog-no-macro": {
+      "classification": "UNOBSERVED",
+      "missingReceipts": [
+        "proof/server-result.json"
+      ],
+      "case": "/tmp/s01-t02-natural-lower-flight-20261120/historical-compact-macro-off"
+    },
+    "v1.1.14-audit.4-native": {
+      "classification": "UNOBSERVED",
+      "missingReceipts": [
+        "proof/server-result.json"
+      ],
+      "case": "/tmp/s01-t02-natural-lower-flight-20261120/historical-audit4-exact-tcp"
+    },
+    "v1.1.14-audit.4-no-macro": {
+      "classification": "CURRENT_ACTUAL_EMERGENCY_RECOVERY",
+      "subjectEngineStatus": "RECOGNIZED_SUBJECT_RECOVERY",
+      "case": "/tmp/s01-t02-natural-lower-flight-20261120/historical-audit4-macro-off",
+      "checks": {
+        "completedNativeCase": true,
+        "normalBothChildrenExited": true,
+        "immutableRuntimeBindings": true,
+        "twoRealProcesses": true,
+        "tallActualLegacyRegistry": true,
+        "actualAdvancedPack": true,
+        "observedOrdinaryKey": true,
+        "noFixtureWorldOrVelocityMutation": true,
+        "nativeMotion": true,
+        "realSurvival": true
+      },
+      "subjectSha256": "9be0f587ad8af834e08f4c13aa348a9b10cf57c455e66ba6464aa962279a5414",
+      "deathType": "",
+      "lowestNativeY": -780.9372267655629,
+      "legacyNetherBandActuallyEnabled": true,
+      "floorCounts": [
+        [
+          "FULL_STOCK_COLUMN",
+          "minecraft:air",
+          295
+        ]
+      ],
+      "receiptsSha256": {
+        "inputs.json": "99fa21afd628297f469581f6f0be2357e35395003a71cd28ec2525f1a94da6e4",
+        "processes.json": "807d3858e1e37f6ed91cdc3a588f53e968d9bf2466b16494dd9d994f779a68e4",
+        "proof/identity.json": "93ebc56a1662f622303b0c25d2dd86e1bccbec028b31fe0657155abda5babd7f",
+        "proof/server-result.json": "17f87b48f9e15a60518958a0acec5a3fef8201f95b87d01da1758a7355036e38",
+        "proof/client-result.json": "6b4a8500d2f247b224ea1d06f082e37a0df94a0b5f59ca1e11925a2ee0f25ce0"
+      },
+      "actualOrdinaryConfig": {
+        "netherBand": true,
+        "macroOff": true
+      }
+    },
+    "v1.1.14-audit.4-controlled-no-boundary-recovery": {
+      "classification": "AUDIT4_CAUSAL_CONTROL_ACTUAL_VOID_DEATH",
+      "subjectEngineStatus": "ACTUAL_VOID_DEATH",
+      "case": "/tmp/s01-t02-natural-lower-flight-20261120/historical-audit4-causal-no-recovery",
+      "checks": {
+        "completedNativeCase": true,
+        "normalBothChildrenExited": true,
+        "immutableRuntimeBindings": true,
+        "twoRealProcesses": true,
+        "tallActualLegacyRegistry": true,
+        "actualAdvancedPack": true,
+        "observedOrdinaryKey": true,
+        "noFixtureWorldOrVelocityMutation": true,
+        "nativeMotion": true,
+        "realSurvival": true
+      },
+      "subjectSha256": "9be0f587ad8af834e08f4c13aa348a9b10cf57c455e66ba6464aa962279a5414",
+      "deathType": "minecraft:out_of_world",
+      "lowestNativeY": -882.280526207624,
+      "legacyNetherBandActuallyEnabled": true,
+      "floorCounts": [
+        [
+          "FULL_STOCK_COLUMN",
+          "minecraft:air",
+          459
+        ]
+      ],
+      "receiptsSha256": {
+        "inputs.json": "3df696b1973578e7733c59fcc6c5ccc4229c0895085b13d81c4364ddae30b321",
+        "processes.json": "b29395d538e5579dd2de849d35470e104db5ae67b491574e40a756e36ff92147",
+        "proof/identity.json": "93ebc56a1662f622303b0c25d2dd86e1bccbec028b31fe0657155abda5babd7f",
+        "proof/server-result.json": "d75c1f9e08d94b0e138a61ed7cfd71700e52274c8e12050a330a521fe99a5b8a",
+        "proof/client-result.json": "2e303b97087cc6bc0448a99097811e9726f0d5cbcc0afa17a32296f6b3c44341"
+      },
+      "control": "omit_only_lower_world_recovery_tick",
+      "scope": "causal historical audit.4 pair; original video tuple remains unknown",
+      "reference": {
+        "result": "historical actual emergency recovery",
+        "lowestY": -780.9372267655629,
+        "sha256": "d44566d43bd664ff2fc7fbb22fe8f03748d06ed030ef55a55d01f51586d41fa6"
+      },
+      "actualDedicatedControl": true,
+      "controlledUnderflowY": -780.3268142629377,
+      "actualOrdinaryConfig": {
+        "netherBand": true,
+        "macroOff": true
+      },
+      "controlServerLogSha256": "5c28d5b0ce9aedaa6e512f29960f3917fb5d3faa2f29ab1c0b9003084334c78e"
+    },
+    "current-advanced": {
+      "classification": "CURRENT_ACTUAL_EMERGENCY_RECOVERY",
+      "subjectEngineStatus": "RECOGNIZED_SUBJECT_RECOVERY",
+      "case": "/tmp/s01-t02-natural-lower-flight-20261120/current-compact-warm",
+      "checks": {
+        "completedNativeCase": true,
+        "normalBothChildrenExited": true,
+        "immutableRuntimeBindings": true,
+        "twoRealProcesses": true,
+        "tallActualLegacyRegistry": true,
+        "actualAdvancedPack": true,
+        "observedOrdinaryKey": true,
+        "noFixtureWorldOrVelocityMutation": true,
+        "nativeMotion": true,
+        "realSurvival": true
+      },
+      "subjectSha256": "60bdceb6d0e716ca5f798870101200b39fe2145b0aa484649e7af6512fbd3ea5",
+      "deathType": "",
+      "lowestNativeY": -780.1727362838797,
+      "legacyNetherBandActuallyEnabled": false,
+      "floorCounts": [
+        [
+          "FULL_STOCK_COLUMN",
+          "minecraft:air",
+          248
+        ]
+      ],
+      "receiptsSha256": {
+        "inputs.json": "84e7f03e5622bd501a6374df38ddd5de49922aa46bba28e010dbbc2d64da1c59",
+        "processes.json": "f4e03721a2b9d9452edfc57ca4f5f299d7e3c68d97def26567c5fe4b6936971e",
+        "proof/identity.json": "514c468c9666c2776242afac3380529a2c5d07227bf3f26ab66c0cbbd6e1b64e",
+        "proof/server-result.json": "f6860d84002c4e04f93baca9992af999fbf4ed8d31d975b89215a7dc9e6ff5c5",
+        "proof/client-result.json": "54321d900bd442a23b35d352fde82f1a5fec621725d4bce723a1ae04a118628b"
+      }
+    }
+  },
+  "knownHistoricalSources": {
+    "1.1.6": "8695550ee7237d4b20b62ddb4384b66e91f35685",
+    "1.1.14-audit.4": "12d875dad165bc16111e2930f0e7997ffd273054"
+  },
+  "historicalUserInstallIdentity": "unavailable, neither source pinned to the video",
+  "currentValidatedSource": "0df9b0645827a20b0d38e28fe61565209d466661",
+  "currentSameBoundaryClassesOnFinalSource": {
+    "com/terminaldetector/drmd/world/level/LowerWorldRecovery$SafePoint.class": "322e66837f8ac343f958cc1490440d2ceb415f5ea2835ab6182c5b78c76bb47c",
+    "com/terminaldetector/drmd/world/level/LowerWorldRecovery.class": "03e57a84283dcbbdc6feb149e0f9ae0203e1ebadcc09d0a3421c9d960d8e2f09",
+    "com/terminaldetector/drmd/world/level/VerticalBounds$Position.class": "ce60addc582d1d61c74b6af2c1a99becfc0c8bf2b68ebb0e2d3eca2377e623b4",
+    "com/terminaldetector/drmd/world/level/VerticalBounds.class": "887cde53f01b55eaf98df685af7a55472929d6efa5716d8bc0101eb4d3c786fc",
+    "com/terminaldetector/drmd/world/level/WorldLevels$Level.class": "0bbe854abe8ce8761c51431757939aa085c52a9cfeb38f3940789cbb9f0303d9",
+    "com/terminaldetector/drmd/world/level/WorldLevels.class": "6c84214a468c1c878b63623c7ff44e287124c901002e3d36c36584c9147d3142"
+  },
+  "archive": "natural-lower-flight.zip",
+  "archiveSHA256": "871ca97e6e6e43e6e91097506aff89e8757093ca74224e2778c9646d2f5b71cb",
+  "memberSHA256": {
+    "v1.1.6-pressure-control/inputs.json": "485d332c8b95def9c579956b948263145cd05ecfcfc869cc24cc80711880ed6c",
+    "v1.1.6-pressure-control/processes.json": "2b8ee7afbc7a6176ee4b018cf6cb0d4a96fc2f3dd7ff23e647e86f5c096bc9ea",
+    "v1.1.6-pressure-control/server.log": "2597c5992485ca25fbf1854fe4b193e1212cd5ce96dda9c014c87fa95c6670af",
+    "v1.1.6-pressure-control/client.log": "3f9dd66dcdbceeb6e5edc7d1f2c14ce72fd9e9e3aa9f597b7905d7b5a18317b0",
+    "v1.1.6-pressure-control/proof/identity.json": "bb9902e46464d841062aac41bfd499eb3a841f1d483d2d4b2fa6a7963c2c93a1",
+    "v1.1.6-watchdog/inputs.json": "68b09c8098c1ece6f3c600904709c4514aaab3ed4677d1b0dd2f8f85ffe0f8fc",
+    "v1.1.6-watchdog/processes.json": "4374835da0fe91bcf9d8c7bf60decab3db0525f9f8cf9177f68baeb7a41c8e01",
+    "v1.1.6-watchdog/server.log": "d283f484b533d8850f0b6f521ce3e9cddcff68a55ff48644d4d766bfb64b95e6",
+    "v1.1.6-watchdog/client.log": "4dd957cbe94b6ace79bc2d2ea0cb7260fec1bb065627a5ec7b53903700f1c8a6",
+    "v1.1.6-watchdog/proof/identity.json": "bb9902e46464d841062aac41bfd499eb3a841f1d483d2d4b2fa6a7963c2c93a1",
+    "v1.1.6-watchdog/proof/client-result.json": "17e4ec649bb46ac437ef826d08554fa01b4093b7802dcbff09bb558431f9b368",
+    "v1.1.6-watchdog/crash/crash-2026-11-20_08.44.56-server.txt": "edf2eff382cdb60a927db6a6c0a8770d63eb0e76c2f99bad1fc1e415e5364a63",
+    "v1.1.6-watchdog-no-macro/inputs.json": "214e22b6aae8cdf5929a7ca5a8b077916f551043316bfb681ab8e35c2139dde1",
+    "v1.1.6-watchdog-no-macro/processes.json": "46cb1b0c3d22eaee802e1063fe3d37c9a11a30f23fc240dafa1beef740c8febe",
+    "v1.1.6-watchdog-no-macro/server.log": "47fbf14a7e2720bc18e9cec517bc709ab97a8cc1f6864d77d4eb1526555cb8e4",
+    "v1.1.6-watchdog-no-macro/client.log": "97dbfbf2fa1907a1c3ff5192d845d6e4ab38bc0c8c54adc3afc4e1b3d0faa497",
+    "v1.1.6-watchdog-no-macro/proof/identity.json": "bb9902e46464d841062aac41bfd499eb3a841f1d483d2d4b2fa6a7963c2c93a1",
+    "v1.1.6-watchdog-no-macro/proof/client-result.json": "73b3d450d69517521546744804e6ac0bf6d70af7bdf5c94613e89a27c93c2a6d",
+    "v1.1.6-watchdog-no-macro/crash/crash-2026-11-20_08.56.42-server.txt": "45ebdd46d20e7a9ae739a7feccd4e5449ffed1a7531e6109f9907b837ef46c24",
+    "v1.1.14-audit.4-native/inputs.json": "58b64cf4d62ffab8f1a67028923a019df9c3dd8ad3a57aa55bcd50584de25394",
+    "v1.1.14-audit.4-native/processes.json": "45dffbc16367493a13e186e5091a24cbe29a7877a1b70f6b9629718ce7509bb8",
+    "v1.1.14-audit.4-native/server.log": "c801ae73762216b7bb68e2794d367e95fdf13c68565a1a48d480505b2d587169",
+    "v1.1.14-audit.4-native/client.log": "5f8df6052d4ef0a57705c341f412bed1ca77bfba436d4395de79c244fd8fd9e0",
+    "v1.1.14-audit.4-native/qualification.json": "03f0cd9587b1fbaf4f8ef8f137493b86d12a8de4a8cf57b48a04fd48eeccc913",
+    "v1.1.14-audit.4-native/proof/identity.json": "93ebc56a1662f622303b0c25d2dd86e1bccbec028b31fe0657155abda5babd7f",
+    "v1.1.14-audit.4-native/proof/client-result.json": "a0cffcad1cdf00dc88636a88eb837c7a450a5d1be8abd9447c4a1f6c794fa8ac",
+    "v1.1.14-audit.4-native/crash/crash-2026-11-20_09.08.41-server.txt": "e5777de2a543263b08bd2eb637496bfdb1227bb752a40777758d664f07d8bf5e",
+    "v1.1.14-audit.4-no-macro/inputs.json": "99fa21afd628297f469581f6f0be2357e35395003a71cd28ec2525f1a94da6e4",
+    "v1.1.14-audit.4-no-macro/processes.json": "807d3858e1e37f6ed91cdc3a588f53e968d9bf2466b16494dd9d994f779a68e4",
+    "v1.1.14-audit.4-no-macro/server.log": "7fbed7e208f6b16e0620d1d2d7f90e8789d2ede37619965acadfd3c36ea6ec96",
+    "v1.1.14-audit.4-no-macro/client.log": "da22166ce289120a4aab40f764328ca81fa47caa5d9feafd5e612b3c7033336c",
+    "v1.1.14-audit.4-no-macro/qualification.json": "d44566d43bd664ff2fc7fbb22fe8f03748d06ed030ef55a55d01f51586d41fa6",
+    "v1.1.14-audit.4-no-macro/proof/identity.json": "93ebc56a1662f622303b0c25d2dd86e1bccbec028b31fe0657155abda5babd7f",
+    "v1.1.14-audit.4-no-macro/proof/server-result.json": "17f87b48f9e15a60518958a0acec5a3fef8201f95b87d01da1758a7355036e38",
+    "v1.1.14-audit.4-no-macro/proof/client-result.json": "6b4a8500d2f247b224ea1d06f082e37a0df94a0b5f59ca1e11925a2ee0f25ce0",
+    "v1.1.14-audit.4-no-macro/proof/final-native-frame.png": "cfc78f00efb3e95a05876c0d001eeb9d4e872bbd2e6e39610b8ca7898447000c",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/inputs.json": "3df696b1973578e7733c59fcc6c5ccc4229c0895085b13d81c4364ddae30b321",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/processes.json": "b29395d538e5579dd2de849d35470e104db5ae67b491574e40a756e36ff92147",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/server.log": "5c28d5b0ce9aedaa6e512f29960f3917fb5d3faa2f29ab1c0b9003084334c78e",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/client.log": "59534266da57f8771e2781b66d3db8302508333dc1551c6d172f64abbbe6dd68",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/qualification.json": "7d8378888a41e485eb2eb47938a4b1f00ea71bd2052bdb078bf9746f089f3ae5",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/proof/identity.json": "93ebc56a1662f622303b0c25d2dd86e1bccbec028b31fe0657155abda5babd7f",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/proof/server-result.json": "d75c1f9e08d94b0e138a61ed7cfd71700e52274c8e12050a330a521fe99a5b8a",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/proof/client-result.json": "2e303b97087cc6bc0448a99097811e9726f0d5cbcc0afa17a32296f6b3c44341",
+    "v1.1.14-audit.4-controlled-no-boundary-recovery/proof/final-native-frame.png": "ec982b7fdba665e2121716f8d96e855b204066019eb8f05884e45e7660cacd3f",
+    "current-advanced/inputs.json": "84e7f03e5622bd501a6374df38ddd5de49922aa46bba28e010dbbc2d64da1c59",
+    "current-advanced/processes.json": "f4e03721a2b9d9452edfc57ca4f5f299d7e3c68d97def26567c5fe4b6936971e",
+    "current-advanced/server.log": "873af2642b3a55b1e73b330be469f42c313390c91d9d248c989ccd03d6d30545",
+    "current-advanced/client.log": "51f04aa287ef33284d8e205c759953c81832b2b73e3caf2c080cd05652f5d423",
+    "current-advanced/proof/identity.json": "514c468c9666c2776242afac3380529a2c5d07227bf3f26ab66c0cbbd6e1b64e",
+    "current-advanced/proof/server-result.json": "f6860d84002c4e04f93baca9992af999fbf4ed8d31d975b89215a7dc9e6ff5c5",
+    "current-advanced/proof/client-result.json": "54321d900bd442a23b35d352fde82f1a5fec621725d4bce723a1ae04a118628b",
+    "current-advanced/proof/final-native-frame.png": "d5097cbeeee14ebd3e1c2f1d49231ed8b85f34de4bd6bbc6bbd17a75f4a3684e",
+    "reproduce/HISTORICAL_WATCHDOG.md": "f1038dfe076088645d072cef9034ecabb3c3d90a96dc0e7fc8b3177787767393",
+    "reproduce/qualify.py": "764a3daf4ca67ffad98d83eddb9c37a24ce9e4da5dba0fe711a5f8a27685332c",
+    "reproduce/run-once.py": "88ccf14aa6a90202ba2d74f2a85c7d7131155beefda69d059ce596aaf13a6e98",
+    "reproduce/audit4-macro-off.py": "a1a9afce631cbb47c3b987b0152cafff42ca6fd704c85408f542d490b592cb53",
+    "reproduce/CAUSAL_RECOVERY_CONTROL.md": "250d06bf3edf380ed4cf9d6db2865ca280d5cdf8026bbfa473cc6c07e7736901",
+    "reproduce/audit4-recovery-control.py": "baacb3b252e5d11e93d68bea7dbf98143113f6b8fd2f018b79913fcdfd15e1e2",
+    "reproduce/recovery-control/observer.init.gradle": "f0909e6287d8770ae337ba42036a76073ca288b1c3005745f761c32cd7558c56",
+    "reproduce/recovery-control/src/java/com/terminaldetector/drmd/gate/lower/control/LowerRecoveryCallbackControl.java": "84732a6d26f2f7a5348a62ebf8ff6d45b4f5cdac74b5c9a8b5ae519b88521580",
+    "reproduce/recovery-control/src/resources/drmd.lowerrecoverycontrol.mixins.json": "d7352a18f4ecf79d9f63f72ca8babaf490b56842bd7b2cfff4056d078b533dd2",
+    "reproduce/recovery-control/src/resources/fabric.mod.json": "b2ab9a0b733d9456b54daccf18c16a00d326befe983bd97a4d022ce78f025c8a"
+  }
+}

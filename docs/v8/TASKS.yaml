@@ -94,11 +94,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id002
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/natural-lower-flight.json, EVIDENCE/finish36-20261119/natural-lower-flight.zip]
+  notes: "В паре на одном историческом JAR 1.1.14-audit.4, seed 271026 и маршруте штатное снижение вызывает возврат при Y−780,94. Отдельный серверный аддон пропустил только вызов защиты, добавленной в 9b715a2c. Нативная игра зарегистрировала minecraft:out_of_world при спуске до Y−882,28. Оба процесса завершились штатно. В текущей ветке тот же маршрут с защитой закончился возвратом при Y−780,17. Точный JAR, исходное сохранение и seed видео неизвестны. Старые сбои watchdog сохранены отдельно."
 - id: S01-T03
   stage: S01
   stage_title: Reproduce and instrument baseline
