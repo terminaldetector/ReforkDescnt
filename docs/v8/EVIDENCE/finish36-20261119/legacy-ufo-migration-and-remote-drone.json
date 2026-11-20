@@ -1,0 +1,19 @@
+{
+  "source": "97a4a70ddc10795ab2bdef1499b633363927cae3",
+  "actualStockTests": 33,
+  "actualGameExit": 0,
+  "archive": "legacy-ufo-migration-and-remote-drone.zip",
+  "archiveSha256": "eb65adc7884c86d4a84cd00c81544a2133ea09e26100fb3747337fe3b09991c3",
+  "memberSha256": {
+    "runtime/reports/gametest-results.xml": "8f92726a9b6288bd3eda62f6e61d603ae4ac1575770cce4366e0ede34a7042c7",
+    "game.log": "8b3b3299e85edce9c8770b18231f53d8c298217037dda1808509427d26ed258f",
+    "game-child.json": "b0f450669c508f44a2d86908de54d075c2ae560f0e870de05457b52549014b6a",
+    "launch-inputs.json": "11c870989b118f72fad422a06ec55eab71c4e267acae93c1bb7afb54295185e5",
+    "test-source.json": "8496abb07a6e8e316db2495e855ca27c6f0eb8f32bd97af2cc2238c9d5d3b85a",
+    "remap/source.txt": "288cab4a7d488f24d754df53654d91caa7486a5858d20bce2dda7f1d47865818",
+    "remap/jars.sha256": "168f578d661fc7578efa1154785d6a91edaf88d442869ffbd3856727df510847",
+    "remap/gradle.log": "2c0fb30ddb23867f972aa08884792d683c906802ccb16a5387136d84818836e9",
+    "remap/gradle.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "scope": "Physical UFO and actual drone planning interest tests. Historical virtual fall uses original field schema in the stock fixture. Remote wake coverage is individual; separate high-count renderer and remote throughput remain open."
+}

@@ -1,0 +1,23 @@
+{
+  "source": "de7554d3c180196a4c48bc09dcc1d281c42c5f9f",
+  "actualStockTests": 48,
+  "actualGameExit": 0,
+  "focusedTests": [
+    "boardingvelocitygametests.reconnectneverplacesapassengerinanobstructedsaveddecklocation",
+    "boardingvelocitygametests.reconnectafterarotateddeckleavesthesavedworldpositionrestoresitsrealsupport"
+  ],
+  "archive": "loaded-deck-reconnect-stock.zip",
+  "archiveSha256": "f59c23fe75832ee89e4624bc8fe182a03ea8d34673f673ad208cc1243849de49",
+  "memberSha256": {
+    "runtime/reports/gametest-results.xml": "ab0cfa2a06dc55e32d7855d5815ea31404986192d83f9e41afde212982839566",
+    "game.log": "dcf27e7993abef9fe4ca5ad8a9015d730bd2978241e3191568d4b6d822deb722",
+    "game-child.json": "baa7f079d63eb7658504bc26cc0e74dc42aebc09546f5c9ed318a697ad674385",
+    "launch-inputs.json": "e89671f2ec4fe3284aa15d238aba61366bfbfc52000b12428c39e891c7cbf950",
+    "test-source.json": "cd8b5311b339301a6151b973ecbb77189b5f3837bfb6c860a69c651da06b455f",
+    "remap/source.txt": "7eebf9559fe7b4b3dc934ad362464df1befc25670696c40e5b46df0d40784451",
+    "remap/jars.sha256": "70a6326dae7df8a6cad9afa4337097d068635183d3919e7a0dbb003490398c0a",
+    "remap/gradle.log": "88c1e3accfda7854aed31fc7ff2891c3192e7cccecaf503dbcbe564178faeb1d",
+    "remap/gradle.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "scope": "Actual stock Fabric GameTest server and embedded connections. Live local-grid geometry, separate support and local-gravity identities, authoritative vanilla position packet count, point velocity, and blocked placement. Dedicated multi-client restart remains separate."
+}
