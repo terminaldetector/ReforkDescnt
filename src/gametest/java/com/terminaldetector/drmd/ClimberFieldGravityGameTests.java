@@ -142,6 +142,66 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         });
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c2-ceiling-pursuit",tickLimit=320)
+    public void nativeSpiderAndCaveSpiderPursueRealSurvivalPlayersUnderTheCeiling(TestContext c) {
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));
+        var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var up=new Vec3d(0,-1,0);
+        var spiders=new ArrayList<SpiderEntity>();var targets=new ArrayList<NativeFoodPlayer>();
+        var cases=new ArrayList<GoalProgress>();
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;
+            room.build();
+            if(spiders.isEmpty()) {
+                room.field(centre,up.negate());
+                var ceiling=Vec3d.ofCenter(centre).subtract(up.multiply(7.48));
+                for(int i=0;i<TYPES.length;i++) {
+                    double lane=i==0?-3:3;
+                    targets.add(nativeTargetPlayer(room,ceiling.add(lane,0,4),i==0?"c2-ceil-left":"c2-ceil-right"));
+                    var actor=(SpiderEntity)TYPES[i].create(room.world);
+                    c.assertTrue(!actor.isAiDisabled()&&!actor.hasNoGravity(),"native C2 starts with ordinary AI and gravity");
+                    actor.setAiDisabled(true);actor.setPersistent();actor.setPosition(ceiling.add(lane,0,-4));
+                    c.assertTrue(ActorFrames.trySetUp(actor,up),"checked in-place ceiling pose before registration");
+                    room.spawn(actor);spiders.add(actor);
+                }
+                return false;
+            }
+            if(cases.isEmpty()) {
+                for(int i=0;i<spiders.size();i++) {
+                    var actor=spiders.get(i);var target=targets.get(i).player;
+                    if(actor.age<2||target.age<2||!room.dark(actor.getEyePos())||!room.dark(target.getEyePos())
+                        ||!EntityGravitySystem.suppressesVanillaGravity(actor))return false;
+                    groundSupport(c,actor,up);groundSupport(c,target,up);
+                    c.assertTrue(actor.canSee(target)&&target.isAlive()&&!target.isCreative()&&!target.isSpectator(),
+                        "real Survival target satisfies the unchanged native sight premise");
+                }
+                for(int i=0;i<spiders.size();i++) {
+                    var actor=spiders.get(i);actor.setAiDisabled(false);cases.add(new GoalProgress(actor,targets.get(i).player));
+                }
+                return false;
+            }
+            boolean ready=true;
+            for(int i=0;i<cases.size();i++) {
+                var r=cases.get(i);var actor=r.actor;
+                if(actor.age==r.age){ready=false;continue;}
+                r.maxStep=Math.max(r.maxStep,actor.getPos().distanceTo(r.last)/Math.max(1,actor.age-r.age));r.last=actor.getPos();r.age=actor.age;
+                r.maxGap=Math.max(r.maxGap,groundSupport(c,actor,up));
+                c.assertTrue(actor.isAlive()&&!actor.isAiDisabled()&&actor.getNavigation()==r.navigation
+                    &&actor.getMoveControl()==r.control&&r.maxStep<=1,"native C2 controls and continuous supported travel stay intact");
+                r.nativeTarget|=actor.getTarget()==targets.get(i).player;
+                r.path|=actor.getNavigation().getCurrentPath() instanceof com.terminaldetector.drmd.world.gravity.LocalSurfacePath;
+                if(!(r.nativeTarget&&r.path&&actor.getZ()-r.start.z>=1)) {
+                    c.assertTrue(actor.age-r.born<120,"native C2 must select and pursue under the ceiling: "+actor.getType()
+                        +" selected="+r.nativeTarget+" path="+r.path+" advance="+(actor.getZ()-r.start.z));
+                    ready=false;
+                }
+            }
+            if(ready)for(var r:cases)System.out.println("C2_NATIVE_CEILING_PURSUIT type="+r.actor.getType()+" actorTicks="+(r.age-r.born)
+                +" advance="+(r.actor.getZ()-r.start.z)+" maxStep="+r.maxStep+" maxSupportGap="+r.maxGap+" observerSetTarget=false");
+            return ready;
+        });
+    }
+
     private static SpiderEntity spawnSpider(Room room,EntityType<?> type,Vec3d at,boolean isolated,boolean noGravity) {
         SpiderEntity actor=(SpiderEntity)type.create(room.world);
         room.context.assertTrue(actor!=null&&!actor.isAiDisabled(),"native climber AI starts enabled: "+type);
