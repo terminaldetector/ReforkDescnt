@@ -46,7 +46,7 @@ public final class CitySaveIdentity {
             try{channel.close();}catch(IOException close){failure.addSuppressed(close);}throw failure;
         }
     }
-    private static UUID read(Path file)throws IOException{
+    static UUID read(Path file)throws IOException{
         try(var in=new DataInputStream(new ByteArrayInputStream(CityDurableFiles.readChecked(file,MAX_BYTES)))){
             if(in.readInt()!=MAGIC||in.readInt()!=VERSION)throw new IOException("unsupported city save identity");
             UUID id=new UUID(in.readLong(),in.readLong());if(in.available()!=0)throw new IOException("trailing city identity data");return id;

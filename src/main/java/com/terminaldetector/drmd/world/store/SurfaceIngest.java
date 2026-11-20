@@ -4,12 +4,17 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
 import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.fixture.city.CityBlueprint;
+import com.terminaldetector.drmd.world.fixture.city.CityManifest;
 import com.terminaldetector.drmd.world.fixture.city.OrbitalFieldBlueprint.ObjectSpec;
+import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.planet.AuthoredOrbitalCatalogue;
 import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry;
 import net.minecraft.block.Blocks;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -18,11 +23,14 @@ import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Turns chunks the server loads into the observed surface the horizon draws.
@@ -48,6 +56,10 @@ public final class SurfaceIngest {
 	private static final NativeRefreshQueue nativePending = new NativeRefreshQueue();
 	private static List<ObjectSpec> orbitalFootprints = List.of();
 	private static Map<Long, OrbitalGroundColumns> orbitalColumns = Map.of();
+
+    private static CompletableFuture<Optional<CityBlueprint.Plan>> restoredPilot;
+    private static List<CityBlueprint.Cell> pilotCells=List.of();
+    private static boolean pilotColumnsDirty;
 
 	/** Keys only: a failed/unknown probe does not consume work or retain a chunk/ticket. */
 	static final class NativeRefreshQueue {
@@ -98,6 +110,7 @@ public final class SurfaceIngest {
 			Path root = server.getSavePath(WorldSavePath.ROOT).resolve("drmd").resolve("surface");
 			store = new SurfaceStore(new CompressedSectionStorage(new FileSectionStorage(root)));
 			storeWorld = server.getOverworld();
+			readCommittedPilot(root.getParent().getParent(),storeWorld);
 			syncOrbitalFootprints(storeWorld, store);
 			DescentMod.LOGGER.info("Surface store open at {}", root);
 		} catch (Exception e) {
@@ -113,6 +126,9 @@ public final class SurfaceIngest {
 		dirtyChunks.clear();
 		orbitalFootprints = List.of();
 		orbitalColumns = Map.of();
+        restoredPilot=null;
+        pilotCells=List.of();
+        pilotColumnsDirty=false;
 		if (store == null) return;
 		try {
 			store.close();
@@ -203,13 +219,48 @@ public final class SurfaceIngest {
 		return bestY;
 	}
 
+    private static void readCommittedPilot(Path saveRoot,ServerWorld world){
+        if(world==null)return;
+        var backend=switch(CubicAvailability.backend(world)){
+            case STOCK->CityManifest.Backend.STOCK;
+            case NATIVE_CUBIC->CityManifest.Backend.NATIVE_CUBIC;
+            case UNSUPPORTED->null;
+        };
+        if(backend==null)return;
+        String dimension=world.getRegistryKey().getValue().toString();
+        long seed=world.getSeed();
+        int bottom=world.getBottomY(),top=world.getTopY();
+        restoredPilot=CompletableFuture.supplyAsync(()->{
+            try{return CityManifest.readCompletedOrbitalPilot(saveRoot,dimension,seed,bottom,top,backend);}
+            catch(IOException invalid){
+                DescentMod.LOGGER.debug("Could not classify saved orbital pilot terrain",invalid);
+                return Optional.empty();
+            }
+        });
+    }
+
+    /** Called after the original explicit job has durably completed all of its cells. */
+    public static void completedOrbitalPilot(ServerWorld world,CityBlueprint.Plan plan){
+        if(world!=storeWorld||!CubicAvailability.onWorldThread(world)||plan.anchor().y()<WorldLevels.SKY_TOP
+            ||pilotCells.equals(plan.cells()))return;
+        pilotCells=plan.cells();
+        pilotColumnsDirty=true;
+    }
+
 	private static void syncOrbitalFootprints(ServerWorld world, SurfaceStore live) {
 		if (world == null) return;
+        if(restoredPilot!=null&&restoredPilot.isDone()){
+            var read=restoredPilot;
+            restoredPilot=null;
+            if(!read.isCompletedExceptionally())read.join().ifPresent(plan->completedOrbitalPilot(world,plan));
+        }
 		var footprints = AuthoredOrbitalCatalogue.surfaceExclusions(world);
-		if (footprints.equals(orbitalFootprints)) return;
+		if (!pilotColumnsDirty&&footprints.equals(orbitalFootprints)) return;
 		var columns = OrbitalGroundColumns.index(footprints, shape ->
 			(shape == OrbitalObjectGeometry.Shape.STATION ? Blocks.IRON_BLOCK : Blocks.STONE)
-				.getDefaultState().getMapColor(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).color);
+				.getDefaultState().getMapColor(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).color,
+            pilotCells,state->Registries.BLOCK.get(Identifier.of(state)).getDefaultState()
+                .getMapColor(EmptyBlockView.INSTANCE,BlockPos.ORIGIN).color);
 		for (var entry : columns.entrySet()) {
 			var chunk = new ChunkPos(entry.getKey());
 			int x = chunk.getStartX(), z = chunk.getStartZ();
@@ -220,6 +271,7 @@ public final class SurfaceIngest {
 		}
 		orbitalColumns = columns;
 		orbitalFootprints = footprints;
+        pilotColumnsDirty=false;
 	}
 
 	/** Initial load and edits share the same per-tick sample budget. */

@@ -1,6 +1,8 @@
 package com.terminaldetector.drmd.world.fixture.city;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -59,6 +61,23 @@ public record CityManifest(int schema,int blueprintVersion,int journalSchema,Cit
         }
         CityDurableFiles.publishNew(file,CityDurableFiles.checked(bytes.toByteArray(),MAX_BYTES),MAX_BYTES);
     }
+    /** Worker-only discovery for the surface cache. A committed orbital pilot owns its actual planned cells. */
+    public static Optional<CityBlueprint.Plan> readCompletedOrbitalPilot(Path saveRoot,String dimension,long seed,
+                                                                         int bottomY,int topY,Backend backend)throws IOException{
+        var drmd=saveRoot.resolve("drmd");var directory=drmd.resolve("city");
+        var manifestPath=directory.resolve("current.manifest");
+        if(!Files.isDirectory(drmd,LinkOption.NOFOLLOW_LINKS)||!Files.isDirectory(directory,LinkOption.NOFOLLOW_LINKS)
+            ||!Files.isRegularFile(manifestPath,LinkOption.NOFOLLOW_LINKS))return Optional.empty();
+        var manifest=read(manifestPath);
+        if(manifest.kind!=Kind.ORBITAL_PILOT||manifest.worldSeed!=seed||!manifest.identity.world().equals(dimension)
+            ||manifest.backend!=backend||manifest.bounds.bottomY()!=bottomY||manifest.bounds.topY()!=topY
+            ||!manifest.identity.saveId().equals(CitySaveIdentity.read(directory.resolve("save-id.bin"))))return Optional.empty();
+        var snapshot=CityBatchJournal.readSnapshot(directory.resolve("current.journal"),manifest.identity);
+        if(snapshot.incompleteTail()||snapshot.pending().isPresent()||snapshot.cursor()!=manifest.solidCount+manifest.cutCount)
+            return Optional.empty();
+        return Optional.of(manifest.regenerate());
+    }
+
     /** Existing-file read only: no CREATE, provisioning, migration or automatic recovery. */
     public static CityManifest read(Path file)throws IOException{
         try(var in=new DataInputStream(new ByteArrayInputStream(CityDurableFiles.readChecked(file,MAX_BYTES)))){

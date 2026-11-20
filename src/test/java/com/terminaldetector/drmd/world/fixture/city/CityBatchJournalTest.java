@@ -9,6 +9,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Real byte persistence and CAS-recovery decisions, without a Minecraft bootstrap. */
 class CityBatchJournalTest {
+    @Test void readOnlySnapshotOfAnExistingCommittedJournalDoesNotAcquireItsWriterLease() throws IOException {
+        var file=directory.resolve("readonly.journal");
+        try(var writer=CityBatchJournal.create(file,OWNER)){
+            writer.prepare(batch());
+            writer.commit(batch().number());
+            byte[] before=Files.readAllBytes(file);
+            var snapshot=CityBatchJournal.readSnapshot(file,OWNER);
+            assertEquals(writer.snapshot(),snapshot);
+            assertArrayEquals(before,Files.readAllBytes(file));
+        }
+    }
+
     @TempDir Path directory;
     private static final CityBatchJournal.Identity OWNER=new CityBatchJournal.Identity(new UUID(1,2),new UUID(3,4),new UUID(17,42),"minecraft:overworld","a".repeat(64));
     private static final CityBlueprint.Point A=new CityBlueprint.Point(4,80,7),B=new CityBlueprint.Point(5,80,7);

@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.store;
 
+import com.terminaldetector.drmd.world.fixture.city.CityBlueprint;
 import com.terminaldetector.drmd.world.fixture.city.OrbitalFieldBlueprint.ObjectSpec;
 import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry;
 import net.minecraft.util.math.ChunkPos;
@@ -16,8 +17,14 @@ import java.util.function.ToIntFunction;
 final class OrbitalGroundColumns {
     private final List<ObjectSpec> objects = new ArrayList<>();
     private final Set<Long> roofSamples = new HashSet<>();
+    private final Set<CityBlueprint.Point> pilotSolids = new HashSet<>();
 
     static Map<Long, OrbitalGroundColumns> index(List<ObjectSpec> objects, ToIntFunction<OrbitalObjectGeometry.Shape> mapColour) {
+        return index(objects,mapColour,List.of(),ignored->0);
+    }
+
+    static Map<Long, OrbitalGroundColumns> index(List<ObjectSpec> objects,ToIntFunction<OrbitalObjectGeometry.Shape> mapColour,
+                                                List<CityBlueprint.Cell> pilot,ToIntFunction<String> pilotColour) {
         var result = new HashMap<Long, OrbitalGroundColumns>();
         for (var object : objects) {
             var min = object.origin();
@@ -33,12 +40,20 @@ final class OrbitalGroundColumns {
                 result.get(key).roofSamples.add(sample(SurfaceSection.encodeHeight(min.y() + cell.y() + 1), colour));
             }
         }
+        for(var cell:pilot){
+            if(CityBlueprint.AIR.equals(cell.state()))continue;
+            var p=cell.position();
+            long key=ChunkPos.toLong(p.x()>>4,p.z()>>4);
+            var column=result.computeIfAbsent(key,ignored->new OrbitalGroundColumns());
+            column.pilotSolids.add(p);
+            column.roofSamples.add(sample(SurfaceSection.encodeHeight(p.y()+1),pilotColour.applyAsInt(cell.state())));
+        }
         return result;
     }
 
     boolean contains(int x, int y, int z) {
         for (var object : objects) if (object.contains(x, y, z)) return true;
-        return false;
+        return !pilotSolids.isEmpty()&&pilotSolids.contains(new CityBlueprint.Point(x,y,z));
     }
 
     boolean couldBeOldRoof(short height, int colour) {

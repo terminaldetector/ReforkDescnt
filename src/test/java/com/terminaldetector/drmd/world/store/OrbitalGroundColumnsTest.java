@@ -1,6 +1,8 @@
 package com.terminaldetector.drmd.world.store;
 
+import com.terminaldetector.drmd.world.fixture.city.CityBlueprint;
 import com.terminaldetector.drmd.world.fixture.city.CityBlueprint.Point;
+import com.terminaldetector.drmd.world.fixture.city.OrbitalRouteBlueprint;
 import com.terminaldetector.drmd.world.fixture.city.OrbitalFieldBlueprint.ObjectSpec;
 import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry.Shape;
 import net.minecraft.util.math.ChunkPos;
@@ -29,6 +31,21 @@ class OrbitalGroundColumnsTest {
         assertTrue(column.couldBeOldRoof((short) 1423, 0xa7a7a7));
         assertFalse(column.couldBeOldRoof((short) 1423, 0x101010));
         assertFalse(column.couldBeOldRoof((short) 68, 0xa7a7a7));
+    }
+
+    @Test void pilotDeckOnlyExcludesItsExactSolidCellsAndLegacySignatures(){
+        var anchor=new Point(256,1408,256);
+        var limits=new CityBlueprint.Limits(-16384,16384,-1000,1000,-1000,1000);
+        var pilot=OrbitalRouteBlueprint.create(2,anchor,limits);
+        var columns=OrbitalGroundColumns.index(List.of(),shape->0,pilot.cells(),state->0x646464);
+        var column=columns.get(ChunkPos.toLong(12,15));
+        assertNotNull(column);
+        assertTrue(column.contains(192,1416,255));
+        assertFalse(column.contains(197,1416,255));
+        assertFalse(column.contains(192,68,255));
+        assertTrue(column.couldBeOldRoof((short)1417,0x646464));
+        assertFalse(column.couldBeOldRoof((short)1417,0x447733));
+        assertFalse(column.couldBeOldRoof((short)2161,0x646464));
     }
 
     @Test void revokingAnOldRoofRebuildsItsParentsAndTheUnknownSampleSurvivesClose(@TempDir Path directory) {

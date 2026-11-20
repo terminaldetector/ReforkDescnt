@@ -47,6 +47,15 @@ public final class CityBatchJournal implements AutoCloseable {
     /** Open is explicit operator/test I/O, not a registration/startup hook. */
     public static CityBatchJournal create(Path path,Identity expected)throws IOException{return open(path,expected,true);}
     public static CityBatchJournal openExisting(Path path,Identity expected)throws IOException{return open(path,expected,false);}
+    /** Bounded read-only inspection of the immutable committed prefix; no authoring lease or recovery. */
+    static Snapshot readSnapshot(Path path,Identity expected)throws IOException{
+        try(var channel=FileChannel.open(path,StandardOpenOption.READ,LinkOption.NOFOLLOW_LINKS)){
+            var reader=new CityBatchJournal(channel,null,expected);
+            reader.load();
+            return reader.snapshot();
+        }
+    }
+
     private static CityBatchJournal open(Path path,Identity expected,boolean create) throws IOException {
         Objects.requireNonNull(path);Objects.requireNonNull(expected);Path parent=path.toAbsolutePath().getParent();
         // Provisioning ancestors is separate operator I/O: do not claim durability for

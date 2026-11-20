@@ -20,7 +20,7 @@ public final class CityRuntimeSession {
     private CityManifest manifest;private CityWorldStorage storage;private CityAuthoringJob job;
     private State state=State.PREPARING;private String detail="Preparing an inert manual plan; no world writes";
     private CompletableFuture<Void> closeAck;private CityBatchJournal.Disposition closeIntent=CityBatchJournal.Disposition.PAUSED;
-    private boolean restoredOnly;private long lastTick=Long.MIN_VALUE;
+    private boolean restoredOnly,pilotSurfacePublished;private long lastTick=Long.MIN_VALUE;
     private CityAuthoringJob.Inspection lastJob;private CityWorldStorage.Diagnostic lastStorage;
 
     public static CityRuntimeSession plan(ServerPlayerEntity owner,long citySeed,CityBlueprint.Point anchor){
@@ -74,7 +74,7 @@ public final class CityRuntimeSession {
                 var opened=io.opened().join();manifest=opened.manifest();restoredOnly=opened.restored();
                 if(!contextStillMatches()){beginClose(CityBatchJournal.Disposition.PAUSED,"World context changed during plan preparation");return;}
                 CityWorldStorage.requireHaloEnvelope(CityWorldStorage.capture(owner),opened.plan().anchor());
-                if(manifest.kind()==CityManifest.Kind.ORBITAL_FIELD)orbitalPlan=opened.plan();
+                if(manifest.kind()!=CityManifest.Kind.CITY)orbitalPlan=opened.plan();
                 storage=new CityWorldStorage(owner,manifest,opened.plan());job=new CityAuthoringJob(opened.plan(),manifest.identity(),opened.snapshot(),storage,io);
                 state=restoredOnly?State.RESTORED_PAUSED:State.READY;detail=restoredOnly?"Restored inert data; manual resume required":"Plan ready; inspect then apply explicitly";
             }catch(RuntimeException failure){beginClose(CityBatchJournal.Disposition.PAUSED,"City preparation/open failed; original data retained: "+cause(failure));}
@@ -82,8 +82,13 @@ public final class CityRuntimeSession {
         }
         job.tick();updateState();
         if(orbitalPlan!=null&&job.inspect().state()==CityAuthoringJob.State.COMPLETED){
-            if(orbitalCertificate==null)orbitalCertificate=com.terminaldetector.drmd.world.planet.AuthoredOrbitalCatalogue.begin(world,manifest,orbitalPlan);
-            orbitalCertificate.tick(world);detail+="; "+orbitalCertificate.detail();
+            if(manifest.kind()==CityManifest.Kind.ORBITAL_FIELD){
+                if(orbitalCertificate==null)orbitalCertificate=com.terminaldetector.drmd.world.planet.AuthoredOrbitalCatalogue.begin(world,manifest,orbitalPlan);
+                orbitalCertificate.tick(world);detail+="; "+orbitalCertificate.detail();
+            }else if(!pilotSurfacePublished){
+                com.terminaldetector.drmd.world.store.SurfaceIngest.completedOrbitalPilot(world,orbitalPlan);
+                pilotSurfacePublished=true;
+            }
         }
     }
     private void updateState(){
