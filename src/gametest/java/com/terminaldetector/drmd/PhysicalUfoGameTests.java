@@ -384,4 +384,66 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             c.assertTrue(migrated.isMaterialized()&&migrated.isCrashing()&&migrated.physicsGravity()&&migrated.passengerGravity().lengthSquared()==0,"legacy crash cannot turn into an artificially powered hovering wreck");
         } finally {if(migrated!=null)migrated.discard();original.discard();}c.complete();
     }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="physical-ufo-legacy-cruise",tickLimit=60)
+    public void legacyVirtualCruiseKeepsItsFractionalOriginHeadingAndMotionAcrossAnUntickedSave(TestContext c) {
+        var world=c.getWorld();
+        var at=c.getAbsolutePos(new BlockPos(8,190,8));
+        for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++) world.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
+        var origin=new Vec3d(at.getX()+.5,at.getY()+.625,at.getZ()+.25);
+        var perTick=new Vec3d(-.125,.03125,.25);
+        var old=new NbtCompound();
+        old.putUuid("UUID",java.util.UUID.randomUUID());
+        old.put("Pos",legacyVector(origin));
+        old.put("Motion",legacyVector(perTick));
+        var yawPitch=new net.minecraft.nbt.NbtList();
+        yawPitch.add(net.minecraft.nbt.NbtFloat.of(90));
+        yawPitch.add(net.minecraft.nbt.NbtFloat.of(0));
+        old.put("Rotation",yawPitch);
+        old.putFloat("cruise",90);
+        old.putBoolean("hull",true);
+        old.putBoolean("NoGravity",true);
+        var materialBefore=world.getBlockState(at.add(0,1,0));
+        var staged=ModEntities.SKY_UFO.create(world);
+        var migrated=ModEntities.SKY_UFO.create(world);
+        var roundTrip=ModEntities.SKY_UFO.create(world);
+        try {
+            staged.readNbt(old);
+            c.assertTrue(!staged.isMaterialized(),"legacy decode leaves initialization on the world tick");
+            var unticked=staged.writeNbt(new NbtCompound());
+            migrated.readNbt(unticked);
+            migrated.setAutopilot(false);
+            c.assertTrue(world.spawnEntity(migrated),"loaded old identity is the one physical UFO");
+            migrated.tick();
+            var expectedVelocity=new Vec3(perTick.x*20,perTick.y*20,perTick.z*20);
+            var forward=migrated.rotation().rotate(new Vec3(0,0,1));
+            c.assertTrue(migrated.getUuid().equals(old.getUuid("UUID"))&&migrated.isMaterialized(),
+                "normal tick materializes the old saved entity identity");
+            c.assertTrue(forward.minus(new Vec3(-1,0,0)).length()<1e-9,"saved virtual renderer yaw becomes the local hull heading");
+            c.assertTrue(migrated.physics().linearVelocity().minus(expectedVelocity).length()<1e-9
+                &&migrated.localToWorld(Vec3d.ZERO).distanceTo(origin.add(perTick))<1e-8,
+                "old vanilla Motion becomes physical velocity and advances the unchanged fractional origin once");
+            c.assertTrue(world.getBlockState(at.add(0,1,0)).equals(materialBefore),"migration writes no terrain blocks");
+            var next=migrated.writeNbt(new NbtCompound());
+            roundTrip.readNbt(next);
+            c.assertTrue(next.getInt("physicalUfoSchema")==2&&!next.contains("legacyMotionPending")
+                &&roundTrip.rotation().rotate(new Vec3(0,0,1)).minus(forward).length()<1e-9
+                &&roundTrip.localToWorld(Vec3d.ZERO).distanceTo(migrated.localToWorld(Vec3d.ZERO))<1e-8
+                &&roundTrip.physics().linearVelocity().equals(migrated.physics().linearVelocity()),
+                "current schema reloads the migrated frame without reapplying legacy motion");
+        } finally {
+            staged.discard();
+            roundTrip.discard();
+            migrated.discard();
+        }
+        c.complete();
+    }
+
+    private static net.minecraft.nbt.NbtList legacyVector(Vec3d vector) {
+        var tag=new net.minecraft.nbt.NbtList();
+        tag.add(net.minecraft.nbt.NbtDouble.of(vector.x));
+        tag.add(net.minecraft.nbt.NbtDouble.of(vector.y));
+        tag.add(net.minecraft.nbt.NbtDouble.of(vector.z));
+        return tag;
+    }
 }

@@ -33,6 +33,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private static final Map<UUID,WeakReference<SkyUfoEntity>> ACTIVE=new ConcurrentHashMap<>();
     private final List<UUID> swarm=new ArrayList<>();
     private boolean initialized,crashing,detonated,legacyThrusters,autopilot=true;
+    private boolean legacyMotionPending;
     private int spawnCooldown,crashTicks,laserCooldown,rocketCooldown;
     private int reactorEscapeTicks=ReactorEscapeWindow.DEFAULT_TICKS;
     private String reactorFailureCause="reactor material destroyed";
@@ -110,8 +111,11 @@ public class SkyUfoEntity extends BlockBodyEntity {
         if(!initialized) {
             var blueprint=SkyUfoHull.TEMPLATE.cells().entrySet().stream().filter(e->!e.getValue().isAir())
                 .map(e->new Cell(new BlockPos(e.getKey().x(),e.getKey().y(),e.getKey().z()),e.getValue())).toList();
-            // The legacy spawn position named the template origin; no world block is ever placed.
-            var origin=getPos();initializeLocal(blueprint,origin);initialized=true;cruiseAltitude=massPosition().y();
+            // The legacy virtual hull used the saved entity position as its template origin.
+            // Migrate its vanilla Motion before the first physical step.
+            var origin=getPos();initializeLocal(blueprint,origin);
+            if(legacyMotionPending)restoreLegacyMotion(origin);
+            initialized=true;cruiseAltitude=massPosition().y();
             setPassengerGravity(crashing?ZERO:new Vec3(0,-16,0));setPhysicsGravity(crashing);
         } else if(cells().isEmpty()){discard();return;}
         ACTIVE.put(getUuid(),new WeakReference<>(this));
@@ -140,6 +144,18 @@ public class SkyUfoEntity extends BlockBodyEntity {
             if(swarm.size()<SWARM_CAP&&dropDrone(world))spawnCooldown=60;else spawnCooldown=100;
         }
     }
+
+    private void restoreLegacyMotion(Vec3d origin) {
+        var yaw=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,1,0),-MathHelper.wrapDegrees(cruiseYaw));
+        var motion=getVelocity().multiply(com.terminaldetector.drmd.DescentMod.TICKS_PER_SECOND);
+        var centre=yaw.rotate(localCentre());
+        physics().withRotation(yaw).withLinearVelocity(Double.isFinite(motion.lengthSquared())
+            ?new Vec3(motion.x,motion.y,motion.z):ZERO);
+        physics().limitMotion();
+        setPosition(origin.x+centre.x(),origin.y+centre.y(),origin.z+centre.z());
+        legacyMotionPending=false;
+    }
+
     private void propel() {
         var combatAim=combat.prepare(this);
         if(turret!=null)turret.aimAutonomous(this);
@@ -257,8 +273,11 @@ public class SkyUfoEntity extends BlockBodyEntity {
     }
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
         if(n.contains("shape",NbtElement.COMPOUND_TYPE)&&n.contains("body",NbtElement.COMPOUND_TYPE))super.readCustomDataFromNbt(n);
-        if(n.getInt("physicalUfoSchema")>2)throw new IllegalArgumentException("unsupported physical UFO schema");
-        initialized=n.getInt("physicalUfoSchema")>=1;legacyThrusters=n.getInt("physicalUfoSchema")==1||n.getBoolean("legacyThrusters");crashing=n.getBoolean("crashing");detonated=n.getBoolean("detonated");
+        int schema=n.getInt("physicalUfoSchema");
+        if(schema>2)throw new IllegalArgumentException("unsupported physical UFO schema");
+        initialized=schema>=1;legacyThrusters=schema==1||n.getBoolean("legacyThrusters");crashing=n.getBoolean("crashing");detonated=n.getBoolean("detonated");
+        legacyMotionPending=schema==0&&(n.getBoolean("legacyMotionPending")
+            ||!n.contains("physicalUfoSchema")&&n.getBoolean("hull"));
         cruiseYaw=n.getDouble("cruise");cruiseAltitude=n.getDouble("cruiseAltitude");autopilot=!n.contains("autopilot")||n.getBoolean("autopilot");
         crashTicks=Math.max(0,n.getInt("crashTicks"));spawnCooldown=Math.max(0,n.getInt("bayCooldown"));
         if(n.contains("reactorEscapeTicks")&&!n.contains("reactorEscapeTicks",NbtElement.INT_TYPE))throw new IllegalArgumentException("Invalid reactor escape delay type");
@@ -276,6 +295,8 @@ public class SkyUfoEntity extends BlockBodyEntity {
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?2:0);n.putBoolean("legacyThrusters",legacyThrusters);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
+        // A world save can serialize a loaded hull before its first owner-thread tick.
+        if(legacyMotionPending)n.putBoolean("legacyMotionPending",true);
         n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",UfoControlSystem.savedAutopilot(this,autopilot));n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
         n.putInt("reactorEscapeTicks",reactorEscapeTicks);n.putString("reactorFailureCause",reactorFailureCause);
         n.putString("destructionMode",destructionMode.name());n.putInt("laserCooldown",laserCooldown);n.putInt("rocketCooldown",rocketCooldown);
