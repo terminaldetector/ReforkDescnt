@@ -4,15 +4,25 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
 import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.fixture.city.OrbitalFieldBlueprint.ObjectSpec;
+import com.terminaldetector.drmd.world.planet.AuthoredOrbitalCatalogue;
+import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry;
+import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.EmptyBlockView;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Turns chunks the server loads into the observed surface the horizon draws.
@@ -36,6 +46,8 @@ public final class SurfaceIngest {
 	private static ServerWorld storeWorld;
 	private static final java.util.Set<Long> dirtyChunks = new java.util.LinkedHashSet<>();
 	private static final NativeRefreshQueue nativePending = new NativeRefreshQueue();
+	private static List<ObjectSpec> orbitalFootprints = List.of();
+	private static Map<Long, OrbitalGroundColumns> orbitalColumns = Map.of();
 
 	/** Keys only: a failed/unknown probe does not consume work or retain a chunk/ticket. */
 	static final class NativeRefreshQueue {
@@ -86,6 +98,7 @@ public final class SurfaceIngest {
 			Path root = server.getSavePath(WorldSavePath.ROOT).resolve("drmd").resolve("surface");
 			store = new SurfaceStore(new CompressedSectionStorage(new FileSectionStorage(root)));
 			storeWorld = server.getOverworld();
+			syncOrbitalFootprints(storeWorld, store);
 			DescentMod.LOGGER.info("Surface store open at {}", root);
 		} catch (Exception e) {
 			// A world that cannot store its surface still plays; the horizon just stays procedural.
@@ -98,6 +111,8 @@ public final class SurfaceIngest {
 		storeWorld = null;
 		nativePending.clear();
 		dirtyChunks.clear();
+		orbitalFootprints = List.of();
+		orbitalColumns = Map.of();
 		if (store == null) return;
 		try {
 			store.close();
@@ -118,12 +133,19 @@ public final class SurfaceIngest {
 		int bestY = Integer.MIN_VALUE;
 		int bestX = baseX;
 		int bestZ = baseZ;
+		var orbital = orbitalColumns.get(chunk.getPos().toLong());
+		int[] orbitalPeaks = orbital == null ? null : new int[256];
+		if (orbitalPeaks != null) Arrays.fill(orbitalPeaks, Integer.MIN_VALUE);
 
 		for (int sx = 0; sx < 16; sx++) {
 			for (int sz = 0; sz < 16; sz++) {
 				int x = baseX + sx;
 				int z = baseZ + sz;
 				int y = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x, z);
+				if (orbital != null && orbital.contains(x, y, z)) {
+					orbitalPeaks[sx * 16 + sz] = y;
+					continue;
+				}
 				if (y > bestY) {
 					bestY = y;
 					bestX = x;
@@ -131,7 +153,23 @@ public final class SurfaceIngest {
 				}
 			}
 		}
-		if (bestY == Integer.MIN_VALUE) return;
+		if (orbitalPeaks != null) {
+			Map<Integer, Boolean> fullCubes = new HashMap<>();
+			for (int sx = 0; sx < 16; sx++) {
+				for (int sz = 0; sz < 16; sz++) {
+					int peak = orbitalPeaks[sx * 16 + sz];
+					if (peak <= bestY) continue;
+					int x = baseX + sx, z = baseZ + sz;
+					int y = belowOrbitalPeak(world, chunk, orbital, fullCubes, x, peak - 1, z, bestY);
+					if (y > bestY) { bestY = y; bestX = x; bestZ = z; }
+				}
+			}
+		}
+		if (bestY == Integer.MIN_VALUE) {
+			// Try again on the next actual cube arrival or edit, not on every idle budget pass.
+			if (world == storeWorld) nativePending.acknowledge(chunk.getPos().toLong());
+			return;
+		}
 
 		// Chunk.sampleHeightmap names the top block; its physical top face is one above.
 		BlockPos top = new BlockPos(bestX, Math.max(world.getBottomY(), bestY), bestZ);
@@ -146,6 +184,42 @@ public final class SurfaceIngest {
 		if (live.set(baseX, baseZ, storedSurfaceHeight(bestY, world.getBottomY()), rgb))
 			SurfaceStreamer.invalidate(SectionKey.of(0,SectionKey.sectionOf(baseX,0),SectionKey.sectionOf(baseZ,0)));
 		if (world == storeWorld) nativePending.acknowledge(chunk.getPos().toLong());
+	}
+
+	private static int belowOrbitalPeak(ServerWorld world, WorldChunk chunk, OrbitalGroundColumns orbital,
+			Map<Integer, Boolean> fullCubes, int x, int y, int z, int bestY) {
+		while (y > bestY && y >= world.getBottomY()) {
+			int cubeY = y >> 4;
+			if (!fullCubes.computeIfAbsent(cubeY, cy -> CubicAvailability.available(world,
+				new D6ChunkPos(chunk.getPos().x, cy, chunk.getPos().z)))) break;
+			var section = chunk.getSection(world.getSectionIndex(y));
+			if (section.isEmpty()) {
+				y = (cubeY << 4) - 1;
+				continue;
+			}
+			if (!orbital.contains(x, y, z) && !section.getBlockState(x & 15, y & 15, z & 15).isAir()) return y;
+			y--;
+		}
+		return bestY;
+	}
+
+	private static void syncOrbitalFootprints(ServerWorld world, SurfaceStore live) {
+		if (world == null) return;
+		var footprints = AuthoredOrbitalCatalogue.surfaceExclusions(world);
+		if (footprints.equals(orbitalFootprints)) return;
+		var columns = OrbitalGroundColumns.index(footprints, shape ->
+			(shape == OrbitalObjectGeometry.Shape.STATION ? Blocks.IRON_BLOCK : Blocks.STONE)
+				.getDefaultState().getMapColor(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).color);
+		for (var entry : columns.entrySet()) {
+			var chunk = new ChunkPos(entry.getKey());
+			int x = chunk.getStartX(), z = chunk.getStartZ();
+			if (entry.getValue().couldBeOldRoof(live.heightAt(x, z, 0), live.colourAt(x, z, 0)) && live.forget(x, z)) {
+				SurfaceStreamer.invalidate(SectionKey.of(0, SectionKey.sectionOf(x, 0), SectionKey.sectionOf(z, 0)));
+			}
+			nativePending.offer(entry.getKey());
+		}
+		orbitalColumns = columns;
+		orbitalFootprints = footprints;
 	}
 
 	/** Initial load and edits share the same per-tick sample budget. */
@@ -204,6 +278,7 @@ public final class SurfaceIngest {
 		SurfaceStore live = store;
 		if (live == null) return;
         ServerWorld world=server.getOverworld();
+		syncOrbitalFootprints(world, live);
         var dirty=dirtyChunks.iterator();
         int remaining=REBUILD_PER_TICK;
         // Edits under an active player get processed before scanning newly loaded terrain.

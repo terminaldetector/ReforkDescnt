@@ -91,6 +91,14 @@ public final class SurfaceStore {
 		return changed;
 	}
 
+	boolean forget(int blockX, int blockZ) {
+		long key = SectionKey.of(0, SectionKey.sectionOf(blockX, 0), SectionKey.sectionOf(blockZ, 0));
+		var current = peek(key);
+		if (current == null || !current.forget(SectionKey.cellInSection(blockX, 0), SectionKey.cellInSection(blockZ, 0))) return false;
+		markParent(key);
+		return true;
+	}
+
 	private void markParent(long key) {
 		long parent = SectionKey.parent(key);
 		if (parent != key) dirtyParents.add(parent);
@@ -149,7 +157,9 @@ public final class SurfaceStore {
 				any = true;
 			}
 		}
-		if (!any || parent.sameData(peek(key))) return false;
+		if (!any) return false;
+		var previous = peek(key);
+		if (parent.sameData(previous) || previous == null && !parent.hasAny()) return false;
 		put(key,parent);
 		markParent(key);
 		return true;

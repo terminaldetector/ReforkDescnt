@@ -53,6 +53,19 @@ public final class AuthoredOrbitalCatalogue extends PersistentState {
         String dimension=world.getRegistryKey().getValue().toString();long seed=world.getSeed();
         return state.entries.stream().filter(e->e.valid()&&e.worldSeed()==seed&&e.dimension().equals(dimension)).toList();
     }
+    /** Orbital material stays outside the planetary heightfield after its proxy is invalidated. */
+    public static List<OrbitalFieldBlueprint.ObjectSpec> surfaceExclusions(ServerWorld world){
+        var binding=binding(world);
+        var objects=new ArrayList<OrbitalFieldBlueprint.ObjectSpec>();
+        String dimension=world.getRegistryKey().getValue().toString();long seed=world.getSeed();
+        if(binding.state()!=null&&binding.state().available())for(var entry:binding.state().entries){
+            if(entry.worldSeed()==seed&&entry.dimension().equals(dimension))objects.add(entry.object());
+        }
+        var pending=binding.pending();
+        if(pending!=null&&!pending.done()&&pending.manifest.worldSeed()==seed&&pending.manifest.identity().world().equals(dimension))
+            for(var object:pending.objects)if(!objects.contains(object))objects.add(object);
+        return List.copyOf(objects);
+    }
     /** Called only by an explicitly completed ORBITAL_FIELD job on the server thread. */
     public static Certification begin(ServerWorld world,CityManifest manifest,CityBlueprint.Plan plan){
         main(world);Objects.requireNonNull(manifest);Objects.requireNonNull(plan);

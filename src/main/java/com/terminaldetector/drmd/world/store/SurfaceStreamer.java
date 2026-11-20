@@ -105,7 +105,8 @@ public final class SurfaceStreamer {
 				long key = SectionKey.of(level, centreX + offset[0], centreZ + offset[1]);
 				if (already.contains(key)) continue;
 				SurfaceSection section = store.peek(key);
-				if (section == null || !section.hasAny()) continue;
+				// An installed empty section can revoke the last observation a client already received.
+				if (section == null) continue;
 				ServerPlayNetworking.send(player, new ModNetworking.SurfacePayload(key, section.toBytes()));
 				already.add(key);
 				budget--;

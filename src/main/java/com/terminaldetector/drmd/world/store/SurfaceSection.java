@@ -65,10 +65,24 @@ public final class SurfaceSection {
 	 */
 	public boolean set(int cellX, int cellZ, int worldHeight, int rgb) {
 		int i = index(cellX, cellZ);
-		short h = (short) Math.max(Short.MIN_VALUE + 1, Math.min(Short.MAX_VALUE, worldHeight));
+		short h = encodeHeight(worldHeight);
 		if (height[i] == h && colour[i] == (rgb & 0xFFFFFF)) return false;
 		height[i] = h;
 		colour[i] = rgb & 0xFFFFFF;
+		dirty = true;
+		return true;
+	}
+
+	static short encodeHeight(int worldHeight) {
+		return (short) Math.max(Short.MIN_VALUE + 1, Math.min(Short.MAX_VALUE, worldHeight));
+	}
+
+	/** Withdraw one invalid observation. The client can use its ordinary unknown-terrain fallback. */
+	boolean forget(int cellX, int cellZ) {
+		int i = index(cellX, cellZ);
+		if (height[i] == NO_HEIGHT) return false;
+		height[i] = NO_HEIGHT;
+		colour[i] = 0;
 		dirty = true;
 		return true;
 	}
