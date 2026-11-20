@@ -1,0 +1,108 @@
+{
+  "status": "PASS",
+  "source": "6877d3c64b6a6a6ea4910cbf89d9d010a927a068",
+  "passedJarSha256": "947bf4c3d55113fb3656b92278b05d5b1fbb3f3afedf90824c8dda652f392198",
+  "upstreamSha256": "ceb0ef913fa5114c4dda8e8eb3b68fe74b5ca24c89952e427b83cb2595b69285",
+  "nativeExit": 0,
+  "sourceDonorArchiveSha256": "f33bd9d4520e092f0c89bda8238c7928ca4867786ec5de448c855e4ec757d367",
+  "closedReaderDatabaseSha256": "e280a42a406690d61e00c4261ba2e3474957825018eebe8e5552e8172b435473",
+  "leaves": [
+    {
+      "pieceY": 33,
+      "expectedMaterial": "minecraft:red_wool",
+      "present": true,
+      "compressionMode": 4,
+      "mappingSha256": "baf46b3999392689075591e48f8d749e081fd2bd944f56de265bc259a182ed8d",
+      "entries": [
+        "minecraft:cold_ocean_DH-BSW_AIR",
+        "minecraft:cold_ocean_DH-BSW_minecraft:red_wool_STATE_",
+        "minecraft:deep_cold_ocean_DH-BSW_AIR"
+      ],
+      "expectedMaterialPresent": true
+    },
+    {
+      "pieceY": 34,
+      "expectedMaterial": "minecraft:lime_wool",
+      "present": true,
+      "compressionMode": 4,
+      "mappingSha256": "26fd6e2453a9bbb1d5e3646735339cc8859418ed6e6fca40ef80ad4187f1f856",
+      "entries": [
+        "minecraft:cold_ocean_DH-BSW_AIR",
+        "minecraft:cold_ocean_DH-BSW_minecraft:lime_wool_STATE_",
+        "minecraft:deep_cold_ocean_DH-BSW_AIR"
+      ],
+      "expectedMaterialPresent": true
+    }
+  ],
+  "sameXZBlockIntervalsInclusive": [
+    [
+      2147,
+      2154
+    ],
+    [
+      2226,
+      2233
+    ]
+  ],
+  "frames": [
+    {
+      "name": "both-cubic-lods",
+      "upperGreen": 1581,
+      "yaw": 0.0,
+      "lowerRed": 1408,
+      "pitch": 0.0,
+      "nativeView": 4,
+      "dayTime": 6000
+    },
+    {
+      "name": "lower-cube",
+      "upperGreen": 2311,
+      "yaw": 0.0,
+      "lowerRed": 1258,
+      "pitch": 12.0,
+      "nativeView": 4,
+      "dayTime": 6000
+    },
+    {
+      "name": "upper-cube",
+      "upperGreen": 1437,
+      "yaw": 0.0,
+      "lowerRed": 1937,
+      "pitch": -12.0,
+      "nativeView": 4,
+      "dayTime": 6000
+    }
+  ],
+  "scope": "Optional isolated official 3.3.4+cubic.1 stand, two workers, existing generated data, daylight, upstream DH fog off. The ordinary vanilla four-chunk view and closed material checks were unchanged. Production settings and base distribution have no change.",
+  "archive": "bdh-cubic-cold-pixels.zip",
+  "archiveSha256": "d78333525a6b32859339104f434c6fb50ca31383b36c21ebcb93c0dc3c6595d5",
+  "memberSha256": {
+    "first/native.log": "7f43b0c9067f7913f1cc311cb3415625f2afe896b8e65b628a2caf9738f555e1",
+    "first/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "first/cold-reader-receipt.json": "3419c5e691987a5c37f283a4212110406f8c90b2580cc603774b78d63b6740a8",
+    "first/closed-copied-save.json": "523f402af5bc9f2b596144dbbc089b046a81309d8d279cd982dccf2f3f873f7d",
+    "first/bdh-cubic-outcome.json": "bea0f21e53d6e5c67ed5447b50b53a1cdb6834e6cd73ba605b8633699e112416",
+    "night/native.log": "25cc38230b899649076711b93cb354f95fc8deafc2439465226664a4ce05d467",
+    "night/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "night/cold-reader-receipt.json": "ae3509d4204ecbfa9601ba4cff18dc59512831963a3649909f7e9f1ac82e8a02",
+    "night/closed-copied-save.json": "233b2a9d5ec2bd6bd1916fbf6340965e2264d62374e381944bf3fb7029d15458",
+    "night/bdh-cubic-outcome.json": "e7fbc701f4097bc4ec80ed020e92d67497a4b552ea509b0eaaa74e9eb58db012",
+    "daylight-with-fog/native.log": "14064e616aad5612f3d9dab413041e20ae74ef94936179b5e1a72b7d8c96eb0e",
+    "daylight-with-fog/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "daylight-with-fog/cold-reader-receipt.json": "f4b68f31f8f24395a8f3fe7875cb46487ad800bfd59ff04633d53c33a7d040b8",
+    "daylight-with-fog/closed-copied-save.json": "12efccd53a6fb968df3880b68270a67ac95a7ee0822091d0e4a64cb3b50f02da",
+    "daylight-with-fog/bdh-cubic-outcome.json": "803765a2461ec78c3c894f2de4e1bd8e4ab26289c7810109990aba0dea15b4b3",
+    "daylight-no-dh-fog/native.log": "a9d224dc617936325a2bfe3ab876e7637a4406f470d99bb77d67f28ba8a55446",
+    "daylight-no-dh-fog/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "daylight-no-dh-fog/cold-reader-receipt.json": "eaf5b3b9ae14ffa3b84d3190564f1194da985a40775d404fe779eb1c7f11594f",
+    "daylight-no-dh-fog/closed-copied-save.json": "fab65d44a7fb27fe74ce0b02084363763be002f4c36e72760c272c54706c281d",
+    "daylight-no-dh-fog/bdh-cubic-outcome.json": "e20f3776544c05b44c83060b0bd579517aff445312c9e2f11a9fcc9f76c0ad14",
+    "daylight-no-dh-fog/frames/both-cubic-lods.png": "f55790100f513d9a24588cf235831179e980825d6f7d6a50375f792d54501445",
+    "daylight-no-dh-fog/frames/lower-cube.png": "6f0375367173259e00b350f568c8a600db9587f0d2a4e92f3ca815ca299bd8a3",
+    "daylight-no-dh-fog/frames/upper-cube.png": "5362a00ce22e406bd395aee146c802bd9aec63155629ab8572044b3b5a1aa74d",
+    "research/S04-T05-positive-native-data-handoff.json": "c2db4f9356ad0b1e9b80ccf5bac4eed1e8b5865e2fdc7307ea841fc2255e9f24",
+    "research/S04-T05-material-relative-projected-shapes.jsons": "a78794375cfb1133bc8803f168cc57bbef06b5e78b24dcb4712ae131d69eefcf",
+    "research/cold-noon-no-dh-fog-profile-receipt.json": "9876f834dfe20433525ed11446c98f8e047f5e4b05e5d021eeb6a9dce4a147d8",
+    "research/DistantHorizons-cold-two-workers-noon-no-dh-fog.toml": "0b27074d9caafc127b262204d1b16f8d606b1db21f6ec2bf79ab5189a752e4bc"
+  }
+}
