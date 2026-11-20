@@ -27,6 +27,8 @@ public final class HeavyOperatorSystem {
     public static final BlockPos CORE=new BlockPos(0,0,-1),YAW_DRIVE=BlockPos.ORIGIN,YAW_BASE=new BlockPos(0,1,0),
         YAW_CHILD=BlockPos.ORIGIN,PITCH_DRIVE=new BlockPos(0,1,0),PITCH_BASE=new BlockPos(1,1,0),PITCH_CHILD=BlockPos.ORIGIN,
         LASER=new BlockPos(0,0,2),LEFT=new BlockPos(-2,0,2),RIGHT=new BlockPos(2,0,2);
+    public static final BlockPos BARREL_REACTOR=new BlockPos(1,0,1);
+    public static final List<BlockPos> REACTION_PODS=List.of(new BlockPos(2,0,1),new BlockPos(1,1,1),new BlockPos(1,0,0));
     private static final String ROOT="drmd.operator.v1",GUN="drmd.operator.gun.v1",YAW="drmd.operator.yaw=",BARREL="drmd.operator.barrel=",PARENT="drmd.operator.parent=";
     private static final Vec3 UP=new Vec3(0,1,0),X=new Vec3(1,0,0);
     private static final Map<ServerWorld,Frame> FRAMES=new WeakHashMap<>();
@@ -38,12 +40,14 @@ public final class HeavyOperatorSystem {
     private record Memory(UUID target,WeakReference<LivingEntity> actor,Vec3d point,Vec3d velocity,long observedAt){}
     private record Interest(UUID target,WeakReference<LivingEntity> actor,long observedAt){}
     private record Pods(long revision,List<BlockPos> cells,com.terminaldetector.drmd.d6.D6ThrusterMixer mixer){}
+    private record BarrelPods(UUID barrel,Pods hardware){}
     private static final class Frame {
         long tick=Long.MIN_VALUE;int cursor,candidates,rays,drives;Stats stats=new Stats(0,0,0,0,0);
         final Map<UUID,Permit> permits=new HashMap<>();
         final Map<UUID,Memory> memories=new HashMap<>();
         final Map<UUID,Interest> interests=new HashMap<>();
         final Map<UUID,Pods> pods=new HashMap<>();
+        final Map<UUID,BarrelPods> reactionPods=new HashMap<>();
         final Map<UUID,BlockPos> aimSlots=new HashMap<>();
         final Map<UUID,Set<BlockPos>> visibleSlots=new HashMap<>();
     }
@@ -90,6 +94,7 @@ public final class HeavyOperatorSystem {
      * remove an entire free island's angular momentum. Called AFTER each ordinary
      * or joint rollback snapshot; UNKNOWN rolls back these forces too. */
     public static void accumulateForces(BlockBodyEntity root){
+        if(root.getCommandTags().contains(GUN)){accumulateBarrelForces(root);return;}
         if(!needsVolumeInterest(root))return;var world=(ServerWorld)root.getWorld();var f=FRAMES.get(world);
         var pods=f.pods.get(root.getUuid());
         if(pods==null||pods.revision!=root.shapeRevision()){
@@ -116,6 +121,43 @@ public final class HeavyOperatorSystem {
         var selected=pods;
         for(var output:pods.mixer.mix(root.localCentre(),inverse.rotate(force),inverse.rotate(torque),i->root.getLocalBlock(selected.cells.get(i)).isOf(ModWorldBlocks.SHIP_THRUSTER)))
             physics.applyForceAtPoint(root.rotation().rotate(output.force()),root.rotation().rotate(output.localPoint().minus(root.localCentre())));
+    }
+    /** Actual reactor-gated vector hardware assists the SAME physical two-axis command.
+     * Root thrusters cannot cancel free yaw recoil across a40Nm hinge by themselves.
+     * No electric/fuel store is invented: reactor material and each300N pod are authority.
+     * Called by the existing post-snapshot force phase, never an extra integration. */
+    private static void accumulateBarrelForces(BlockBodyEntity barrel){
+        if(!(barrel.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return;
+        var root=body(world,uuid(barrel,PARENT));
+        if(root==null||!needsVolumeInterest(root))return;
+        var a=resolve(world,root);if(!materialValid(world,a)||a.barrel!=barrel
+            ||!barrel.getLocalBlock(BARREL_REACTOR).isOf(ModWorldBlocks.UNSTABLE_REACTOR))return;
+        var f=FRAMES.get(world);var memory=f.memories.get(root.getUuid());var interest=f.interests.get(root.getUuid());long now=world.getTime();
+        var remembered=memory==null?null:memory.actor.get();
+        if(memory==null||interest==null||!memory.target.equals(interest.target)||remembered!=interest.actor.get()
+            ||!enemy(root,remembered)||now<memory.observedAt||now-memory.observedAt>=DroneSquadMailbox.TTL)return;
+        var selected=f.aimSlots.get(root.getUuid());if(selected==null||!gun(barrel,selected))return;
+        var desired=aimDirection(barrel,selected,memory.point,memory.velocity);if(desired==null)return;
+        var cached=f.reactionPods.get(root.getUuid());
+        if(cached==null||!cached.barrel.equals(barrel.getUuid())||cached.hardware.revision!=barrel.shapeRevision()){
+            var cells=barrel.cells().stream().filter(c->c.state().isOf(ModWorldBlocks.SHIP_THRUSTER)).map(BlockBodyEntity.Cell::pos).limit(17).sorted().toList();
+            if(cells.size()<3||cells.size()>16){f.reactionPods.remove(root.getUuid());return;}
+            if(f.reactionPods.size()>=MAX_ASSEMBLIES&&!f.reactionPods.containsKey(root.getUuid()))return;
+            try{cached=new BarrelPods(barrel.getUuid(),new Pods(barrel.shapeRevision(),cells,
+                new com.terminaldetector.drmd.d6.D6ThrusterMixer(cells.stream().map(p->new Vec3(p.getX()+.5,p.getY()+.5,p.getZ()+.5)).toList(),BodyControlCore.FORCE_PER_MOTOR)));
+                f.reactionPods.put(root.getUuid(),cached);
+            }catch(IllegalArgumentException unsupported){f.reactionPods.remove(root.getUuid());return;}
+        }
+        var forward=MountedWeaponEmitter.direction(barrel,selected);var baseSpin=root.physics().angularVelocity();
+        var command=rates(forward,desired,axis(root,UP),axis(a.yaw,X),new Vec3d(baseSpin.x(),baseSpin.y(),baseSpin.z()));
+        // Follow the existing capped hinge rates, including the actual base motion.
+        // A balanced vector-pod couple supplies torque at real mounts, not free angular damping.
+        var targetSpin=baseSpin.plus(root.rotation().rotate(UP).scaled(command.yaw)).plus(a.yaw.rotation().rotate(X).scaled(command.pitch));
+        var torque=barrel.physics().worldInertia().transform(targetSpin.minus(barrel.physics().angularVelocity()).scaled(8));
+        var hardware=cached.hardware;var localTorque=barrel.rotation().inverse().rotate(torque);
+        for(var output:hardware.mixer.mix(barrel.localCentre(),new Vec3(0,0,0),localTorque,
+            i->barrel.getLocalBlock(hardware.cells.get(i)).isOf(ModWorldBlocks.SHIP_THRUSTER)))
+            barrel.physics().applyForceAtPoint(barrel.rotation().rotate(output.force()),barrel.rotation().rotate(output.localPoint().minus(barrel.localCentre())));
     }
     private static Assembly resolve(ServerWorld world,BlockBodyEntity root){
         if(root==null||!root.getCommandTags().contains(ROOT)||root.getCommandTags().stream().anyMatch(t->t.startsWith("drmd.operator.")&&!t.equals(ROOT)&&!t.startsWith(YAW)&&!t.startsWith(BARREL)))return null;
@@ -146,7 +188,7 @@ public final class HeavyOperatorSystem {
         // A conservative authoring envelope includes the two connected components.
         // Read availability before shape queries; never turn an unknown cube into air.
         var bounds=com.terminaldetector.drmd.physics.collision.OrientedBox.local(
-            new com.terminaldetector.drmd.physics.collision.BodyBounds(new Vec3(-2,-1,-2),new Vec3(5,4,3)),new Vec3(at.x,at.y,at.z),new Vec3(0,0,0),q).bounds();
+            new com.terminaldetector.drmd.physics.collision.BodyBounds(new Vec3(-2,-1,-2),new Vec3(5,5,3)),new Vec3(at.x,at.y,at.z),new Vec3(0,0,0),q).bounds();
         var box=new Box(bounds.min().x(),bounds.min().y(),bounds.min().z(),bounds.max().x(),bounds.max().y(),bounds.max().z());
         if(!world.getWorldBorder().contains(box)||box.minY<world.getBottomY()||box.maxY>world.getTopY())throw new IllegalArgumentException("operator outside world bounds");
         var access=WorldAccess.of(world);
@@ -172,6 +214,8 @@ public final class HeavyOperatorSystem {
         var middle=new LinkedHashMap<BlockPos,BlockState>();middle.put(YAW_CHILD,bearing(Direction.DOWN));middle.put(PITCH_DRIVE,drive(Direction.EAST));middle.put(PITCH_BASE,bearing(Direction.EAST));
         var guns=new LinkedHashMap<BlockPos,BlockState>();guns.put(PITCH_CHILD,bearing(Direction.WEST));guns.put(new BlockPos(0,0,1),Blocks.IRON_BLOCK.getDefaultState());
         for(int x=-2;x<=2;x++)guns.put(new BlockPos(x,0,2),Blocks.IRON_BLOCK.getDefaultState());
+        guns.put(BARREL_REACTOR,ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState());
+        for(var pod:REACTION_PODS)guns.put(pod,ModWorldBlocks.SHIP_THRUSTER.getDefaultState());
         guns.put(LASER,ModWorldBlocks.SHIP_LASER.getDefaultState().with(Properties.FACING,Direction.SOUTH));
         for(var p:List.of(LEFT,RIGHT))guns.put(p,ModWorldBlocks.SHIP_ROCKET.getDefaultState().with(Properties.FACING,Direction.SOUTH));
         var made=new ArrayList<BlockBodyEntity>();
@@ -271,6 +315,7 @@ public final class HeavyOperatorSystem {
         f.memories.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>=DroneSquadMailbox.TTL;});
         f.interests.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>CADENCE+1;});
         f.pods.keySet().removeIf(id->!f.interests.containsKey(id));
+        f.reactionPods.keySet().removeIf(id->!f.interests.containsKey(id));
         f.aimSlots.keySet().removeIf(id->!f.interests.containsKey(id));
         if(!sense){
             // The bearings can sweep over eight degrees between sensor scans.
