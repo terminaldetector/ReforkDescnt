@@ -202,7 +202,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
                 }
             }
             if(ready)for(var r:cases)System.out.println("C2_NATIVE_CEILING_PURSUIT type="+r.actor.getType()+" actorTicks="+(r.age-r.born)
-                +" advance="+(r.actor.getZ()-r.start.z)+" maxStep="+r.maxStep+" maxSupportGap="+r.maxGap+" observerSetTarget=false");
+                +" advance="+(r.last.z-r.start.z)+" maxStep="+r.maxStep+" maxSupportGap="+r.maxGap+" observerSetTarget=false");
             return ready;
         });
     }
