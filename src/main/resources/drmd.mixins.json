@@ -24,6 +24,7 @@
     "LocalSurfaceNavigationMixin",
     "LocalGroundTargetGoalMixin",
     "LocalGroundNavigationMixin",
+    "LocalVillagerMoveTaskMixin",
     "LocalSpiderNavigationMixin",
     "LocalSurfaceMotorMixin",
     "LocalSurfaceInputMixin",

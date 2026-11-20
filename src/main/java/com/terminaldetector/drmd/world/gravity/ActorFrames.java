@@ -6,6 +6,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -23,6 +24,7 @@ public final class ActorFrames {
             || entity instanceof com.terminaldetector.drmd.entity.mob.SpiderTurretEntity
             || entity instanceof com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity
             || entity instanceof net.minecraft.entity.mob.SpiderEntity
+            || entity.getClass()==VillagerEntity.class
             || type==EntityType.COW || type==EntityType.PIG || type==EntityType.SHEEP
             || type==EntityType.ZOMBIE || type==EntityType.HUSK || type==EntityType.SKELETON
             || type==EntityType.STRAY || type==EntityType.CREEPER;

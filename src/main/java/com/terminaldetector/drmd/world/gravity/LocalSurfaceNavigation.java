@@ -188,6 +188,14 @@ public final class LocalSurfaceNavigation {
         var state=WORLDS.get(world);var search=state==null?null:state.searches.get(actor.getUuid());
         return search!=null&&search.owner.get()==actor?search:null;
     }
+    /** A native brain may wait for its exact live route instead of marking it unreachable. */
+    public static boolean searchingFor(MobEntity actor,BlockPos target) {
+        var search=ownedSearch(actor);
+        if(search==null||search.search==null||!target.equals(search.target)||!active(actor))return false;
+        long now=actor.getWorld().getTime();
+        return now>=search.started&&now-search.started<=SEARCH_TICKS&&search.origin!=null
+            &&actor.getPos().squaredDistanceTo(search.origin)<=.25&&ActorFrames.up(actor).distanceTo(search.up)<1e-6;
+    }
     /** Public null/foreign paths cancel old intent; only this Search's scoped native delivery may retain it. */
     public static void moveAlongStarting(MobEntity actor,Path path,double speed){
         var search=ownedSearch(actor);if(search==null)return;

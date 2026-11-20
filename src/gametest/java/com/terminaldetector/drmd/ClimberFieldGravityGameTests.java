@@ -10,8 +10,11 @@ import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ai.brain.MemoryModuleType;
+import net.minecraft.entity.ai.brain.WalkTarget;
 import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.entity.passive.CowEntity;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
@@ -554,6 +557,61 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
     public void ordinaryUnframedZombieKeepsTheNativeFourBlockVerticalMobSearchBand(TestContext c){nativeMobCandidates(c,false,true,false);}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-opaque-selection-control",tickLimit=320)
     public void actualOpaqueWallStillRefusesNativeC1MobTargetSelection(TestContext c){nativeMobCandidates(c,true,false,true);}
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-villager-wall-brain-detour",tickLimit=320)
+    public void villagerBrainRetainsItsWalkMemoryUntilTheWallDetourCanRun(TestContext c) {
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));
+        var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var up=new Vec3d(1,0,0);
+        var start=Vec3d.ofCenter(centre).subtract(up.multiply(7.48)).add(0,0,-5);
+        var destination=BlockPos.ofFloored(start.add(0,0,10));
+        var intent=new WalkTarget(destination,1,0);
+        VillagerEntity[] witness={null};boolean[] issued={false},pending={false},working={false};int[] born={0};
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;
+            room.build();
+            if(witness[0]==null) {
+                room.field(centre,up.negate());
+                for(int x=room.min.getX()+1;x<=room.min.getX()+3;x++)
+                    for(int y=centre.getY()-4;y<=centre.getY()+4;y++)
+                        room.world.setBlockState(new BlockPos(x,y,centre.getZ()),Blocks.OBSIDIAN.getDefaultState(),2);
+                var actor=EntityType.VILLAGER.create(room.world);
+                actor.setAiDisabled(true);actor.setPersistent();actor.setPosition(start);
+                c.assertTrue(ActorFrames.trySetUp(actor,up),"the ordinary villager body fits its physical wall frame");
+                room.spawn(actor);witness[0]=actor;
+                return false;
+            }
+            var actor=witness[0];var brain=actor.getBrain();
+            if(!issued[0]) {
+                if(actor.age<2||!EntityGravitySystem.suppressesVanillaGravity(actor))return false;
+                groundSupport(c,actor,up);
+                var wall=room.world.raycast(new RaycastContext(actor.getEyePos(),Vec3d.ofCenter(destination).add(1,0,0),
+                    RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,actor));
+                c.assertTrue(wall.getType()==HitResult.Type.BLOCK&&wall.getBlockPos().getZ()==centre.getZ(),"an actual wall blocks the direct path");
+                brain.remember(MemoryModuleType.WALK_TARGET,intent);
+                actor.setAiDisabled(false);born[0]=actor.age;issued[0]=true;
+                return false;
+            }
+            if(actor.age<=born[0])return false;
+            groundSupport(c,actor,up);
+            if(com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.searchingFor(actor,destination)) {
+                pending[0]=true;
+                c.assertTrue(brain.getOptionalRegisteredMemory(MemoryModuleType.WALK_TARGET).orElse(null)==intent
+                    &&!brain.hasMemoryModule(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE),
+                    "the native task leaves the same walk memory intact while its local route is still running");
+            }
+            var path=actor.getNavigation().getCurrentPath();
+            if(path instanceof com.terminaldetector.drmd.world.gravity.LocalSurfacePath
+                &&brain.getOptionalRegisteredMemory(MemoryModuleType.PATH).orElse(null)==path)working[0]=true;
+            if(pending[0]&&working[0]&&Math.abs(actor.getY()-start.y)>1) {
+                System.out.println("C1_NATIVE_VILLAGER_BRAIN actorTicks="+(actor.age-born[0])+" detourY="+(actor.getY()-start.y)
+                    +" samePendingWalkTarget=true actualBrainPath=true fixtureNavigationCalls=false");
+                return true;
+            }
+            c.assertTrue(actor.age-born[0]<120,"native villager must take the bounded wall detour: pending="+pending[0]+" path="+working[0]+" at="+actor.getPos());
+            return false;
+        });
+    }
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c2-wall-golem-selection",tickLimit=320)
     public void nativeSpiderAndCaveSpiderAcquireAndPursueGolemsUpTheirWallTangent(TestContext c) {
