@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /** Isolated upstream LOD proof using only ordinary writes to real cubic-world blocks. */
 public final class NativeBdhCubicCheck {
@@ -38,11 +40,16 @@ public final class NativeBdhCubicCheck {
     private static volatile boolean committed, writing, loading, released;
     private static volatile int fullPieceSections;
     private static boolean releaseQueued;
+    private static boolean fixtureReturnQueued;
+    private static volatile boolean fixtureReturned;
     private static java.util.UUID fixturePlayer;
     private static volatile int setupTeleports;
     private static volatile Map<String,Object> handoffAdmission = Map.of();
     private static volatile String serverStatus = "awaiting world";
     private static Method describe;
+    private static NativeBdhCubicMaterial materialProbe;
+    private static CompletableFuture<List<String>> materialRead;
+    private static List<String> admittedMaterials = List.of();
     private static int ticks, stable, phase, lowerMax, upperMax;
     private static long deadline, nextReadback;
     private static String lower = "", upper = "";
@@ -82,6 +89,7 @@ public final class NativeBdhCubicCheck {
                 }
                 describe = Class.forName("com.seibel.distanthorizons.core.level.CubicDebugProbe")
                     .getMethod("describe", int.class, int.class, int.class);
+                if (VISIT_FIXTURE) materialProbe = new NativeBdhCubicMaterial();
                 started = true;
                 client.options.hudHidden = true;
                 client.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON);
@@ -156,11 +164,6 @@ public final class NativeBdhCubicCheck {
                         // database/render upload acknowledges both pieces. No direct DH data injection.
                         serverStatus = (COLD_READER ? "462 existing donor cells verified with ZERO writes" : "462 real cells written and verified")
                             + "; eight FULL sections retained for upstream admission";
-                        if (VISIT_FIXTURE) {
-                            // One return to the original measurement pose; normal client/server sync remains authoritative.
-                            player.teleport(world,8.5,2183,8.5,Set.of(),0,0);
-                            setupTeleports++;
-                        }
                         committed = true;
                     } finally {
                         loading = false;
@@ -169,6 +172,10 @@ public final class NativeBdhCubicCheck {
                 return;
             }
             if (!committed || Math.abs(client.player.getY() - 2183) > 2) return;
+            if (VISIT_FIXTURE && !fixtureReturned) {
+                awaitFixtureMaterials(client);
+                return;
+            }
             client.player.setYaw(0);
             client.player.setPitch(phase == 0 ? 0 : (phase == 1 ? 12 : -12));
             if (ticks % 40 != 0) return;
@@ -186,9 +193,31 @@ public final class NativeBdhCubicCheck {
                     released = true;
                 });
             }
-        } catch (ReflectiveOperationException failure) {
+        } catch (ReflectiveOperationException | CompletionException failure) {
             finish(client, "FAIL", failure.toString());
         }
+    }
+
+    private static void awaitFixtureMaterials(MinecraftClient client) throws ReflectiveOperationException {
+        if (fixtureReturnQueued || ticks % 40 != 0) return;
+        if (materialRead != null) {
+            if (!materialRead.isDone()) return;
+            admittedMaterials = materialRead.join();
+            materialRead = null;
+            serverStatus = "waiting at native fixture for actual upstream material: " + admittedMaterials;
+            if (admittedMaterials.equals(List.of("minecraft:red_wool", "minecraft:lime_wool"))) {
+                fixtureReturnQueued = true;
+                client.getServer().execute(() -> {
+                    var player = client.getServer().getPlayerManager().getPlayer(fixturePlayer);
+                    if (player == null) return;
+                    player.teleport(player.getServerWorld(), 8.5, 2183, 8.5, Set.of(), 0, 0);
+                    setupTeleports++;
+                    fixtureReturned = true;
+                });
+                return;
+            }
+        }
+        materialRead = materialProbe.read(LOWER, UPPER);
     }
 
     private static String describe(BlockPos pos) throws ReflectiveOperationException {
@@ -260,7 +289,8 @@ public final class NativeBdhCubicCheck {
                 "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax, "view", finalView,
                 "interest", Map.of("minSectionY", 132, "maxSectionY", 139, "fullBeforeWrites", fullPieceSections,
                     "releasedBeforePixels", released, "coldReader", COLD_READER,
-                    "visitFixture",VISIT_FIXTURE,"setupTeleports",setupTeleports,"handoffAdmission",handoffAdmission));
+                    "visitFixture",VISIT_FIXTURE,"setupTeleports",setupTeleports,"handoffAdmission",handoffAdmission,
+                    "admittedMaterials", admittedMaterials));
             Files.writeString(client.runDirectory.toPath().resolve("bdh-cubic-outcome.json"),
                 new GsonBuilder().setPrettyPrinting().create().toJson(result) + "\n");
         } catch (Exception failure) {
