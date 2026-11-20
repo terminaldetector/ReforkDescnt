@@ -402,7 +402,8 @@ public final class EntityFieldGravityGameTests implements FabricGameTest {
         var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));
         for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
         EntityType<?>[] types={EntityType.COW,EntityType.SPIDER,EntityType.BAT,EntityType.DOLPHIN,
-            com.terminaldetector.drmd.entity.ModEntities.ORB,EntityType.WITHER,EntityType.SHULKER};
+            com.terminaldetector.drmd.entity.ModEntities.ORB,EntityType.WITHER,EntityType.SHULKER,
+            EntityType.ENDER_DRAGON,EntityType.RABBIT};
         for(var type:types)for(var facing:Direction.values()) {
             var actor=(net.minecraft.entity.mob.MobEntity)type.create(world);net.minecraft.entity.mob.MobEntity copy=null;
             actor.setAiDisabled(true);actor.setNoGravity(true);actor.setPosition(Vec3d.ofCenter(centre));
@@ -416,6 +417,13 @@ public final class EntityFieldGravityGameTests implements FabricGameTest {
                 boolean framed=ActorFrames.supported(actor),constrained=ActorPhysicsProfile.nativeConstraint(actor);
                 c.assertTrue(actor.getPos().equals(position),"no family receives a hidden proxy or torch-wall teleport: "+type);
                 c.assertTrue(ActorFrames.active(actor)==framed&&EntityGravitySystem.suppressesVanillaGravity(actor)!=constrained,"each actual family selects its declared frame/constraint policy: "+type);
+                if(actor instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity dragon) {
+                    var parts=dragon.getBodyParts();
+                    c.assertTrue(parts.length>1&&java.util.Arrays.stream(parts)
+                        .allMatch(part->part.getWorld()==world&&!EntityGravitySystem.suppressesVanillaGravity(part)),"vanilla multipart boss keeps all parts under its own controller");
+                }
+                if(type==EntityType.RABBIT)c.assertTrue(ActorPhysicsProfile.family(actor)==ActorPhysicsProfile.Family.FALLBACK
+                    &&!ActorFrames.active(actor),"an ordinary unregistered species uses the force-only fallback");
                 if(framed)c.assertTrue(ActorFrames.up(actor).dotProduct(Vec3d.of(facing.getVector()))>.99999
                     &&actor.getEyePos().subtract(actor.getPos()).normalize().dotProduct(Vec3d.of(facing.getVector()))>.99999,"actual local body and eye share the torch frame");
                 var saved=actor.writeNbt(new NbtCompound());copy=(net.minecraft.entity.mob.MobEntity)type.create(world);copy.readNbt(saved);
