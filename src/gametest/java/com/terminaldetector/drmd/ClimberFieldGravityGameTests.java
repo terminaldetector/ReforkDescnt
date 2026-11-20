@@ -718,29 +718,34 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
             }
             boolean ready=true;
             for(var r:cases) {
+                // As in the ceiling case, each species must qualify before its own
+                // native pounce can lift it from the wall.
+                if(r.supportedPursuit)continue;
                 var actor=r.actor;
                 if(actor.age==r.age){ready=false;continue;}
                 r.step=Math.max(r.step,actor.getPos().distanceTo(r.last)/Math.max(1,actor.age-r.age));
                 r.last=actor.getPos();r.age=actor.age;
-                groundSupport(c,actor,up);
+                r.maxGap=Math.max(r.maxGap,groundSupport(c,actor,up));
                 c.assertTrue(actor.isAlive()&&!actor.isAiDisabled()&&actor.getNavigation()==r.navigation
                     &&actor.getMoveControl()==r.control&&r.step<=1,"actual native C2 control and supported motion stay intact");
                 r.selected|=actor.getTarget()==r.target;
                 r.path|=actor.getNavigation().getCurrentPath() instanceof com.terminaldetector.drmd.world.gravity.LocalSurfacePath;
-                if(!(r.selected&&r.path&&actor.getY()-r.start.y>=1)) {
-                    c.assertTrue(actor.age-r.born<120,"native C2 must select and pursue on its wall: "+actor.getType()+" selected="+r.selected+" path="+r.path+" rise="+(actor.getY()-r.start.y));
+                double rise=r.last.y-r.start.y;
+                r.supportedPursuit=r.selected&&r.path&&rise>=1;
+                if(!r.supportedPursuit) {
+                    c.assertTrue(actor.age-r.born<120,"native C2 must select and pursue on its wall: "+actor.getType()+" selected="+r.selected+" path="+r.path+" rise="+rise);
                     ready=false;
                 }
             }
             if(ready)for(var r:cases)System.out.println("C2_NATIVE_WALL_PURSUIT type="+r.actor.getType()+" target="+r.target.getType()
-                +" ordinaryActorTicks="+(r.age-r.born)+" rise="+(r.actor.getY()-r.start.y)+" maxStep="+r.step+" observerSetTarget=false");
+                +" ordinaryActorTicks="+(r.age-r.born)+" rise="+(r.last.y-r.start.y)+" maxStep="+r.step+" maxSupportGap="+r.maxGap+" observerSetTarget=false");
             return ready;
         });
     }
 
     private static final class NativeCandidate {
         final net.minecraft.entity.mob.MobEntity actor,target;final Object navigation,control;Vec3d start,last;
-        int born,age,selectedAge=-1;boolean path,selected;double step;
+        int born,age,selectedAge=-1;boolean path,selected,supportedPursuit;double step,maxGap;
         NativeCandidate(net.minecraft.entity.mob.MobEntity a,net.minecraft.entity.mob.MobEntity target){actor=a;this.target=target;navigation=a.getNavigation();control=a.getMoveControl();}
         void enable(){actor.setAiDisabled(false);born=age=actor.age;start=last=actor.getPos();}
     }
