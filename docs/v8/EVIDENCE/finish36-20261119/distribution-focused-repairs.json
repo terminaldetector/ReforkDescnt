@@ -1,0 +1,66 @@
+{
+  "gameSource": "4d96f3c65386d64de0b98283e40058ec88318d88",
+  "gameSha256": "318c50ad86bee443621dcd405ae2d6ae14a5dd7b143bf90129dc76b9bc5de806",
+  "archive": "distribution-focused-repairs.zip",
+  "archiveSha256": "74464248407b7763df237b814b43504ec68662d42d97dfa423493c85a64f6528",
+  "memberSha256": {
+    "repair-stock/receipt.json": "87b4f4283db60242bfa298aa707cf97b8852f974857e66cb927a2c8e58df2deb",
+    "repair-stock/inputs.json": "8496787e65e4ffc6ecc6bc47babbd7ccf5922d0412b5e140a4a59612852a5d0a",
+    "repair-stock/game.log": "3750669f144e643bbd99d506bab607531be4b8b5f7ac1bb13b7fcd05518ca6b4",
+    "repair-stock/launch.cfg": "e8c88672c21451e1352d3638adc2dbe24e83771a03121d263d79ccbe8c51fd93",
+    "repair-stock/runtime/reports/gametest-results.xml": "a9a35e45ea853012560adf0edc9908c88597487fecbbed43d4b054aa9fd1bf30",
+    "repair-stock-final/receipt.json": "bbf48aaef2d8bb5a22e1d9ee87d33b870933dcf52dc92a384746098b5e45d1be",
+    "repair-stock-final/inputs.json": "631a73ed8a867cb434824764069d988c4e426ce4b44f06f0178dd14335ee716c",
+    "repair-stock-final/game.log": "3ef58e7ed01fa10e535e4526858fae9227d743554487d330fdd34f9b093a867f",
+    "repair-stock-final/launch.cfg": "aea4334eccc3f7b3031dc43e7648484b594db47142760e894d49a6046c09f8ed",
+    "repair-stock-final/runtime/reports/gametest-results.xml": "17d9c0269fc2003f979e1803d57b05a5cd185558f56008badbd137a7ad562288"
+  },
+  "runs": {
+    "repair-stock": {
+      "source": "4d96f3c65386d64de0b98283e40058ec88318d88",
+      "namedGameSource": "4d96f3c65386d64de0b98283e40058ec88318d88",
+      "exit": 1,
+      "processPid": 162886,
+      "started": 1795171349.639043,
+      "ended": 1795171410.2279587,
+      "validatedAfterRun": true,
+      "tests": 49,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "junitSHA256": "a9a35e45ea853012560adf0edc9908c88597487fecbbed43d4b054aa9fd1bf30",
+      "registeredEntrypoints": 7,
+      "failuresByName": {
+        "flightrecoverygametests.explicitoffdismountsandcannotberearmedbytheoldhull": [
+          "(11855736, -60, -306349) H-off severs both mount links"
+        ]
+      }
+    },
+    "repair-stock-final": {
+      "source": "94625ec262d75084543e447b64bd11b159bee016",
+      "namedGameSource": "4d96f3c65386d64de0b98283e40058ec88318d88",
+      "exit": 0,
+      "processPid": 163286,
+      "started": 1795171516.8847406,
+      "ended": 1795171573.2310123,
+      "validatedAfterRun": true,
+      "tests": 49,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "junitSHA256": "17d9c0269fc2003f979e1803d57b05a5cd185558f56008badbd137a7ad562288",
+      "registeredEntrypoints": 7,
+      "failuresByName": {}
+    }
+  },
+  "clearedOriginalFailures": [
+    "climberfieldgravitygametests.nativespiderandcavespiderpursuerealsurvivalplayersundertheceiling",
+    "flightrecoverygametests.normaloffusesloadedalternateclearancewithoutdestroyingthehull",
+    "gravityworldmaterialproofgametests.realtrunkcanopycutthenregisteredraillaunchesintosolidtarget",
+    "orientedbodygametests.smoothedtreesupportusesthesamegeometryasitsnarrowphase",
+    "portalexitinterestgametests.nearbyrealuserwarmsanunknowndestinationthroughordinarytickets",
+    "portalpendingtravelgametests.arealsavedunknownexitwarmsthentransfersthewaitingcrossingexactlyonceandretreatcancels",
+    "shapesinfantrygametests.nativelowhealthcoverreturnsthroughthewallchartinsteadofreplacingmomentum"
+  ],
+  "scope": "Actual focused ordinary servers, original complete baseline and old ceiling rejection preserved. Final run of all registered tests is separate."
+}
