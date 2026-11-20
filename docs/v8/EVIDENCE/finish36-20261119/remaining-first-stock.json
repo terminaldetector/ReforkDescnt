@@ -1,0 +1,11 @@
+{
+  "source": "da62cdb15a0a98096ad39fea8ed708ef95b264fc",
+  "testCount": 73,
+  "failures": [
+    "heavyoperatorgametests.realshoulderimpactdisablesonlyitsgunandordinarymaterialreplacementresumeswithoutbodyreset"
+  ],
+  "passed": 72,
+  "worldUfoAndGravityPass": true,
+  "archive": "remaining-first-stock.zip",
+  "archiveSha256": "1fecafc0db861a54a67899ff85a913041d70acd734c78afd092e48b08b7e33c7"
+}
