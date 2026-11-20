@@ -22,9 +22,13 @@ public final class OrientedBodyGameTests implements FabricGameTest {
         for(int y=0;y<=6;y++)w.setBlockState(p.up(y),Blocks.OAK_LOG.getDefaultState(),2);
         for(var cell:BlockPos.iterate(p.add(-2,4,-2),p.add(2,8,2)))
             if(w.getBlockState(cell).isAir() && Math.abs(cell.getX()-p.getX())+Math.abs(cell.getZ()-p.getZ())+Math.abs(cell.getY()-p.getY()-6)<=4)
-                w.setBlockState(cell,Blocks.OAK_LEAVES.getDefaultState().with(net.minecraft.state.property.Properties.PERSISTENT,true),2);
+                // A generated crown is carried by this trunk; player-persistent leaves are
+                // intentionally excluded by StructureCollapse.addCanopy.
+                w.setBlockState(cell,Blocks.OAK_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT,false)
+                    .with(net.minecraft.block.LeavesBlock.DISTANCE,Math.abs(cell.getX()-p.getX())+Math.abs(cell.getZ()-p.getZ())+Math.max(0,cell.getY()-p.getY()-6)),2);
         var b=com.terminaldetector.drmd.world.contraption.StructureCollapse.rocketCut(w,p,Vec3d.ofCenter(p),new Vec3d(0,0,-1),100);
         c.assertTrue(b!=null,"real support cut assembles the full smoothed tree");
+        c.assertTrue(b.cells().stream().anyMatch(cell->cell.state().isOf(Blocks.OAK_LEAVES)),"actual generated canopy must participate in the intended mass/mesh/contact fixture");
         try {
             for(int i=0;i<300;i++)b.tick();
             c.assertTrue(Math.abs(b.rotation().x())>.35,"natural body physically tips instead of freezing on mismatched contact geometry: "+b.rotation());

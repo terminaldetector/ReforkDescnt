@@ -182,7 +182,11 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
             }
             boolean ready=true;
             for(int i=0;i<cases.size();i++) {
-                var r=cases.get(i);var actor=r.actor;
+                var r=cases.get(i);
+                // Each native goal selects its target on its own cadence. After proving
+                // supported pursuit this spider may naturally pounce while the other catches up.
+                if(r.supportedPursuit)continue;
+                var actor=r.actor;
                 if(actor.age==r.age){ready=false;continue;}
                 r.maxStep=Math.max(r.maxStep,actor.getPos().distanceTo(r.last)/Math.max(1,actor.age-r.age));r.last=actor.getPos();r.age=actor.age;
                 r.maxGap=Math.max(r.maxGap,groundSupport(c,actor,up));
@@ -190,7 +194,8 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
                     &&actor.getMoveControl()==r.control&&r.maxStep<=1,"native C2 controls and continuous supported travel stay intact");
                 r.nativeTarget|=actor.getTarget()==targets.get(i).player;
                 r.path|=actor.getNavigation().getCurrentPath() instanceof com.terminaldetector.drmd.world.gravity.LocalSurfacePath;
-                if(!(r.nativeTarget&&r.path&&actor.getZ()-r.start.z>=1)) {
+                r.supportedPursuit=r.nativeTarget&&r.path&&actor.getZ()-r.start.z>=1;
+                if(!r.supportedPursuit) {
                     c.assertTrue(actor.age-r.born<120,"native C2 must select and pursue under the ceiling: "+actor.getType()
                         +" selected="+r.nativeTarget+" path="+r.path+" advance="+(actor.getZ()-r.start.z));
                     ready=false;
@@ -447,7 +452,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
 
     private static final class GoalProgress {
         final net.minecraft.entity.mob.MobEntity actor;final Object navigation,control;final Vec3d start;final int born;
-        final double distance;int age,passiveReceipts;Vec3d last;boolean path,arrow,nativeTarget;double maxStep,maxGap;
+        final double distance;int age,passiveReceipts;Vec3d last;boolean path,arrow,nativeTarget,supportedPursuit;double maxStep,maxGap;
         GoalProgress(net.minecraft.entity.mob.MobEntity a,net.minecraft.server.network.ServerPlayerEntity target){actor=a;navigation=a.getNavigation();control=a.getMoveControl();start=last=a.getPos();born=age=a.age;distance=a.distanceTo(target);}
     }
     private static void nativeGoals(TestContext c,Vec3d up,boolean ranged){

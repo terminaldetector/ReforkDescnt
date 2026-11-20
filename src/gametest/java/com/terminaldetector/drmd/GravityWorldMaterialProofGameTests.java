@@ -77,7 +77,7 @@ public final class GravityWorldMaterialProofGameTests implements FabricGameTest 
             DescentPlayerData.get(player).setEnabled(false);DescentPlayerData.get(player).setGravyEnergy(100);player.getInventory().clear();player.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModItems.GRAVY_RAILGUN));
             for(var e:items())initialItems.add(e.getUuid());
             for(int y=0;y<5;y++){put(root.up(y),(tree?Blocks.OAK_LOG:Blocks.BRICKS).getDefaultState());put(anchored.up(y),Blocks.BRICKS.getDefaultState());}
-            if(tree)put(root.up(4).east(),Blocks.OAK_LEAVES.getDefaultState().with(LeavesBlock.PERSISTENT,true));
+            if(tree)put(root.up(4).east(),Blocks.OAK_LEAVES.getDefaultState().with(LeavesBlock.PERSISTENT,false).with(LeavesBlock.DISTANCE,1));
             put(anchored.up(2).east(),Blocks.OBSIDIAN.getDefaultState());
             c.assertTrue(WorldEditSafety.mayChange(w,root,player)&&WorldEditSafety.mayChange(w,root.up(4),player),"actual ordinary Survival permissions before exposed collapse entry");
             c.assertTrue(StructureCollapse.rocketCut(w,anchored,Vec3d.ofCenter(anchored),new Vec3d(0,0,1),80)==null,"same existing support-cut refuses attached building before mutation");
