@@ -47,9 +47,10 @@ import java.util.UUID;
 public final class NativeHighAltitudeLodCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.highAltitudeLod");
     private static final boolean TRACE = Boolean.getBoolean("drmd.gate.highAltitudeTrace");
-    private static final Vec3d START = new Vec3d(40.5, 2272, 40.5);
-    private static final Vec3d FORWARD = Vec3d.fromPolar(88f, 0);
-    private static final Vec3d UP = new Vec3d(0, 1, 0)
+    private static final boolean RING_ASCENT = Boolean.getBoolean("drmd.gate.highAltitudeRingAscent");
+    private static final Vec3d START = RING_ASCENT ? new Vec3d(197.5,155,256.5) : new Vec3d(40.5, 2272, 40.5);
+    private static final Vec3d FORWARD = RING_ASCENT ? new Vec3d(0,-1,0) : Vec3d.fromPolar(88f, 0);
+    private static final Vec3d UP = RING_ASCENT ? new Vec3d(0,0,1) : new Vec3d(0, 1, 0)
         .subtract(FORWARD.multiply(FORWARD.y)).normalize();
     private static final int[] MARKS = {2150, 1640, 1020, 700, 450, 320, 155};
     private static final List<Map<String, Object>> FRAMES = new ArrayList<>();
@@ -76,6 +77,11 @@ public final class NativeHighAltitudeLodCheck {
     public static void register() {
         started = System.nanoTime();
         ClientTickEvents.END_CLIENT_TICK.register(NativeHighAltitudeLodCheck::client);
+        if (RING_ASCENT) net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(context->{
+            if (!armed||done||OffscreenWorldView.busy()) return;
+            try { NativeRingAscentWitness.residentSurfaceWithoutHorizon(); }
+            catch (RuntimeException bad) { failure=bad.toString(); }
+        });
         ServerTickEvents.END_SERVER_TICK.register(NativeHighAltitudeLodCheck::server);
     }
 
@@ -99,9 +105,13 @@ public final class NativeHighAltitudeLodCheck {
                 failure = "the real signed native backend is required";
                 return;
             }
+            if (RING_ASCENT && world.getSeed()!=271026) {
+                failure = "the exact closed native ring donor seed is required";
+                return;
+            }
             p.stopRiding();
             p.changeGameMode(GameMode.CREATIVE);
-            p.teleport(world, START.x, START.y, START.z, Set.of(), 0, 88);
+            p.teleport(world, START.x, START.y, START.z, Set.of(), 0, RING_ASCENT?90:88);
             teleports++;
             FlightSystem.enableWithoutMount(p, data);
             data.setShipAttitude((float) FORWARD.x, (float) FORWARD.y, (float) FORWARD.z,
@@ -139,9 +149,10 @@ public final class NativeHighAltitudeLodCheck {
                 finish(client, false, "disposable world with all ordinary terrain passes required");
                 return;
             }
-            if (Boolean.getBoolean("drmd.gate.highAltitudePs1")) {
+            if (RING_ASCENT || Boolean.getBoolean("drmd.gate.highAltitudePs1")) {
                 DescentConfig.presentationProfile = PresentationProfile.PS1_HYBRID;
             }
+            if (RING_ASCENT) NativeRingAscentWitness.configure(client);
             client.setScreen(null);
             client.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
             client.options.setPerspective(Perspective.FIRST_PERSON);
@@ -151,7 +162,7 @@ public final class NativeHighAltitudeLodCheck {
         if (!staged || !DescentClientState.enabled || !FlightBodyClient.active()) return;
         if (!armed) {
             if (!full(client.world, client.player.getPos()) || client.player.getPos().distanceTo(START) > 1
-                || PlanetClientState.INSTANCE.currentMesh() == null) return;
+                || (!RING_ASCENT&&PlanetClientState.INSTANCE.currentMesh() == null)) return;
             ShipAttitudeClient.acceptPortalFrame(client.player, FORWARD, UP);
             actualMoveEnd = client.player.getPos();
             armed = true;
@@ -162,6 +173,12 @@ public final class NativeHighAltitudeLodCheck {
             return;
         }
         double y = client.player.getY();
+        if (RING_ASCENT) {
+            client.options.backKey.setPressed(y<1452);
+            DescentKeybinds.alwaysRun.setPressed(y<1300);
+            if (y>=1452&&++brakeTicks>160) finish(client,false,"stock ring deck never rendered before the upper hold expired");
+            return;
+        }
         boolean descending = y > MARKS[MARKS.length - 1];
         client.options.forwardKey.setPressed(descending);
         DescentKeybinds.alwaysRun.setPressed(y > 490);
@@ -190,10 +207,16 @@ public final class NativeHighAltitudeLodCheck {
         drawnOpacity = -1;
         quads = 0;
         traceStage = null;
+        if (RING_ASCENT) NativeRingAscentWitness.beforeFrame();
     }
 
     public static void beforeHorizon() {
-        if (!TRACE || !armed || done || OffscreenWorldView.busy()) return;
+        if (!armed || done || OffscreenWorldView.busy()) return;
+        if (RING_ASCENT) {
+            try { NativeRingAscentWitness.beforeHorizon(); }
+            catch (RuntimeException bad) { failure=bad.toString(); }
+        }
+        if (!TRACE) return;
         var client = MinecraftClient.getInstance();
         var eye = client.gameRenderer.getCamera().getPos();
         String stage = eye.y >= 300 && eye.y <= 322 ? "bridge" : eye.y >= 125 && eye.y < 158 ? "near" : null;
@@ -231,6 +254,8 @@ public final class NativeHighAltitudeLodCheck {
         if (mesh != null && RenderSystem.getShader() == HorizonShader.program()) {
             drawnOpacity = RenderSystem.getShaderColor()[3];
             quads = mesh.quads;
+            if (RING_ASCENT) try { NativeRingAscentWitness.afterHorizon(view); }
+            catch (RuntimeException bad) { failure=bad.toString(); }
             if (traceStage != null) {
                 var client = MinecraftClient.getInstance();
                 var eye = client.gameRenderer.getCamera().getPos();
@@ -277,6 +302,15 @@ public final class NativeHighAltitudeLodCheck {
         if (minimum > .08f && drawnOpacity < 0) {
             maximumMissingHorizonFrames = Math.max(maximumMissingHorizonFrames, ++missingHorizonFrames);
         } else missingHorizonFrames = 0;
+        if (RING_ASCENT) {
+            try {
+                if(NativeRingAscentWitness.rendered(client,eye)) {
+                    boolean pass=teleports==1&&actualMoves>=100&&serverSamples>=100&&maximumMissingHorizonFrames<=8;
+                    finish(client,pass,pass?"actual normal ascent retains sampled ground from the surface to the resident real ring deck":"original native movement and draw bounds not met");
+                }
+            } catch (RuntimeException bad) { finish(client,false,bad.toString()); }
+            return;
+        }
         var row = Map.<String, Object>of("frame", frames, "eye", xyz(eye), "speed", speed,
             "rollSpeed", rollSpeed, "cameraDistance", cameraError, "alignment", alignment,
             "actualGroundAlpha", drawnOpacity, "minimumGroundAlpha", minimum, "lodQuads", quads,
@@ -309,6 +343,7 @@ public final class NativeHighAltitudeLodCheck {
         if (done) return;
         done = true;
         client.options.forwardKey.setPressed(false);
+        if(RING_ASCENT) client.options.backKey.setPressed(false);
         DescentKeybinds.alwaysRun.setPressed(false);
         DescentKeybinds.rollLeft.setPressed(false);
         DescentKeybinds.rollRight.setPressed(false);
@@ -328,6 +363,7 @@ public final class NativeHighAltitudeLodCheck {
             result.put("maximumMissingHorizonFrames", maximumMissingHorizonFrames);
             result.put("captures", CAPTURES);
             result.put("frames", FRAMES);
+            if(RING_ASCENT) result.put("ringAscent",NativeRingAscentWitness.report());
             synchronized (SERVER) { result.put("server", List.copyOf(SERVER)); }
             Files.writeString(client.runDirectory.toPath().resolve("high-altitude-lod-outcome.json"),
                 new GsonBuilder().setPrettyPrinting().create().toJson(result) + "\n");
