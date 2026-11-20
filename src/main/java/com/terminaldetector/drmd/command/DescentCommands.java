@@ -295,7 +295,10 @@ public final class DescentCommands {
 											style = com.terminaldetector.drmd.world.WorldRules.ComplexStyle.ABANDONED_RESEARCH;
 										}
 										var pos = p.getBlockPos();
-										com.terminaldetector.drmd.world.gen.ModWorldgen.forceGenerate(p.getServerWorld(), pos, style);
+										if (!com.terminaldetector.drmd.world.gen.ModWorldgen.tryForceGenerate(p.getServerWorld(), pos, style)) {
+											ctx.getSource().sendError(Text.literal("The industrial complex needs its entire structure volume loaded inside the world bounds."));
+											return 0;
+										}
 										com.terminaldetector.drmd.world.WorldRules.ComplexStyle finalStyle = style;
 										ctx.getSource().sendFeedback(() -> Text.literal(
 												"Generated Industrial Underground [" + finalStyle + "] at " + pos.toShortString()), true);
@@ -303,9 +306,12 @@ public final class DescentCommands {
 									}))
 									.executes(ctx -> {
 										ServerPlayerEntity p = ctx.getSource().getPlayer();
-										com.terminaldetector.drmd.world.gen.ModWorldgen.forceGenerate(
+											if (!com.terminaldetector.drmd.world.gen.ModWorldgen.tryForceGenerate(
 												p.getServerWorld(), p.getBlockPos(),
-												com.terminaldetector.drmd.world.WorldRules.ComplexStyle.ANCIENT_POWER);
+												com.terminaldetector.drmd.world.WorldRules.ComplexStyle.ANCIENT_POWER)) {
+											ctx.getSource().sendError(Text.literal("The industrial complex needs its entire structure volume loaded inside the world bounds."));
+											return 0;
+										}
 										ctx.getSource().sendFeedback(() -> Text.literal("Generated Industrial Underground nearby"), true);
 										return 1;
 									})))
@@ -342,7 +348,10 @@ public final class DescentCommands {
 					.then(CommandManager.literal("start")
 							.executes(ctx -> {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
-								com.terminaldetector.drmd.world.base.ReactorRoomStarter.activate(p);
+								if (!com.terminaldetector.drmd.world.base.ReactorRoomStarter.tryActivate(p)) {
+									ctx.getSource().sendError(Text.literal("The reactor room needs its entire structure volume loaded inside the world bounds."));
+									return 0;
+								}
 								ctx.getSource().sendFeedback(() -> Text.literal("Descent Reactor Room activated"), true);
 								return 1;
 							}))
@@ -385,6 +394,10 @@ public final class DescentCommands {
 								var pos = p.getBlockPos().up(8);
 								var entry = com.terminaldetector.drmd.world.gen2.ModWorldgen2.forceGenerate(
 										p.getServerWorld(), pos, kind);
+								if (entry == null) {
+									ctx.getSource().sendError(Text.literal("The structure site lies outside the loaded world volume."));
+									return 0;
+								}
 								com.terminaldetector.drmd.world.gen2.MacroEntry.Kind finalKind = kind;
 								ctx.getSource().sendFeedback(() -> Text.literal(
 										"WG2.0 " + finalKind + " [" + entry.label + "] at " + pos.toShortString()), true);

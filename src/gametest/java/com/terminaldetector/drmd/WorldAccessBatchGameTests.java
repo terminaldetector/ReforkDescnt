@@ -7,6 +7,7 @@ import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
@@ -56,6 +57,30 @@ public final class WorldAccessBatchGameTests implements FabricGameTest {
         var bad=before.entityData();bad.putString("id","minecraft:furnace");
         var result=access.modifyServerAuthoritative(List.of(new ServerBlockEdits.Edit(at,before,new ServerBlockEdits.Cell(before.state(),bad))));
         context.assertTrue(result.status()==ServerBlockEdits.Status.INVALID_NBT && access.snapshotIfLoaded(at).orElseThrow().equals(before),"type mismatch rejected before touching the chest");context.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void replacingGeneratedSpawnerDoesNotLeaveAnAcknowledgedPendingOwner(TestContext context) {
+        var world=context.getWorld();var first=context.getAbsolutePos(new BlockPos(3,4,3));
+        for (boolean generatedMarker : new boolean[]{true,false}) {
+            var at=generatedMarker?first:first.east();
+            world.setBlockState(at,Blocks.SPAWNER.getDefaultState(),2);
+            var chunk=CubicAvailability.loadedColumn(world,at.getX()>>4,at.getZ()>>4);
+            var live=chunk.getBlockEntity(at);
+            context.assertTrue(live!=null,"the native spawner owns its original state");
+            var pending=generatedMarker?new NbtCompound():live.createNbtWithIdentifyingData(world.getRegistryManager());
+            if (generatedMarker) {
+                pending.putString("id","DUMMY");
+                pending.putInt("x",at.getX());pending.putInt("y",at.getY());pending.putInt("z",at.getZ());
+            }
+            // Start with the same valid state/pending pair that a promoted proto chunk or older save can hold.
+            chunk.removeBlockEntity(at);
+            chunk.addPendingBlockEntityNbt(pending);
+            context.assertTrue(pending.equals(chunk.getBlockEntityNbt(at)),"raw pending data is present without hydration");
+            context.assertTrue(world.setBlockState(at,Blocks.AIR.getDefaultState(),2),"normal replacement is committed");
+            context.assertTrue(world.getBlockState(at).isAir() && chunk.getBlockEntityNbt(at)==null
+                && !chunk.getBlockEntityPositions().contains(at),"replaced spawner has no live or pending owner");
+        }
+        context.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE)
     public void snapshotsCannotBeMutatedThroughReturnedNbt(TestContext context) {

@@ -1,9 +1,12 @@
 package com.terminaldetector.drmd.world.gen2;
 
 import com.terminaldetector.drmd.world.WorldRules;
+import com.terminaldetector.drmd.world.access.CubicAvailability;
+import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
@@ -20,7 +23,14 @@ public final class MegaStructureGenerator {
 	private MegaStructureGenerator() {}
 
 	public static MacroEntry generate(WorldAccess world, BlockPos origin, MacroEntry.Kind kind, Random random) {
-		if (world.getBlockState(origin).isOf(Blocks.LODESTONE)) {
+		BlockState originState;
+		if (world instanceof ServerWorld server && CubicAvailability.backend(server) != CubicAvailability.Backend.STOCK) {
+			originState = com.terminaldetector.drmd.world.access.WorldAccess.of(server).readIfLoaded(origin).orElse(null);
+		} else {
+			originState = world.getBlockState(origin);
+		}
+		if (originState == null) return null;
+		if (originState.isOf(Blocks.LODESTONE)) {
 			// Already generated this cell
 			return entry(kind, WorldRules.practicalLayer(origin.getY()), origin, 8, 8, 8, 0x888888, kind.name());
 		}
@@ -50,6 +60,7 @@ public final class MegaStructureGenerator {
 			case WORM, SWARM, KEEPER, UFO -> entry(kind, WorldRules.practicalLayer(origin.getY()),
 					origin, 8, 8, 8, 0x888888, kind.name());
 		};
+		if (e == null) return null;
 		// Lunar / crashed / megacity / locators / scorched / klondike place their own LODESTONE marker
 		if (kind != MacroEntry.Kind.LUNAR_BASE && kind != MacroEntry.Kind.CRASHED_UFO
 				&& kind != MacroEntry.Kind.MEGACITY
@@ -275,7 +286,7 @@ public final class MegaStructureGenerator {
 	private static MacroEntry industrialComplex(WorldAccess world, BlockPos origin, Random random) {
 		WorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();
 		WorldRules.ComplexStyle style = styles[random.nextInt(styles.length)];
-		com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator.generateAt(world, origin, style, random);
+		if (!IndustrialComplexGenerator.tryGenerateAt(world, origin, style, random)) return null;
 		return entry(MacroEntry.Kind.INDUSTRIAL_COMPLEX, WorldRules.practicalLayer(origin.getY()),
 				origin, 56, 40, 56, 0xE0A040, style.name());
 	}

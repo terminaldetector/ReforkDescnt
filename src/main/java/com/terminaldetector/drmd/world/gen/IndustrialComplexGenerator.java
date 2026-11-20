@@ -1,7 +1,10 @@
 package com.terminaldetector.drmd.world.gen;
 
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
+import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.world.WorldRules;
+import com.terminaldetector.drmd.world.access.CubicAvailability;
+import com.terminaldetector.drmd.world.access.WorldAccess;
 import com.terminaldetector.drmd.world.dungeon.DungeonVitality;
 import com.terminaldetector.drmd.world.dungeon.FacilityReactorFight;
 import com.terminaldetector.drmd.world.dungeon.LivingDefensePass;
@@ -35,7 +38,18 @@ public final class IndustrialComplexGenerator {
 
 	public static void generateAt(net.minecraft.world.WorldAccess world, BlockPos origin,
 			WorldRules.ComplexStyle style, DungeonVitality vitality, Random random) {
+		tryGenerateAt(world, origin, style, vitality, random);
+	}
+
+	public static boolean tryGenerateAt(net.minecraft.world.WorldAccess world, BlockPos origin,
+			WorldRules.ComplexStyle style, Random random) {
+		return tryGenerateAt(world, origin, style, DungeonVitality.DEAD, random);
+	}
+
+	private static boolean tryGenerateAt(net.minecraft.world.WorldAccess world, BlockPos origin,
+			WorldRules.ComplexStyle style, DungeonVitality vitality, Random random) {
 		StyleProfile p = StyleProfile.of(style);
+		if (world instanceof ServerWorld server && !admits(server, origin, p)) return false;
 		clearVolume(world, origin, p.clearR);
 		switch (p.layout) {
 			case TORUS -> layoutTorus(world, origin, p, random);
@@ -75,6 +89,35 @@ public final class IndustrialComplexGenerator {
 		if (vitality.hasLivingReactor && world instanceof ServerWorld sw) {
 			FacilityReactorFight.register(sw, origin, vitality);
 		}
+		return true;
+	}
+
+	/** Max satellite offset 27 plus its radius 9. The spire extends its shaft another 12 blocks. */
+	private static boolean admits(ServerWorld world, BlockPos origin, StyleProfile profile) {
+		if (!CubicAvailability.onWorldThread(world)) return false;
+		var access = WorldAccess.of(world);
+		var backend = access.backend();
+		if (backend == CubicAvailability.Backend.STOCK) return true;
+		if (backend != CubicAvailability.Backend.NATIVE_CUBIC) return false;
+		// One extra block for the native block callbacks and for the starter's post-chamber writes.
+		int horizontal = 37;
+		int vertical = Math.max(36, profile.shaft ? profile.shaftHalf : 0) + 1;
+		if (profile.layout == Layout.SPIRE) vertical = Math.max(vertical, profile.shaftHalf + 13);
+		var low = origin.add(-horizontal, -vertical, -horizontal);
+		var high = origin.add(horizontal, vertical, horizontal);
+		var bounds = access.bounds();
+		if (low.getY() < bounds.bottomY() || high.getY() >= bounds.topYExclusive()
+				|| !world.getWorldBorder().contains(low) || !world.getWorldBorder().contains(high)) return false;
+		var first = D6ChunkPos.ofBlock(low.getX(), low.getY(), low.getZ());
+		var last = D6ChunkPos.ofBlock(high.getX(), high.getY(), high.getZ());
+		for (int x = first.x(); x <= last.x(); x++) {
+			for (int y = first.y(); y <= last.y(); y++) {
+				for (int z = first.z(); z <= last.z(); z++) {
+					if (!access.isVolumeAvailable(new D6ChunkPos(x, y, z))) return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	// ── Layouts ──────────────────────────────────────────────────────────────

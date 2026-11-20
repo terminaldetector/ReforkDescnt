@@ -26,11 +26,15 @@ public final class ReactorRoomStarter {
 	private ReactorRoomStarter() {}
 
 	public static void activate(ServerPlayerEntity player) {
+		tryActivate(player);
+	}
+
+	public static boolean tryActivate(ServerPlayerEntity player) {
 		ServerWorld world = player.getServerWorld();
 		BlockPos center = player.getBlockPos().up(8);
 
 		// 1) Reactor chamber (volume-first)
-		IndustrialComplexGenerator.generateAt(world, center, WorldRules.ComplexStyle.ANCIENT_POWER, world.getRandom());
+		if (!IndustrialComplexGenerator.tryGenerateAt(world, center, WorldRules.ComplexStyle.ANCIENT_POWER, world.getRandom())) return false;
 
 		// 2) Clear spawn pocket + landing pad
 		clearSphere(world, center.add(0, -6, 0), 5);
@@ -94,6 +98,7 @@ public final class ReactorRoomStarter {
 		giveKit(player);
 		player.sendMessage(Text.literal("§bDRMD §fReactor Room online. §7Board the Pyro ship (ПКМ) or fly free (H)."), false);
 		player.sendMessage(Text.literal("§7Weapons in inventory · M = Workshop · /6dof_spawn assault for more drones"), false);
+		return true;
 	}
 
 	private static void giveKit(ServerPlayerEntity player) {

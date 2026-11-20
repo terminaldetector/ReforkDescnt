@@ -83,10 +83,15 @@ public final class ModWorldgen {
 	}
 
 	public static void forceGenerate(ServerWorld world, BlockPos pos, WorldRules.ComplexStyle style) {
-		IndustrialComplexGenerator.generateAt(world, pos, style, world.getRandom());
+		tryForceGenerate(world, pos, style);
+	}
+
+	public static boolean tryForceGenerate(ServerWorld world, BlockPos pos, WorldRules.ComplexStyle style) {
+		if (!IndustrialComplexGenerator.tryGenerateAt(world, pos, style, world.getRandom())) return false;
 		MacroWorld.put(new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.INDUSTRIAL_COMPLEX,
 				WorldRules.Layer.DEPTH_REACTORS, pos.toImmutable(), 56, 48, 56, 0x6688AA, "Industrial " + style));
 		spawnGarrison(world, pos);
+		return true;
 	}
 
 	private static void spawnGarrison(ServerWorld world, BlockPos center) {
