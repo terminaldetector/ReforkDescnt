@@ -1,0 +1,90 @@
+{
+  "status": "Actual paired native regression and corrected climber scenarios",
+  "gameSource": "9cdb8dd48ed84ac850547fdeb309688a8bb2ee05",
+  "archive": "portal-roster-and-wall-repairs.zip",
+  "archiveSha256": "c4e86c0f876de1b7d8947bdafaa93cf751d587de31df1b83ea2ee2755353d12a",
+  "gameSha256": "ba12a496476041d2b6d224722e8b0b16c63306c5ef385f1f050d9df696fafe49",
+  "memberSha256": {
+    "portal-before/receipt.json": "dfa0937c194da750b795e1c4f3865a811c1aa8f0afa6b30313a4568512da6fda",
+    "portal-before/inputs.json": "15fa2883768979ff788288d4b356d15c0f23f747569f91bcc2a18f691e6d99c8",
+    "portal-before/game.log": "3a10c5367880d8a7519640fa960356607d7f41affe4d8f86529ae649254acca8",
+    "portal-before/launch.cfg": "8f65115f5c005f29540d1930d7313362c27da563f6a195bdb13095b9c1c16065",
+    "portal-before/runtime/reports/gametest-results.xml": "243722a2e769fd0d60703286c2017f6fa1505f80596915104daa14c7d3e43d5a",
+    "portal-after/receipt.json": "1b250208f2d1419d676c4bf5ee0eb0adbaa5d0c5b3f6b8b70f0dde89aa300d2f",
+    "portal-after/inputs.json": "0b44fbab9aaebf7ece7f759417b8a07c3f5161b8f5b4848ce3f03de1133a8a50",
+    "portal-after/game.log": "5e5a54df5dad2abf1596205197b4bc7f5a28d6e816c3b2346ed9d0b15277d704",
+    "portal-after/launch.cfg": "ccf6c11d9a444b8f4864ab398d7d50ff1f6a9b7e4efa4f03f3694a222058b079",
+    "portal-after/runtime/reports/gametest-results.xml": "4121a4d671c14c2db34a698e427af20701849b7350d7feb9ab04ad51c8fcd6cd",
+    "climber-wall-after/receipt.json": "e87286771578842074369776036a20f2cf5babaf6ea48cb043a030d0c7ef4836",
+    "climber-wall-after/inputs.json": "f2318151c80641107cfee83081ca5ef283c80c2ebf7860103df56f58d204d288",
+    "climber-wall-after/game.log": "4ef20a461926a61e2dc903d26b74335805a151d074bfe70512fcbb21949dfc98",
+    "climber-wall-after/launch.cfg": "3d8e4d981ab405fe003a92478acb3ae63266e2383c042f73661d387db11eb93e",
+    "climber-wall-after/runtime/reports/gametest-results.xml": "ab4b9d6565409220cd3f6f6320976da9e98c4dce74e8ac9bf5409b2e769a9381",
+    "failed-full/actual-closed-prefix-proof.json": "fed383e882929d8dc86fba4e2cf9269cb1364b157012d6eaee9ac22e709ff5f7",
+    "failed-full/actual-closed-destination.json": "de362d81099c8ecb0001c623b074e1a60dea4dbb4b7b84f3dd2bf60d0e564d93"
+  },
+  "runs": {
+    "portal-before": {
+      "source": "58657fb2fd07cc7f30005840b28e230024346af1",
+      "namedGameSource": "4d96f3c65386d64de0b98283e40058ec88318d88",
+      "exit": 1,
+      "processPid": 165117,
+      "started": 1795172508.2584884,
+      "ended": 1795172547.2303224,
+      "validatedAfterRun": true,
+      "tests": 5,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "junitSHA256": "243722a2e769fd0d60703286c2017f6fa1505f80596915104daa14c7d3e43d5a",
+      "registeredEntrypoints": 2,
+      "actualFailCases": {
+        "portalpendingtravelgametests.bothlateconnecteduserskeeptheircoldportalbehaviourafterretiredrosterrows": "(13927777, -60, 13822795) bounded warmup must give a waiting near-gate player an actual ready destination waiterIndex=129 heldColumns=0 exitReady=false"
+      },
+      "realRetiredRows": 129,
+      "realRosterSize": 131,
+      "waitingPlayerIndex": 129,
+      "retreatingPlayerIndex": 130
+    },
+    "portal-after": {
+      "source": "9cdb8dd48ed84ac850547fdeb309688a8bb2ee05",
+      "namedGameSource": "9cdb8dd48ed84ac850547fdeb309688a8bb2ee05",
+      "exit": 0,
+      "processPid": 165511,
+      "started": 1795172626.3006818,
+      "ended": 1795172666.6701736,
+      "validatedAfterRun": true,
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "junitSHA256": "4121a4d671c14c2db34a698e427af20701849b7350d7feb9ab04ad51c8fcd6cd",
+      "registeredEntrypoints": 2,
+      "actualFailCases": {},
+      "realRetiredRows": 129,
+      "realRosterSize": 131,
+      "waitingPlayerIndex": 129,
+      "retreatingPlayerIndex": 130
+    },
+    "climber-wall-after": {
+      "source": "4a3562d8d4a89c414463820c3abc31e37a9c3f35",
+      "namedGameSource": "4d96f3c65386d64de0b98283e40058ec88318d88",
+      "exit": 0,
+      "processPid": 164723,
+      "started": 1795172373.6726775,
+      "ended": 1795172404.5736625,
+      "validatedAfterRun": true,
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "junitSHA256": "ab4b9d6565409220cd3f6f6320976da9e98c4dce74e8ac9bf5409b2e769a9381",
+      "registeredEntrypoints": 1,
+      "actualFailCases": {},
+      "nativeSpiderMeasurements": [
+        "type=entity.minecraft.spider target=entity.minecraft.iron_golem ordinaryActorTicks=48 rise=1.0174874312337465 maxStep=0.1654401994740624 maxSupportGap=0.019999999552965164 observerSetTarget=false",
+        "type=entity.minecraft.cave_spider target=entity.minecraft.iron_golem ordinaryActorTicks=8 rise=1.0174874312337465 maxStep=0.1654401994740624 maxSupportGap=0.019999999552965164 observerSetTarget=false"
+      ]
+    }
+  }
+}
