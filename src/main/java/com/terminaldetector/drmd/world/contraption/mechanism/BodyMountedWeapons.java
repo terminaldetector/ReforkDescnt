@@ -88,6 +88,11 @@ public final class BodyMountedWeapons {
             boolean operator=manual.isEmpty();
             if(operator)manual=HeavyOperatorSystem.fireMask(body);
             var positions=state.mounts(body,manual.isPresent());boolean fired=false;int count=0;
+            if(operator&&manual.orElse(0)!=0){
+                var first=HeavyOperatorSystem.firstScheduledBank(body);
+                int index=first==null?-1:positions.indexOf(first);
+                if(index>=0)state.cursor=index;
+            }
             while(count<Math.min(BODY_CHECKS,positions.size())&&checks<WORLD_CHECKS&&shots<WORLD_SHOTS){
                 var slot=positions.get(Math.floorMod(state.cursor++,positions.size()));count++;checks++;
                 if(now<state.readyAt.getOrDefault(slot,Long.MIN_VALUE))continue;

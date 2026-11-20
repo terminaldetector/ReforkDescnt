@@ -31,6 +31,8 @@ public final class HeavyOperatorSystem {
     public static final List<BlockPos> REACTION_PODS=List.of(new BlockPos(2,0,1),new BlockPos(1,1,1),new BlockPos(1,0,0));
     private static final String ROOT="drmd.operator.v1",GUN="drmd.operator.gun.v1",YAW="drmd.operator.yaw=",BARREL="drmd.operator.barrel=",PARENT="drmd.operator.parent=";
     private static final Vec3 UP=new Vec3(0,1,0),X=new Vec3(1,0,0);
+    private static final double FIRE_ALIGNMENT=Math.cos(Math.toRadians(2));
+    private static final double OVERLAPPING_ALIGNMENT=2*FIRE_ALIGNMENT*FIRE_ALIGNMENT-1;
     private static final Map<ServerWorld,Frame> FRAMES=new WeakHashMap<>();
     public record Assembly(BlockBodyEntity base,BlockBodyEntity yaw,BlockBodyEntity barrel) {
         public List<BlockBodyEntity> bodies(){return List.of(base,yaw,barrel);}
@@ -41,6 +43,7 @@ public final class HeavyOperatorSystem {
     private record Interest(UUID target,WeakReference<LivingEntity> actor,long observedAt){}
     private record Pods(long revision,List<BlockPos> cells,com.terminaldetector.drmd.d6.D6ThrusterMixer mixer){}
     private record BarrelPods(UUID barrel,Pods hardware){}
+    private record FirePlan(BlockPos primary,BlockPos companion){}
     private static final class Frame {
         long tick=Long.MIN_VALUE;int cursor,candidates,rays,drives;Stats stats=new Stats(0,0,0,0,0);
         final Map<UUID,Permit> permits=new HashMap<>();
@@ -48,7 +51,7 @@ public final class HeavyOperatorSystem {
         final Map<UUID,Interest> interests=new HashMap<>();
         final Map<UUID,Pods> pods=new HashMap<>();
         final Map<UUID,BarrelPods> reactionPods=new HashMap<>();
-        final Map<UUID,BlockPos> aimSlots=new HashMap<>();
+        final Map<UUID,FirePlan> aimPlans=new HashMap<>();
         final Map<UUID,Set<BlockPos>> visibleSlots=new HashMap<>();
     }
     private HeavyOperatorSystem(){}
@@ -61,7 +64,9 @@ public final class HeavyOperatorSystem {
     /** Read-only terminal/profiler inspection; no sensing, admission or state refresh. */
     public static Optional<BlockPos> aimingBank(BlockBodyEntity barrel){
         if(!(barrel.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return Optional.empty();
-        var f=FRAMES.get(world);return f==null?Optional.empty():Optional.ofNullable(f.aimSlots.get(uuid(barrel,PARENT)));
+        var f=FRAMES.get(world);
+        var plan=f==null?null:f.aimPlans.get(uuid(barrel,PARENT));
+        return plan==null?Optional.empty():Optional.of(plan.primary);
     }
     private static UUID uuid(BlockBodyEntity body,String prefix){
         UUID id=null;try{for(String tag:body.getCommandTags())if(tag.startsWith(prefix)){if(id!=null)return null;id=UUID.fromString(tag.substring(prefix.length()));}}catch(IllegalArgumentException invalid){return null;}return id;
@@ -136,8 +141,14 @@ public final class HeavyOperatorSystem {
         var remembered=memory==null?null:memory.actor.get();
         if(memory==null||interest==null||!memory.target.equals(interest.target)||remembered!=interest.actor.get()
             ||!enemy(root,remembered)||now<memory.observedAt||now-memory.observedAt>=DroneSquadMailbox.TTL)return;
-        var selected=f.aimSlots.get(root.getUuid());if(selected==null||!gun(barrel,selected))return;
+        var plan=f.aimPlans.get(root.getUuid());if(plan==null||!gun(barrel,plan.primary))return;
+        var selected=plan.primary;
         var desired=aimDirection(barrel,selected,memory.point,memory.velocity);if(desired==null)return;
+        if(plan.companion!=null&&barrel.mountedWeapons().readyAt(selected)<=now
+            &&barrel.mountedWeapons().readyAt(plan.companion)<=now){
+            var overlap=sharedDirection(barrel,plan.companion,desired,memory.point,memory.velocity);
+            if(overlap!=null)desired=overlap;
+        }
         var cached=f.reactionPods.get(root.getUuid());
         if(cached==null||!cached.barrel.equals(barrel.getUuid())||cached.hardware.revision!=barrel.shapeRevision()){
             var cells=barrel.cells().stream().filter(c->c.state().isOf(ModWorldBlocks.SHIP_THRUSTER)).map(BlockBodyEntity.Cell::pos).limit(17).sorted().toList();
@@ -304,7 +315,8 @@ public final class HeavyOperatorSystem {
         return delta.lengthSquared()>1e-10?delta.normalize():null;
     }
     private static BlockPos selectGun(Assembly a,Frame f,Vec3d point,Vec3d targetVelocity,long now){
-        var old=f.aimSlots.get(a.base.getUuid());var visible=f.visibleSlots.get(a.base.getUuid());
+        var previous=f.aimPlans.get(a.base.getUuid());var old=previous==null?null:previous.primary;
+        var visible=f.visibleSlots.get(a.base.getUuid());
         if(old!=null&&gun(a.barrel,old)&&(visible==null||visible.contains(old))&&a.barrel.mountedWeapons().readyAt(old)<=now)return old;
         BlockPos best=null;
         double alignment=-Double.MAX_VALUE;
@@ -320,12 +332,38 @@ public final class HeavyOperatorSystem {
                 earliest=ready;
             }
         }
-        if(best!=null&&(f.aimSlots.size()<MAX_ASSEMBLIES||f.aimSlots.containsKey(a.base.getUuid())))f.aimSlots.put(a.base.getUuid(),best);return best;
+        return best;
+    }
+    // Two surviving parallel banks can share one physical aim when their original
+    // per-muzzle firing cones overlap. A structurally intact battery still tracks
+    // the selected gun so a different rocket cannot steal its turn.
+    private static BlockPos survivingCompanion(BlockBodyEntity barrel,BlockPos selected,Set<BlockPos> visible,long now){
+        if(visible==null||!visible.contains(selected)
+            ||!barrel.getLocalBlock(LASER).isOf(ModWorldBlocks.SHIP_LASER))return null;
+        boolean left=gun(barrel,LEFT);
+        if(left==gun(barrel,RIGHT))return null;
+        var shoulder=left?LEFT:RIGHT;
+        if(!barrel.getLocalBlock(shoulder).isOf(ModWorldBlocks.SHIP_ROCKET)
+            ||MountedWeaponEmitter.facing(barrel,LASER)!=MountedWeaponEmitter.facing(barrel,shoulder))return null;
+        var companion=selected.equals(LASER)?shoulder:LASER;
+        var timers=barrel.mountedWeapons();
+        return visible.contains(companion)&&timers.readyAt(selected)<=now&&timers.readyAt(companion)<=now?companion:null;
+    }
+    private static Vec3d sharedDirection(BlockBodyEntity barrel,BlockPos companion,Vec3d primary,Vec3d point,Vec3d velocity){
+        var other=aimDirection(barrel,companion,point,velocity);
+        return other!=null&&primary.dotProduct(other)>=OVERLAPPING_ALIGNMENT?primary.add(other).normalize():null;
     }
     private static void stop(Assembly a,Frame f){if(a==null)return;for(var entry:List.of(Map.entry(a.base,YAW_DRIVE),Map.entry(a.yaw,PITCH_DRIVE))){var s=entry.getKey().getLocalBlock(entry.getValue());if(s.isOf(ModWorldBlocks.ROTARY_DRIVE)&&s.get(Properties.POWER)!=0&&entry.getKey().setLocalBlock(entry.getValue(),s.with(Properties.POWER,0)))f.drives++;}}
     private static boolean aim(Assembly a,Frame f,Vec3d point,Vec3d targetVelocity,long now){
         var selected=selectGun(a,f,point,targetVelocity,now);if(selected==null){stop(a,f);return false;}
         var desired=aimDirection(a.barrel,selected,point,targetVelocity);if(desired==null){stop(a,f);return false;}
+        var companion=survivingCompanion(a.barrel,selected,f.visibleSlots.get(a.base.getUuid()),now);
+        if(companion!=null){
+            var overlap=sharedDirection(a.barrel,companion,desired,point,targetVelocity);
+            if(overlap!=null)desired=overlap;else companion=null;
+        }
+        if(f.aimPlans.size()<MAX_ASSEMBLIES||f.aimPlans.containsKey(a.base.getUuid()))
+            f.aimPlans.put(a.base.getUuid(),new FirePlan(selected,companion));
         var forward=MountedWeaponEmitter.direction(a.barrel,selected);
         double yawSpeed=a.yaw.physics().angularVelocity().minus(a.base.physics().angularVelocity()).dot(a.base.rotation().rotate(UP));
         double pitchSpeed=a.barrel.physics().angularVelocity().minus(a.yaw.physics().angularVelocity()).dot(a.yaw.rotation().rotate(X));
@@ -341,7 +379,7 @@ public final class HeavyOperatorSystem {
         f.interests.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>CADENCE+1;});
         f.pods.keySet().removeIf(id->!f.interests.containsKey(id));
         f.reactionPods.keySet().removeIf(id->!f.interests.containsKey(id));
-        f.aimSlots.keySet().removeIf(id->!f.interests.containsKey(id));
+        f.aimPlans.keySet().removeIf(id->!f.interests.containsKey(id));
         if(!sense){
             // The bearings can sweep over eight degrees between sensor scans.
             // Refresh the drives from the bounded set of previously sighted targets.
@@ -408,6 +446,14 @@ public final class HeavyOperatorSystem {
         // not consume the global ray budget and a second gun cannot reuse a ray.
         return OptionalInt.of(3);
     }
+    /** A coordinated mixed pair visits its low-recoil gun first. Normal mount
+     * timing, geometry and release checks still belong to each actual shot. */
+    static BlockPos firstScheduledBank(BlockBodyEntity barrel){
+        if(!(barrel.getWorld() instanceof ServerWorld world))return null;
+        var f=FRAMES.get(world);var permit=f==null?null:f.permits.get(barrel.getUuid());
+        var plan=permit==null?null:f.aimPlans.get(permit.root);
+        return plan!=null&&plan.companion!=null?LASER:null;
+    }
     /** Revalidate each due material bank in the same normal emitter loop. One
      * laser direction cannot authorize offset rockets after another gun recoils. */
     public static boolean allowsFire(BlockBodyEntity barrel,BlockPos slot){
@@ -415,17 +461,15 @@ public final class HeavyOperatorSystem {
         var f=FRAMES.get(world);var permit=f==null?null:f.permits.get(barrel.getUuid());long now=world.getTime();
         if(permit==null||now<permit.tick||now-permit.tick>=CADENCE)return false;
         var a=resolve(world,body(world,permit.root));if(!valid(world,a)||a.barrel!=barrel)return false;
-        // Both hinges serve one physical aim solution. A different bank must not
-        // steal that turn and recoil before the selected, still-due gun aligns.
-        // The normal scheduler retains every bank's own cooldown and actual shot.
-        if(!slot.equals(f.aimSlots.get(a.base.getUuid())))return false;
+        var plan=f.aimPlans.get(a.base.getUuid());
+        if(plan==null||!slot.equals(plan.primary)&&!slot.equals(plan.companion))return false;
         var target=permit.actor.get();if(!enemy(a.base,target)||!target.getUuid().equals(permit.target))return false;
         var from=MountedWeaponEmitter.muzzle(barrel,slot);var point=target.getBoundingBox().getCenter();
         if(from.squaredDistanceTo(point)>48*48)return false;
         var wanted=aimDirection(barrel,slot,point,target.getVelocity());
         // Selection grants no shot: the chosen real muzzle must still satisfy
         // its own current geometry, intercept direction and complete shot gate.
-        return wanted!=null&&MountedWeaponEmitter.direction(barrel,slot).dotProduct(wanted)>=Math.cos(Math.toRadians(2))
+        return wanted!=null&&MountedWeaponEmitter.direction(barrel,slot).dotProduct(wanted)>=FIRE_ALIGNMENT
             &&sight(world,a,from,point,f);
     }
 }
