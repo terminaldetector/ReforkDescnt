@@ -15,9 +15,12 @@ public final class FlightRecoveryGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE)
     public void explicitOffDismountsAndCannotBeRearmedByTheOldHull(TestContext context) {
         var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
-        Vec3d position=Vec3d.ofCenter(context.getAbsolutePos(new BlockPos(5,6,5)));
+        // Leave standing clearance below the empty template's barrier ceiling.
+        Vec3d position=Vec3d.ofCenter(context.getAbsolutePos(new BlockPos(5,4,5)));
         player.setPosition(position);
         var ship=ModEntities.PYRO_SHIP.create(world); ship.setPosition(position); world.spawnEntity(ship);
+        context.assertTrue(com.terminaldetector.drmd.world.gravity.GravityMount.uprightDismountPosition(player,ship).isPresent(),
+            "ordinary lifecycle case starts with a real loaded standing exit");
         var data=DescentPlayerData.get(player); data.setEnabled(true); data.setRoll(117);
         data.setFlightVelocity(new Vec3d(12,4,-20)); data.setDashTimer(.15f); data.setHookActive(true);
         FlightSystem.input(player).afterburner=true;
