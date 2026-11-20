@@ -1,0 +1,31 @@
+{
+  "receipt": {
+    "source": "94625ec262d75084543e447b64bd11b159bee016",
+    "namedGameSource": "4d96f3c65386d64de0b98283e40058ec88318d88",
+    "exit": 2,
+    "processPid": 163445,
+    "started": 1795171587.668492,
+    "ended": 1795172229.876477,
+    "validatedAfterRun": true,
+    "tests": 712,
+    "failures": 2,
+    "errors": 0,
+    "skips": 0,
+    "junitSHA256": "3e58f5118d2274f0d07f928eaff2c421deae3aa30c89ad9b4e18099f49f822ff",
+    "registeredEntrypoints": 117
+  },
+  "failures": {
+    "climberfieldgravitygametests.nativespiderandcavespideracquireandpursuegolemsuptheirwalltangent": "(-14294697, -60, 8238648) native ground goal must preserve actual physical support within the existing .08m skin: 0.42000000551342964",
+    "portalpendingtravelgametests.arealsavedunknownexitwarmsthentransfersthewaitingcrossingexactlyonceandretreatcancels": "(-14294684, -60, 8239680) bounded warmup must give a waiting near-gate player an actual ready destination"
+  },
+  "fileSha256": {
+    "receipt.json": "c49d7600e3f650f245a1d01af6e17481a03bb3b6823dbc24a9558bf186065868",
+    "inputs.json": "7692a33b2ac30032b458a2f98e5f8dd5f81f51b41af7f6c49242b87e9d7e9d63",
+    "game.log": "b40123be3faaa2aa18a108efbb2d59cdc25d398aa47971f18eb725c15c7281eb",
+    "launch.cfg": "873744d667af323650bda117306b92cb2a27a033a3ee0a45428cb8ad5462e639",
+    "runtime/reports/gametest-results.xml": "3e58f5118d2274f0d07f928eaff2c421deae3aa30c89ad9b4e18099f49f822ff",
+    "runtime/world-closed.json": "0db965c95f29b797e0fc1c6865b7623c04664f74a585a95698d96366ff9ed581"
+  },
+  "archive": "whole-4d96-second-failures.zip",
+  "archiveSha256": "a60b22f2df712e35598ba350e06ac35a949b209ab77950270256048175208872"
+}
