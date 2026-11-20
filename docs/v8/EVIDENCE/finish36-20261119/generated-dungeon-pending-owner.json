@@ -1,0 +1,206 @@
+{
+  "cases": {
+    "first-unavailable": {
+      "game": {
+        "path": "/tmp/ungravity-remaining-round/fifth-build/jars/drmd-6dof-1.1.35-ufo-dev.1.jar",
+        "sha256": "2e7172fe16ae8f4714de4e8d348b1854dec3224d9563f6eb2b8c86821c318800",
+        "version": "1.1.35-ufo-dev.1",
+        "source": "97a4a70ddc10795ab2bdef1499b633363927cae3",
+        "matchingHistoricalSourceCandidate": null,
+        "userInstallableBytesVerified": false
+      },
+      "harness": {
+        "path": "/tmp/ungravity-remaining-round/seventh-build/jars/drmd-6dof-1.1.35-ufo-dev.1-spawner-origin.jar",
+        "sha256": "deffbdda1beaf53c60f2029dd7603a9814605cf6e3260a2b48b1a5e550675a7d"
+      },
+      "actualProcessExit": 0,
+      "result": {
+        "result": "UNOBSERVED",
+        "reason": "No two actual dungeon owners in FULL stock chunks"
+      }
+    },
+    "reproduced-negative": {
+      "game": {
+        "path": "/tmp/ungravity-remaining-round/fifth-build/jars/drmd-6dof-1.1.35-ufo-dev.1.jar",
+        "sha256": "2e7172fe16ae8f4714de4e8d348b1854dec3224d9563f6eb2b8c86821c318800",
+        "version": "1.1.35-ufo-dev.1",
+        "source": "97a4a70ddc10795ab2bdef1499b633363927cae3",
+        "matchingHistoricalSourceCandidate": null,
+        "userInstallableBytesVerified": false
+      },
+      "harness": {
+        "path": "/tmp/ungravity-remaining-round/seventh-build/jars/drmd-6dof-1.1.35-ufo-dev.1-spawner-origin.jar",
+        "sha256": "deffbdda1beaf53c60f2029dd7603a9814605cf6e3260a2b48b1a5e550675a7d"
+      },
+      "actualProcessExit": 0,
+      "result": {
+        "test": {
+          "region": "net.minecraft.class_3233",
+          "spawnData": "{entity:{id:\"minecraft:zombie\"}}",
+          "spawnMob": "minecraft:zombie",
+          "pendingAtOrigin": "DUMMY",
+          "typedAfterDungeon": "minecraft:mob_spawner",
+          "protoStatus": "minecraft:carvers",
+          "position": {
+            "z": 59,
+            "y": -51,
+            "x": -108
+          },
+          "protoChunk": "net.minecraft.class_2839",
+          "generationThread": "Worker-Main-2"
+        },
+        "seed": 271026,
+        "firstIncompatible": [
+          {
+            "pendingId": "minecraft:mob_spawner",
+            "stack": [
+              "knot//net.minecraft.class_2818.handler$zcn000$drmd_generated_spawner_check$drmdProbe$observeHydration(class_2818.java:1236)",
+              "knot//net.minecraft.class_2818.method_12204(class_2818.java)",
+              "knot//net.minecraft.class_2818.method_12201(class_2818.java:328)",
+              "knot//net.minecraft.class_2818.method_12010(class_2818.java:276)",
+              "knot//net.minecraft.class_1937.method_30092(class_1937.java:232)",
+              "knot//net.minecraft.class_1937.method_8652(class_1937.java:217)",
+              "knot//com.terminaldetector.drmd.spawnerprobe.GeneratedSpawnerProbe.writeOrWait(GeneratedSpawnerProbe.java:183)",
+              "knot//com.terminaldetector.drmd.spawnerprobe.GeneratedSpawnerProbe.tick(GeneratedSpawnerProbe.java:151)",
+              "knot//net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.lambda$static$2(ServerTickEvents.java:43)",
+              "knot//net.minecraft.server.MinecraftServer.handler$zhh000$fabric-lifecycle-events-v1$onEndTick(MinecraftServer.java:2663)"
+            ],
+            "point": "loadBlockEntity",
+            "actualState": "minecraft:chest",
+            "position": {
+              "z": 59,
+              "y": -51,
+              "x": -108
+            }
+          }
+        ],
+        "control": {
+          "region": "net.minecraft.class_3233",
+          "spawnData": "{entity:{id:\"minecraft:skeleton\"}}",
+          "spawnMob": "minecraft:skeleton",
+          "pendingAtOrigin": "DUMMY",
+          "typedAfterDungeon": "minecraft:mob_spawner",
+          "protoStatus": "minecraft:carvers",
+          "position": {
+            "z": 170,
+            "y": -33,
+            "x": -48
+          },
+          "protoChunk": "net.minecraft.class_2839",
+          "generationThread": "Worker-Main-2"
+        },
+        "result": "BASELINE_GENERATED_TYPED_SPAWNER_HYDRATED_AFTER_OWNER_CHANGED",
+        "fixtureRepackedGeneratedOwner": true
+      }
+    },
+    "fixed-writer": {
+      "game": {
+        "path": "/tmp/ungravity-remaining-round/ninth-build/jars/drmd-6dof-1.1.35-ufo-dev.1.jar",
+        "sha256": "947bf4c3d55113fb3656b92278b05d5b1fbb3f3afedf90824c8dda652f392198",
+        "version": "1.1.35-ufo-dev.1",
+        "source": "6877d3c64b6a6a6ea4910cbf89d9d010a927a068",
+        "matchingHistoricalSourceCandidate": null,
+        "userInstallableBytesVerified": false
+      },
+      "harness": {
+        "path": "/tmp/ungravity-remaining-round/seventh-build/jars/drmd-6dof-1.1.35-ufo-dev.1-spawner-origin.jar",
+        "sha256": "deffbdda1beaf53c60f2029dd7603a9814605cf6e3260a2b48b1a5e550675a7d"
+      },
+      "actualProcessExit": 0,
+      "result": {
+        "control": {
+          "generationThread": "Worker-Main-2",
+          "protoChunk": "net.minecraft.class_2839",
+          "position": {
+            "y": -33,
+            "z": 170,
+            "x": -48
+          },
+          "protoStatus": "minecraft:carvers",
+          "typedAfterDungeon": "minecraft:mob_spawner",
+          "pendingAtOrigin": "DUMMY",
+          "spawnMob": "minecraft:skeleton",
+          "spawnData": "{entity:{id:\"minecraft:skeleton\"}}",
+          "region": "net.minecraft.class_3233"
+        },
+        "firstIncompatible": [],
+        "seed": 271026,
+        "test": {
+          "generationThread": "Worker-Main-2",
+          "protoChunk": "net.minecraft.class_2839",
+          "position": {
+            "y": -51,
+            "z": 59,
+            "x": -108
+          },
+          "protoStatus": "minecraft:carvers",
+          "typedAfterDungeon": "minecraft:mob_spawner",
+          "pendingAtOrigin": "DUMMY",
+          "spawnMob": "minecraft:zombie",
+          "spawnData": "{entity:{id:\"minecraft:zombie\"}}",
+          "region": "net.minecraft.class_3233"
+        },
+        "fixtureRepackedGeneratedOwner": true,
+        "result": "GENERATED_TYPED_REPLACEMENT_READY_FOR_SAVE"
+      }
+    },
+    "fixed-cold-reader": {
+      "game": {
+        "path": "/tmp/ungravity-remaining-round/ninth-build/jars/drmd-6dof-1.1.35-ufo-dev.1.jar",
+        "sha256": "947bf4c3d55113fb3656b92278b05d5b1fbb3f3afedf90824c8dda652f392198",
+        "version": "1.1.35-ufo-dev.1",
+        "source": "6877d3c64b6a6a6ea4910cbf89d9d010a927a068",
+        "matchingHistoricalSourceCandidate": null,
+        "userInstallableBytesVerified": false
+      },
+      "harness": {
+        "path": "/tmp/ungravity-remaining-round/seventh-build/jars/drmd-6dof-1.1.35-ufo-dev.1-spawner-origin.jar",
+        "sha256": "deffbdda1beaf53c60f2029dd7603a9814605cf6e3260a2b48b1a5e550675a7d"
+      },
+      "actualProcessExit": 0,
+      "result": {
+        "fixtureStateWrites": 0,
+        "control": {
+          "x": -48,
+          "y": -33,
+          "z": 170
+        },
+        "result": "OBSERVED_GENERATED_SPAWNER_COLD_PASS",
+        "seed": 271026,
+        "test": {
+          "x": -108,
+          "y": -51,
+          "z": 59
+        }
+      }
+    }
+  },
+  "archive": "generated-dungeon-pending-owner.zip",
+  "archiveSha256": "18ff56d57bc98c9174dee4e2ed4ddf60465a2039bd47b163965fc91807de5a44",
+  "memberSha256": {
+    "first-unavailable/inputs.json": "4af5556d67c8412e76cd53fd2ede001d8ef07c269e722b0d28fe62dcfd580d17",
+    "first-unavailable/process.log": "e5b5211435f77a55fa71f12e70710f089abe5d03bb8e05affb27afc3f2e46246",
+    "first-unavailable/actual.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "first-unavailable/command.txt": "bc5513a80eac389ce0d39bf218ef8e994507305ae9a7c7b935d4c4d175a8fa4c",
+    "reproduced-negative/inputs.json": "7e8bb51d4fdb6f66d7fc5e439a6ba7d83a1518c127c8ba5349aaa70aafe02a90",
+    "reproduced-negative/process.log": "7e16174a3976641b030043452e62f17ed1c850a1c21d21643451f868293c66ca",
+    "reproduced-negative/actual.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reproduced-negative/command.txt": "bc5513a80eac389ce0d39bf218ef8e994507305ae9a7c7b935d4c4d175a8fa4c",
+    "reproduced-negative/process-admission.json": "bafa01571203fb88b7c96a9a24723eec0c29536d24a16c12d8313dcbbe8851b1",
+    "reproduced-negative/generated-spawner-write-ready.json": "327b14083a1f67ec3e86d5a3620d5297f247475bf516c8433f35c3be092d010a",
+    "fixed-writer/inputs.json": "f156e720a94d1741d8f6adaa5de583e903ecacad92fed79a251d767cae932a99",
+    "fixed-writer/process.log": "ebb48747d48ac18899cd2026ac8ee0ce9ae7de5ba44c59b1cd0d00f320597bfc",
+    "fixed-writer/actual.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "fixed-writer/command.txt": "bc5513a80eac389ce0d39bf218ef8e994507305ae9a7c7b935d4c4d175a8fa4c",
+    "fixed-writer/process-admission.json": "31cb5684fb8d88fe603a96542db54b1728adfc3c4eb3b597aa579db1be2634d9",
+    "fixed-writer/generated-spawner-write-ready.json": "b12dfb947cfe7f377562d01cf6e697aecda0985719e94d2326ad53857407c11f",
+    "fixed-cold-reader/inputs.json": "2e6970e381be9b2675489b9cff938c32b4024069668a0033be153561d006a98d",
+    "fixed-cold-reader/process.log": "b3974a0c19d4b1c3b97548f779144b2e95d490a68679c34c0cac4f6b0e90eb66",
+    "fixed-cold-reader/actual.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "fixed-cold-reader/command.txt": "2d43bbaf383c063184d3e17433611b5812446c3a86476d851de69c97b44d5729",
+    "fixed-cold-reader/generated-spawner-cold.json": "9a56c0af86ec4e41a6fa5cd1646dd263f67d527f210be1155817b5cb257e8510",
+    "first-unavailable/negative-anvil-v2.json": "0ddc8c1e01e1f442787a44573e23ba845bb6e259ee126cd00586fb979b445feb",
+    "scenario.md": "c23787c26d1cca965632125b3da840a734e730f475b025bccef6dde7f8503051"
+  },
+  "scope": "Actual vanilla-generated DungeonFeature pending and typed owners, controlled typed repack and ordinary chest placement, separate closed-save cold reader. The historical installed build that produced the October DUMMY symptom remains unidentified."
+}

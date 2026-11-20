@@ -253,11 +253,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id004
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [BLOCK_ENTITY_FORENSICS_2026-11-17.md, EVIDENCE/finish36-20261119/remaining-first-stock.json, EVIDENCE/finish36-20261119/signed-spawner-replacement-cold.json, EVIDENCE/finish36-20261119/signed-spawner-replacement-cold.zip]
-  notes: "Два процесса BCC подтвердили удаление отложенных записей заменённого спавнера при Y−512 и +2150. Соседние штатные спавнеры сохранили SpawnCount 13 и 18 после перезапуска, читатель не записал ни блока. Пара использует корректные исходные состояния, созданные через серверный API. Источник серии исторических DUMMY и полный переход от сгенерированного ProtoChunk остаются на проверке."
+  evidence: [BLOCK_ENTITY_FORENSICS_2026-11-17.md, EVIDENCE/finish36-20261119/generated-dungeon-pending-owner.json, EVIDENCE/finish36-20261119/generated-dungeon-pending-owner.zip, EVIDENCE/finish36-20261119/signed-spawner-replacement-cold.json, EVIDENCE/finish36-20261119/signed-spawner-replacement-cold.zip]
+  notes: "Реальная генерация подземелья подтвердила DUMMY в ProtoChunk и настроенный спавнер после DungeonFeature. При контролируемой отложенной записи уже сгенерированного NBT на исходной сборке читался старый спавнер после установки сундука. На 6877d3c6 сохранились новый сундук и данные соседнего сгенерированного спавнера после отдельного запуска. Читатель не записал ни блока. Отдельный нативный BCC прогон подтвердил замену на Y−512 и +2150 с сохранением соседних спавнеров. Точный источник октябрьской серии предупреждений по имеющимся логам установить нельзя."
 - id: S03-T04
   stage: S03
   stage_title: Migrate world gameplay and structures
