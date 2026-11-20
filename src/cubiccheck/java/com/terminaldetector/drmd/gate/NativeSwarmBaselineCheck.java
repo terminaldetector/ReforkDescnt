@@ -214,8 +214,11 @@ public final class NativeSwarmBaselineCheck {
     public static void rendered() {
         if(abortPending)throw new IllegalStateException("Deliberate typed-swarm renderer fault for shutdown recovery proof");
         if(done)return;
-        if (TRACE_DRAWS && org.lwjgl.opengl.GL.getCapabilities().GL_KHR_debug) {
-            if (sampling) {
+        boolean sampleThisRender = sampling;
+        if (TRACE_DRAWS && (sampleThisRender || traceOpened && !traceClosed)) {
+            require(org.lwjgl.opengl.GL.getCapabilities().GL_KHR_debug,
+                "The marked benchmark requires native GL_KHR_debug");
+            if (sampleThisRender) {
                 // This callback is the return of the real GameRenderer.render. Some
                 // GLFW builds resolve swap outside the tracing GL dispatch table.
                 traceMarker(traceOpened ? "FRAME" : "BEGIN");
@@ -225,7 +228,7 @@ public final class NativeSwarmBaselineCheck {
                 traceClosed = true;
             }
         }
-        long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;
+        long now=System.nanoTime();if(sampleThisRender){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;
             if (MEASURE_CAPACITY) {
                 var vm = Runtime.getRuntime(); HEAP.add(vm.totalMemory() - vm.freeMemory());
                 var dust = com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.CLIENT.sample();
