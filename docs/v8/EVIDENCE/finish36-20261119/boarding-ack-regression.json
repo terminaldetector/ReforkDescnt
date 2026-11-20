@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "source": "0178e6c841d25f489f6be612b9e16cfdcb391be1",
+  "jarSha256": "c381db97961597ff64ba5bd49e2ed3055d205bed6eb5444323d72926572eb713",
+  "results": {
+    "boarding-before": {
+      "source": "0178e6c841d25f489f6be612b9e16cfdcb391be1",
+      "namedGameSource": "6877d3c64b6a6a6ea4910cbf89d9d010a927a068",
+      "exit": 1,
+      "processPid": 157647,
+      "started": 1795168478.6091383,
+      "ended": 1795168509.6669579,
+      "validatedAfterRun": true,
+      "tests": 3,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "junitSHA256": "5e107bf26f62b8a2cc1824309daa4ec4b7b8ce2ed0a3a1381483277835fb1688",
+      "registeredEntrypoints": 1
+    },
+    "boarding-after": {
+      "source": "0178e6c841d25f489f6be612b9e16cfdcb391be1",
+      "namedGameSource": "0178e6c841d25f489f6be612b9e16cfdcb391be1",
+      "exit": 0,
+      "processPid": 157704,
+      "started": 1795168509.946217,
+      "ended": 1795168537.4778745,
+      "validatedAfterRun": true,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "junitSHA256": "4248b9b6587a6df7268d7db4a397e5ee66eafdaa8895ec69a89b5a933e1982ae",
+      "registeredEntrypoints": 1
+    }
+  },
+  "archiveSha256": "6d61c7c9bc3af441314c47f916ee9ced720532f744f27a119f99ce0b2f7be9cc",
+  "scope": "Actual named GameTest with two contact ticks before receiving the original Minecraft confirmation. The original game rewinds the player. The patched game preserves position and epoch and advances without an extra placement."
+}
