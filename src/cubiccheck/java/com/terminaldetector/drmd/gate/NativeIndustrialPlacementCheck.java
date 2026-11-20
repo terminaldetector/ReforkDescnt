@@ -48,6 +48,7 @@ public final class NativeIndustrialPlacementCheck {
     }
 
     private static void client(MinecraftClient client) {
+        CubicClientGate.confirmDisposableCubicSave(client);
         if (client.getServer() == null || client.player == null) return;
         if (!client.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation")) {
             throw new IllegalStateException("Disposable cubic runtime required");

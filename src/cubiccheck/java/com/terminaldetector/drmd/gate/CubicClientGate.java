@@ -86,6 +86,17 @@ public final class CubicClientGate implements ClientModInitializer {
         instance=this;
     }
     public static void frameFinished() {if(instance!=null)instance.rendered();}
+    static void confirmDisposableCubicSave(MinecraftClient client) {
+        if (client.runDirectory.getName().equals("cubic-client-automation")
+                && client.currentScreen instanceof BackupPromptScreen prompt) {
+            for (var child : prompt.children()) {
+                if (child instanceof ButtonWidget button && button.getMessage().getString().equals("I know what I'm doing!")) {
+                    button.onPress();
+                    break;
+                }
+            }
+        }
+    }
     private void rendered() {
         renderedFrames++;
         if(capture==null) {captureFrames=0;return;}
@@ -125,8 +136,7 @@ public final class CubicClientGate implements ClientModInitializer {
         if(++ticks>4200)throw new IllegalStateException("Cubic client gate timeout phase="+phase+" age="+age);
         if(ticks%100==0)System.out.println("CUBIC_GATE phase="+phase+" age="+age+" screen="+(client.currentScreen==null?"none":client.currentScreen.getClass().getSimpleName())
                 +" player="+(client.player==null?"none":client.player.getPos()));
-        if(client.currentScreen instanceof BackupPromptScreen prompt)
-            for(var child:prompt.children())if(child instanceof ButtonWidget button && button.getMessage().getString().equals("I know what I'm doing!"))button.onPress();
+        confirmDisposableCubicSave(client);
         if(client.player==null || client.world==null || client.getServer()==null)return;
         if(!started) {
             if(!client.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"))throw new IllegalStateException("Disposable cubic runtime required");
