@@ -9,6 +9,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BoundedSpatialIndexTest {
 	@Test
@@ -97,5 +98,66 @@ class BoundedSpatialIndexTest {
 		}
 		assertTrue(examined <= (long) agents * 96,
 				"pair work is bounded by agents*candidateBudget, never agents squared");
+	}
+
+	@Test
+	void nestedQueriesPreserveTheOuterSampleAndPredicateOrder() {
+		var index = new BoundedSpatialIndex<Integer>(2);
+		var names = new BoundedSpatialIndex<String>(2);
+		var center = new BoundedSpatialIndex.Point(0, 0, 0);
+		for (int value = 0; value < 320; value++) {
+			index.add(value, (value % 7) - 3, (value % 3) - 1, (value % 5) - 2);
+		}
+		names.add("port", -1, 0, 0);
+		names.add("starboard", 1, 0, 0);
+		List<Integer> expectedOrder = new ArrayList<>();
+		var expected = index.nearest(center, 5, 32, 96, 623, value -> {
+			expectedOrder.add(value);
+			return value % 3 != 0;
+		});
+		var nestedExpected = index.nearest(center, 3, 12, 24, 18, value -> value % 2 == 0);
+		List<Integer> actualOrder = new ArrayList<>();
+		var actual = index.nearest(center, 5, 32, 96, 623, value -> {
+			actualOrder.add(value);
+			if (actualOrder.size() % 7 == 1) {
+				assertEquals(nestedExpected, index.nearest(center, 3, 12, 24, 18, neighbour -> {
+					if (neighbour % 5 == 1) {
+						var other = names.nearest(center, 2, 2, 2, 5, name -> true);
+						assertEquals(List.of("port", "starboard"), other.hits().stream()
+								.map(BoundedSpatialIndex.Hit::value).toList());
+					}
+					return neighbour % 2 == 0;
+				}));
+			}
+			return value % 3 != 0;
+		});
+		assertEquals(expectedOrder, actualOrder);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	void queryAfterAnOversizeQueryAndThrownFilterUsesFreshScratch() {
+		var index = new BoundedSpatialIndex<Integer>(1);
+		var center = new BoundedSpatialIndex.Point(0, 0, 0);
+		int value = 0;
+		for (int x = -8; x <= 8; x++) {
+			for (int z = -8; z <= 8; z++) index.add(value++, x, 0, z);
+		}
+		var narrow = index.nearest(center, 2, 6, 12, 42, candidate -> true);
+		var wide = index.nearest(center, 12, 289, 289, 42, candidate -> true);
+		assertEquals(289, wide.occupiedBuckets());
+		assertEquals(289, wide.examinedCandidates());
+		assertEquals(289, wide.hits().size());
+		var failure = new IllegalStateException("filter failed");
+		assertEquals(failure, assertThrows(IllegalStateException.class, () -> {
+			var visited = new ArrayList<Integer>();
+			index.nearest(center, 12, 289, 289, 42, candidate -> {
+				visited.add(candidate);
+				if (visited.size() == 150) throw failure;
+				return true;
+			});
+		}));
+		assertEquals(narrow, index.nearest(center, 2, 6, 12, 42, candidate -> true));
+		assertEquals(wide, index.nearest(center, 12, 289, 289, 42, candidate -> true));
 	}
 }
