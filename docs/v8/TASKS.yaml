@@ -955,11 +955,11 @@ tasks:
   owner: WORLD_DESIGN
   gate: G5
   depends_on_stages: *id014
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.json, EVIDENCE/finish36-20261119/station-ground-separation-and-far-deck.json]
-  notes: "Удалён генератор платформ и исправлена высота плавающих ориентиров. Средний и дальний силуэты авторских тел подтверждены в PS1. Шесть ложных высот крыши вытеснены пятью неизвестными записями и одной реальной нижней высотой 1414. Проём станции вновь показывает небо. Контроль непрерывного перехода от поверхности до кольца остаётся в работе."
+  evidence: [EVIDENCE/finish36-20261119/station-ground-separation-and-far-deck.json, EVIDENCE/finish36-20261119/ps1-altitude-and-native-asteroid-fog.json, EVIDENCE/finish36-20261119/ring-ascent-ground-handoff.json, EVIDENCE/finish36-20261119/ring-ascent-ground-handoff.zip]
+  notes: "На 6877d3c6 штатная 6DoF-тяга подняла игрока от видимого газона до подлинной западной палубы кольца в PS1. Во всех 507 измеренных кадрах центральная выборка покрыта. На месте прежней дыры у Y175 видны 25 из 25 пикселей глубинной подложки. В закрытой копии высота ячейки земли исправлена с 1417 на 78, оригинальные manifest и журнал кольца побайтно сохранены. Зарегистрированы семь высот и три фактических кадра палубы. Старый генератор пустых платформ удалён ранее."
 - id: S13-T06
   stage: S13
   stage_title: 'World architecture: core to Citadel'

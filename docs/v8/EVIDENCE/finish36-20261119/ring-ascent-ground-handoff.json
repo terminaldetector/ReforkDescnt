@@ -1,0 +1,103 @@
+{
+  "runs": {
+    "first": {
+      "source": "84fcc9bb9000951583d6232ede5055eb532832dc",
+      "nativeExit": 0,
+      "status": "FAIL",
+      "reason": "java.lang.IllegalStateException: ground has an uncovered real scene pixel at {actualSceneFbo=5, horizonPixels=0, uncoveredPixels=25, nativeTerrainWithoutHorizon=true, eye=[197.48806798518368, 156.67841908420354, 256.4915199437383], residentPixels=0, styledWorldFogActive=true}",
+      "actualMoved": 1,
+      "serverSamples": 0,
+      "completedFrames": 0,
+      "reachedLandmarks": 0,
+      "uncovered": {
+        "actualSceneFbo": 5,
+        "horizonPixels": 0,
+        "uncoveredPixels": 25,
+        "nativeTerrainWithoutHorizon": true,
+        "eye": [
+          197.48806798518368,
+          156.67841908420354,
+          256.4915199437383
+        ],
+        "residentPixels": 0,
+        "styledWorldFogActive": true
+      }
+    },
+    "second": {
+      "source": "0df9b0645827a20b0d38e28fe61565209d466661",
+      "nativeExit": 0,
+      "status": "FAIL",
+      "reason": "java.lang.IllegalStateException: ground has an uncovered real scene pixel at {residentPixels=0, styledWorldFogActive=true, eye=[197.45751617591986, 174.80839390839716, 255.4766958950892], nativeTerrainWithoutHorizon=true, uncoveredPixels=25, horizonPixels=0, actualSceneFbo=5}",
+      "actualMoved": 93,
+      "serverSamples": 373,
+      "completedFrames": 32,
+      "reachedLandmarks": 1,
+      "uncovered": {
+        "residentPixels": 0,
+        "styledWorldFogActive": true,
+        "eye": [
+          197.45751617591986,
+          174.80839390839716,
+          255.4766958950892
+        ],
+        "nativeTerrainWithoutHorizon": true,
+        "uncoveredPixels": 25,
+        "horizonPixels": 0,
+        "actualSceneFbo": 5
+      }
+    },
+    "fixed": {
+      "source": "6877d3c64b6a6a6ea4910cbf89d9d010a927a068",
+      "nativeExit": 0,
+      "status": "PASS",
+      "reason": "actual normal ascent retains sampled ground from the surface to the resident real ring deck",
+      "actualMoved": 1132,
+      "serverSamples": 1001,
+      "completedFrames": 507,
+      "reachedLandmarks": 7,
+      "uncovered": {},
+      "oldGapBandAllLodSamples": 82,
+      "actualRingDeckFrames": 3,
+      "finalSurface": {
+        "height": 78,
+        "color": "007c00"
+      },
+      "manifestAndJournalUnchanged": true,
+      "closedArchiveSha256": "77acf1ce4ab96f15d1e411bf18401787893c29f50ce0e03a8cf15fbf5d57e4a2"
+    }
+  },
+  "archive": "ring-ascent-ground-handoff.zip",
+  "archiveSha256": "fc615c45b4aedae15e558066441c7e6c3bfecd06f8c970abfb0dd1ae36ec94a7",
+  "memberSha256": {
+    "prior-committed-plan-and-surface.json": "d07d0132c4a3b19bad8343a3e3761f4fd7699e37a1e7b9bf0f01b24e505f4490",
+    "diagnosis.md": "5549ba5ac1952f4ac4c5cc2417dde9c7aea26bc3d48148a847e0bc31acaaa168",
+    "first/native.log": "0b4eb73362c6481197e7b2f9a5f370b5a30764b3f7d21b1a5a40008d8523cabd",
+    "first/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "first/closed-copied-save.json": "225e4aea66500d6f6c0d542a29a949a8a94097a37605e7fbf233a5d28b4bdcac",
+    "first/high-altitude-lod-outcome.json": "23857bf603a1204966ab120a2ff33aa5280b2bbde803ca11aea2b4e987017b71",
+    "first/inputs.json": "106929ef0671f13a27b3a36d17aab868471fd541c71a6530cf8c7c1db00c9f25",
+    "second/native.log": "a108d4c5c71659215d089faaa7685cca313c415693f377fa0e0facc7c53c021a",
+    "second/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "second/closed-copied-save.json": "60c762cfab6d7f83afd95ba3b22739afcc7fd4dbb3e8abd31286ea0ecb07fa8d",
+    "second/high-altitude-lod-outcome.json": "924ae04179e5bfdb14582634969c79ba0032c88835f64b4ef4477bea04e60c6b",
+    "second/inputs.json": "51c14046faad172cf2b8a686891418befa07c79ecc860156130b0d551b99bb02",
+    "second/frames/stationary-native-surface.png": "4a4b2e9d35122844493e0eb2108cf3502d2714a82ac13af56b01ffaf01201a6c",
+    "second/frames/y155.png": "1763588c8cc8f406581cb6084240e923bc87d700aaab3aa4dae4e8887673548a",
+    "second/gui-admission-screen.png": "3827f0804af6483c53536c0a20f4359a16b05ad2fbd5fb8883e2451a2fd97d54",
+    "fixed/native.log": "494fa99ade18efc8d138f194e98e1108d1c57847402b30c5393e351a23370df9",
+    "fixed/native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "fixed/closed-copied-save.json": "be7ba3872a5fcb5801d4957f896f40fcb998f2d007a97da180fcfab02884d584",
+    "fixed/high-altitude-lod-outcome.json": "867693c2bbccb829d8c18a5104dd41db6d84fad706e80b22f1ec8eb0ae7e9f36",
+    "fixed/inputs.json": "92b3430a2ac956dc7ebce833a3971097ef94e8d623d1affd40123a1ec829e419",
+    "fixed/frames/actual-west-ring-deck.png": "2e8db768e9d392e8e98faf894c05d974494972a20cf9bd1cacbdbbc7c2d7591b",
+    "fixed/frames/stationary-native-surface.png": "437591b3c93cef22618d0e0a6479f1dc8f6294149aa60b4cd1f6e7602c73e53a",
+    "fixed/frames/y1020.png": "ccbce10b9e1fe65099403a7086658775b35f782ebc7ba2f364c1bddb72834321",
+    "fixed/frames/y1300.png": "888f1a301266c7986bd63f7421d72c386bb85822b8436d4ef185f4722e0a99a3",
+    "fixed/frames/y1440.png": "a6374eacc73c8f3dabd242658c52c049dbf29a3d11733213455cbd58d2ddb528",
+    "fixed/frames/y155.png": "c1fca66a48f83c153515d4973d1f1cd7f21eeced6a09eff902dbb5421f5fed5e",
+    "fixed/frames/y320.png": "7b05a12368d35864215661452b09062dfc4ca52e0a2bc3d668c16e118f3578bf",
+    "fixed/frames/y450.png": "3cc10b527fcde594e23e44ac7bb17f96775c1dc3d8f506752693069bffd20e8d",
+    "fixed/frames/y700.png": "b2abd3b72780b77ee799cbb0fd35ea159ef5ab4f59625a450af47bc61e17398b"
+  },
+  "scope": "Ordinary continuous native PS1 ascent and unchanged depth-tested ground and ring pixels. Sampled central ground remains covered. This does not add a separate far proxy of the ring."
+}
