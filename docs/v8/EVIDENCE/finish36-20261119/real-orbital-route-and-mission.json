@@ -1,0 +1,24 @@
+{
+  "source": "da62cdb15a0a98096ad39fea8ed708ef95b264fc",
+  "nativeExit": 0,
+  "priorVerifiedRoute": {
+    "status": "PASS",
+    "taskScope": "S13-T06 original route; the mission remains separate",
+    "source": "26bdf5f214a394be5a6c56473ae5392239711dc6",
+    "rawEvidenceSha256": "cefa7f5202b93701a4a6b8c74559d985b225022b399b40e284d62736ce3b2705",
+    "gateCount": 9,
+    "checkedNativeCells": 7331,
+    "pathMetres": 529.0989360852851,
+    "maxClientStepMetres": 1.446954656712528,
+    "maxSampledAsyncDriftMetres": 10.455979841648944,
+    "operatorRestored": true,
+    "ordinaryKeyTicks": 1380,
+    "screens": 9
+  },
+  "passedMissionObjectives": 5,
+  "actualPathMetres": 276.4765285731488,
+  "realStoneBreakEvents": 2,
+  "reputationAfterRepeatedClaim": 3,
+  "archive": "real-orbital-route-and-mission.zip",
+  "archiveSha256": "23e413d1a1813bfa9e76a9e21d290b1f49a70d129fc729ac5597cf77fd3557ca"
+}

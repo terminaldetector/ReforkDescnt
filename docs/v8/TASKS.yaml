@@ -967,11 +967,11 @@ tasks:
   owner: WORLD_DESIGN
   gate: G5
   depends_on_stages: *id014
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
-  notes: "2026-11-19, третий цикл. Добавлены девять контрольных точек с авторитетной серверной позицией и проверкой свободного прохода. Полный фактический полёт через уровни остаётся открытым."
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/real-orbital-route-and-mission.json, EVIDENCE/finish36-20261119/real-orbital-route-and-mission.zip]
+  notes: "Нативный полёт через девять контрольных точек проверил реальный свободный проход между слоями. Отдельный полный Survival-прогон орбитальной миссии прошёл пять целей и 276.48 м штатного полёта. Два блока добыты реальным вводом. Выход и повторное обращение к NPC дали ровно одну награду. Исходные права игрока восстановлены после прогона."
 - id: S14-T01
   stage: S14
   stage_title: Factions, Shapes and mission framework
