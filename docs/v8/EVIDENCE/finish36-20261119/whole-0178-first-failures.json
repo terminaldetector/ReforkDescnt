@@ -1,0 +1,35 @@
+{
+  "receipt": {
+    "source": "0178e6c841d25f489f6be612b9e16cfdcb391be1",
+    "namedGameSource": "0178e6c841d25f489f6be612b9e16cfdcb391be1",
+    "exit": 7,
+    "processPid": 159665,
+    "started": 1795170229.9378858,
+    "ended": 1795170885.5818074,
+    "validatedAfterRun": true,
+    "tests": 711,
+    "failures": 7,
+    "errors": 0,
+    "skips": 0,
+    "junitSHA256": "d132823cbeab595a5a20a3e5ce73bc869e4fd83f159b78116470c94494bcc151",
+    "registeredEntrypoints": 117
+  },
+  "failures": {
+    "climberfieldgravitygametests.nativespiderandcavespiderpursuerealsurvivalplayersundertheceiling": "(3750415, -60, 12122323) native ground goal must preserve actual physical support within the existing .08m skin: 0.42000000596046405",
+    "gravityworldmaterialproofgametests.realtrunkcanopycutthenregisteredraillaunchesintosolidtarget": "(3750402, -60, 12122617) existing bounded collapse transfers actual remaining material once",
+    "portalexitinterestgametests.nearbyrealuserwarmsanunknowndestinationthroughordinarytickets": "(3750402, -60, 12122717) finite ordinary async warmup admission/progress",
+    "orientedbodygametests.smoothedtreesupportusesthesamegeometryasitsnarrowphase": "(3750415, -60, 12122731) natural body physically tips instead of freezing on mismatched contact geometry: Quat[x=0.007420811293131424, y=-1.6262086923485443E-5, z=-0.010150612400049263, w=0.9999209450567581]",
+    "flightrecoverygametests.normaloffusesloadedalternateclearancewithoutdestroyingthehull": "(3750389, -60, 12123117) release finds real clear standing space rather than leaving an upright body inside the ceiling",
+    "shapesinfantrygametests.nativelowhealthcoverreturnsthroughthewallchartinsteadofreplacingmomentum": "(3750441, -60, 12123117) the original native combat goal must find real material cover using the same supported path, with no direct force drive",
+    "portalpendingtravelgametests.arealsavedunknownexitwarmsthentransfersthewaitingcrossingexactlyonceandretreatcancels": "(3750376, -60, 12123299) bounded warmup must give a waiting near-gate player an actual ready destination"
+  },
+  "fileSha256": {
+    "receipt.json": "863e110f9dbb90d47cc0271610d4a85c11111182c9831773a016833213891690",
+    "inputs.json": "370527029afff1a4525894867eb5ab3c17a313c261b07b4ca96426fd486d9f93",
+    "game.log": "a8a8e6402f5a612d4f5aeb3b990ab5787dd1b709c7e078a76f6cea243f869ab7",
+    "launch.cfg": "873744d667af323650bda117306b92cb2a27a033a3ee0a45428cb8ad5462e639",
+    "runtime/reports/gametest-results.xml": "d132823cbeab595a5a20a3e5ce73bc869e4fd83f159b78116470c94494bcc151",
+    "runtime/world-closed.json": "b34c06414fd3663e194be315156920067fdb319834efaa849f26a208ed029b0c"
+  },
+  "archiveSha256": "9d2906e409e1d50f3929b2efd38b4af48b946bf26c771b9f49894866ef9f5e41"
+}
