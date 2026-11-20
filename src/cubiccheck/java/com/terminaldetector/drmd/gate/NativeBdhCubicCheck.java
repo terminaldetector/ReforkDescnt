@@ -16,6 +16,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -31,6 +32,7 @@ public final class NativeBdhCubicCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.bdhCubic");
     private static final boolean COLD_READER = Boolean.getBoolean("drmd.gate.bdhColdReader");
     private static final boolean VISIT_FIXTURE = Boolean.getBoolean("drmd.gate.bdhVisitFixture");
+    private static final long FIXTURE_DAY_TIME = 6000;
     private static final BlockPos LOWER = new BlockPos(8, 2150, 120);
     private static final BlockPos UPPER = new BlockPos(8, 2229, 120);
     private static final BodyVolumePlan.Column TEST_COLUMN = new BodyVolumePlan.Column(0, 7, 132, 139);
@@ -110,6 +112,9 @@ public final class NativeBdhCubicCheck {
                     player.teleport(player.getServerWorld(), 8.5, 2183, VISIT_FIXTURE ? 120.5 : 8.5, Set.of(), 0, 0);
                     setupTeleports++;
                     var world = player.getServerWorld();
+                    // Reference daylight makes the fixed colour thresholds independent of donor time.
+                    world.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(false, client.getServer());
+                    world.setTimeOfDay(FIXTURE_DAY_TIME);
                     world.setChunkForced(0, 7, true);
                     if (!BodyVolumeLeases.requestNativeInterest(world, INTEREST, TEST_COLUMN)) {
                         serverStatus = "native test interest refused";
@@ -232,7 +237,7 @@ public final class NativeBdhCubicCheck {
     public static void rendered() {
         if (!ENABLED || done || !committed || !released || !drawn(lower) || !drawn(upper)) return;
         var client = MinecraftClient.getInstance();
-        if (client.world == null || client.player == null) return;
+        if (client.world == null || client.player == null || client.world.getTimeOfDay() != FIXTURE_DAY_TIME) return;
         var access = WorldAccess.of(client.world);
         boolean lowerNative = access.readIfLoaded(LOWER).isPresent();
         boolean upperNative = access.readIfLoaded(UPPER).isPresent();
@@ -245,7 +250,7 @@ public final class NativeBdhCubicCheck {
         }
         finalView = Map.of("nativeDistance",client.options.getClampedViewDistance(),"screenOpen",client.currentScreen!=null,
             "lowerNative",lowerNative,"upperNative",upperNative,"camera",List.of(point.x,point.y,point.z),
-            "yaw",camera.getYaw(),"pitch",camera.getPitch(),"phase",phase);
+            "yaw",camera.getYaw(),"pitch",camera.getPitch(),"phase",phase,"dayTime",client.world.getTimeOfDay());
         if (client.currentScreen != null || client.options.getClampedViewDistance() != 4 || lowerNative || upperNative) return;
         if (Math.abs(point.y - 2184.62) > 2 || Math.abs(point.z - 8.5) > 2) return;
         float pitch = phase == 0 ? 0 : (phase == 1 ? 12 : -12);
@@ -273,7 +278,7 @@ public final class NativeBdhCubicCheck {
             String name = List.of("both-cubic-lods", "lower-cube", "upper-cube").get(phase);
             image.writeTo(client.runDirectory.toPath().resolve(name + ".png"));
             frames.add(Map.of("name", name, "lowerRed", red, "upperGreen", green,
-                "yaw", camera.getYaw(), "pitch", camera.getPitch(), "nativeView", 4));
+                "yaw", camera.getYaw(), "pitch", camera.getPitch(), "nativeView", 4, "dayTime", client.world.getTimeOfDay()));
             if (++phase == 3) finish(client, "PASS", "separate native cube uploads and rendered markers beyond the vanilla view");
             else stable = 0;
         } catch (Exception failure) {
