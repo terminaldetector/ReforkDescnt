@@ -16,7 +16,7 @@ import java.util.*;
 public final class PortalExitInterest {
     public static final int MAX_CANDIDATES=256,MAX_LINKS=8,MAX_COLUMNS_PER_LINK=9,MAX_CUBES_PER_LINK=27;
     public static final int PROBES_PER_TICK=32,REQUESTS_PER_TICK=16,NEARBY_DISTANCE=32;
-    private static final int MAX_PLAYERS_EXAMINED=128,EXPIRY_TICKS=2;
+    private static final int EXPIRY_TICKS=2;
     // Optional prefetch needs FULL data only. Radius2 additionally requests entity ticking
     // and a two-column FULL halo; travellers acquire ordinary interest after transfer.
     private static final int FULL_TICKET_RADIUS=0;
@@ -55,14 +55,31 @@ public final class PortalExitInterest {
         }
         candidate.destination=destination.toImmutable();candidate.halfSpan=halfSpan;candidate.observed=world.getServer().getTicks();
     }
-    private static boolean nearby(ServerWorld world,BlockPos source){
-        int examined=0;var centre=Vec3d.ofCenter(source);
-        // Same authoritative connection source as BoardingSystem.players: cubic pilots
-        // can be absent from vanilla's world entity list. Bound the iterator before filtering.
-        for(var player:world.getServer().getPlayerManager().getPlayerList()){
-            if(++examined>MAX_PLAYERS_EXAMINED)break;
-            if(!player.isRemoved()&&player.getWorld()==world&&player.isAlive()&&!player.isSpectator()
-                    &&player.squaredDistanceTo(centre)<=NEARBY_DISTANCE*NEARBY_DISTANCE)return true;
+    private static Map<Long,List<Vec3d>> connectedPlayersByCell(ServerWorld world) {
+        var positions = new HashMap<Long,List<Vec3d>>();
+        // Cubic pilots can be absent from the ordinary world entity index. Snapshot positions
+        // from the authoritative connection roster once, keeping the references local to this tick.
+        for (var player : world.getServer().getPlayerManager().getPlayerList()) {
+            if (player.isRemoved() || player.getWorld() != world || !player.isAlive() || player.isSpectator()) continue;
+            var position = player.getPos();
+            long cell = ChunkPos.toLong(playerCell(MathHelper.floor(position.x)), playerCell(MathHelper.floor(position.z)));
+            positions.computeIfAbsent(cell, ignored -> new ArrayList<>()).add(position);
+        }
+        return positions;
+    }
+    private static int playerCell(int blockCoordinate) {
+        return Math.floorDiv(blockCoordinate, NEARBY_DISTANCE);
+    }
+    private static boolean nearby(Map<Long,List<Vec3d>> players, BlockPos source) {
+        var centre = Vec3d.ofCenter(source);
+        int cellX = playerCell(source.getX());
+        int cellZ = playerCell(source.getZ());
+        for (int x = cellX - 1; x <= cellX + 1; x++) {
+            for (int z = cellZ - 1; z <= cellZ + 1; z++) {
+                for (var position : players.getOrDefault(ChunkPos.toLong(x, z), List.of())) {
+                    if (position.squaredDistanceTo(centre) <= NEARBY_DISTANCE * NEARBY_DISTANCE) return true;
+                }
+            }
         }
         return false;
     }
@@ -74,10 +91,11 @@ public final class PortalExitInterest {
             long age=now-entry.getValue().observed;
             if(age<0||age>EXPIRY_TICKS){releaseLease(world,state,entry.getKey());state.candidates.remove(entry.getKey());}
         }
+        var players = state.candidates.isEmpty() ? Map.<Long,List<Vec3d>>of() : connectedPlayersByCell(world);
         var checked=new HashSet<BlockPos>();
         for(var source:List.copyOf(state.active.keySet())){
             checked.add(source);var candidate=state.candidates.get(source);
-            if(candidate==null||!nearby(world,source))releaseLease(world,state,source);
+            if(candidate==null||!nearby(players,source))releaseLease(world,state,source);
             else plan(world,state,candidate);
         }
         int probes=MAX_LINKS; // Active leases above consume at most8 proximity probes.
@@ -86,7 +104,7 @@ public final class PortalExitInterest {
             var candidate=state.queue.removeFirst();if(state.candidates.get(candidate.source)!=candidate)continue;
             state.queue.addLast(candidate);
             if(checked.contains(candidate.source)||state.active.size()>=MAX_LINKS)continue;
-            probes++;if(nearby(world,candidate.source))plan(world,state,candidate);
+            probes++;if(nearby(players,candidate.source))plan(world,state,candidate);
         }
         var leases=new ArrayList<>(state.active.values());int budget=REQUESTS_PER_TICK;
         int start=leases.isEmpty()?0:Math.floorMod(state.cursor++,leases.size());
