@@ -151,7 +151,7 @@ public class PyroShipEntity extends VehicleEntity {
 				}
 			}
 			if (!data.isEnabled() || !pilot.isAlive() || pilot.isSpectator()) {
-                FlightSystem.disable(pilot,data);
+                FlightSystem.forceDisable(pilot,data);
                 return;
             }
 			FootGravitySystem.clear(pilot.getUuid());
@@ -174,6 +174,21 @@ public class PyroShipEntity extends VehicleEntity {
 		}
 	}
 
+    private ServerPlayerEntity approvedDismountOwner;
+    private Vec3d approvedDismountPosition;
+    /** Synchronous native callback marker only; never follows or teleports a passenger. */
+    public void dismountAt(ServerPlayerEntity passenger,Vec3d loadedClearExit){
+        if(!(getWorld() instanceof net.minecraft.server.world.ServerWorld world)||!world.getServer().isOnThread()
+            ||passenger.getVehicle()!=this||approvedDismountOwner!=null||loadedClearExit==null)
+            throw new IllegalStateException("one server-owned native dismount");
+        approvedDismountOwner=passenger;approvedDismountPosition=loadedClearExit;
+        try{passenger.stopRiding();}
+        finally{approvedDismountPosition=null;approvedDismountOwner=null;}
+    }
+    @Override public Vec3d updatePassengerForDismount(net.minecraft.entity.LivingEntity passenger){
+        return passenger==approvedDismountOwner&&approvedDismountPosition!=null?approvedDismountPosition:super.updatePassengerForDismount(passenger);
+    }
+
 	@Override
 	protected void removePassenger(Entity passenger) {
 		super.removePassenger(passenger);
@@ -187,7 +202,7 @@ public class PyroShipEntity extends VehicleEntity {
 			DescentPlayerData data = DescentPlayerData.get(sp);
             if(!data.isEnabled() || !sp.isAlive() || isRemoved() || sp.isSpectator()) {
                 // Passenger link is already severed; use the same complete cleanup as H-off.
-                FlightSystem.disable(sp,data);
+                FlightSystem.forceDisable(sp,data);
                 ConstructionMode.set(sp,false);
                 return;
             }

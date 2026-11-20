@@ -110,4 +110,34 @@ public final class FlightRecoveryGameTests implements FabricGameTest {
         } finally {player.discard();}
         c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-exit-no-safe-clearance")
+    public void normalOffWithNoLoadedClearUprightExitRetainsTheSameNativePilotAndHull(TestContext c){
+        var world=c.getWorld();var at=c.getAbsolutePos(new BlockPos(6,10,6));var changed=new java.util.LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+        // The2-block-high cabin fits the real2.2x1.2 hull. Its surrounding material leaves
+        // no upright space above/beside it in the finite native exit envelope.
+        for(var pos:BlockPos.iterate(at.add(-5,-3,-5),at.add(5,8,5))){
+            var key=pos.toImmutable();changed.put(key,world.getBlockState(key));
+            boolean cabin=Math.abs(pos.getX()-at.getX())<=1&&Math.abs(pos.getZ()-at.getZ())<=1&&pos.getY()>=at.getY()&&pos.getY()<=at.getY()+1;
+            world.setBlockState(key,(cabin?net.minecraft.block.Blocks.AIR:net.minecraft.block.Blocks.IRON_BLOCK).getDefaultState(),2);
+        }
+        var player=c.createMockCreativeServerPlayerInWorld();var ship=ModEntities.PYRO_SHIP.create(world);var start=Vec3d.ofBottomCenter(at);
+        try{
+            ship.setPosition(start);c.assertTrue(world.spawnEntity(ship)&&world.isSpaceEmpty(ship,ship.getBoundingBox()),"actual original hull fits the loaded low cabin");
+            player.setPosition(start);var data=DescentPlayerData.get(player);data.setEnabled(true);data.setRoll(42);data.setFlightVelocity(new Vec3d(2,3,4));player.setNoGravity(true);
+            c.assertTrue(player.startRiding(ship,true),"actual native passenger links admitted");var before=player.getPos();
+            c.assertTrue(com.terminaldetector.drmd.world.gravity.GravityMount.uprightDismountPosition(player,ship).isEmpty(),"actual loaded material has no safe bounded upright exit");
+            FlightSystem.disable(player,data);
+            c.assertTrue(player.getVehicle()==ship&&ship.hasPassenger(player)&&!ship.isRemoved()&&data.isEnabled(),"no-safe H-off preserves both exact links and existing authority");
+            c.assertTrue(player.getPos().equals(before)&&player.hasNoGravity()&&data.getRoll()==42&&data.getFlightVelocity().equals(new Vec3d(2,3,4)),"refusal cannot teleport, reset attitude/momentum or erase original gravity ownership");
+            FlightSystem.toggle(player);
+            c.assertTrue(data.isEnabled()&&player.getVehicle()==ship&&!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player),"refused H toggle cannot invoke foot adoption while flight still owns the pilot");
+            FlightSystem.forceDisable(player,data);
+            c.assertTrue(!player.hasVehicle()&&!ship.hasPassengers()&&!ship.isRemoved()&&!data.isEnabled()&&data.getFlightVelocity().lengthSquared()==0,
+                "explicit lifecycle cleanup still severs/reset the same no-safe mount; disconnect or authoritative recovery must never be vetoed");
+        }finally{
+            DescentPlayerData.get(player).setEnabled(false);player.stopRiding();ship.discard();player.discard();changed.forEach((pos,state)->world.setBlockState(pos,state,2));
+        }
+        c.complete();
+    }
+
 }

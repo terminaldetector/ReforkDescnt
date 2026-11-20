@@ -48,6 +48,25 @@ public final class GravityMount {
         return Optional.empty();
     }
 
+    /** One native upright vehicle exit. Query only: no flag, pose, position or ticket changes.
+     * A local-foot owner keeps its existing frame/release policy instead of borrowing this path. */
+    public static Optional<Vec3d> uprightDismountPosition(net.minecraft.server.network.ServerPlayerEntity player,net.minecraft.entity.Entity vehicle){
+        if(player.getWorld()!=vehicle.getWorld()||!player.getServer().isOnThread()||FootGravitySystem.isActive(player))return Optional.empty();
+        var world=player.getWorld();var access=WorldAccess.of(world);var loaded=new HashMap<D6ChunkPos,Boolean>();
+        var origin=vehicle.getPos();var nativeExit=new Vec3d(origin.x,vehicle.getBoundingBox().maxY,origin.z);
+        // Exact inherited Entity.updatePassengerForDismount point first; at most24 nearby
+        // same-height alternatives, all strictly inside the existing4m acceptance envelope.
+        for(int ring=0;ring<=3;ring++)for(int dx=-1;dx<=1;dx++)for(int dz=-1;dz<=1;dz++){
+            if(ring==0?(dx!=0||dz!=0):(dx==0&&dz==0))continue;
+            var candidate=nativeExit.add(dx*ring,0,dz*ring);
+            if(!Double.isFinite(candidate.lengthSquared())||candidate.squaredDistanceTo(origin)>=16)continue;
+            var box=standingBoxAt(player,candidate,new Vec3d(0,1,0));
+            if(box.intersects(vehicle.getBoundingBox()))continue;
+            if(clear(player,box,access,loaded))return Optional.of(candidate);
+        }
+        return Optional.empty();
+    }
+
     private static boolean clear(PlayerEntity player, Box box, WorldAccess access, Map<D6ChunkPos, Boolean> loaded) {
         var world = player.getWorld();
         return box.minY >= world.getBottomY() && box.maxY <= world.getTopY() && world.getWorldBorder().contains(box)

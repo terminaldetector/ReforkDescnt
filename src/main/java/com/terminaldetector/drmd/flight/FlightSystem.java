@@ -78,7 +78,7 @@ public final class FlightSystem {
 	public static void tick(ServerPlayerEntity player, DescentPlayerData data, Steering steering) {
 		// Spectators own their own movement entirely — hijacking travel there strands them.
 		if (player.isSpectator() || !player.isAlive()) {
-            disable(player, data);
+            forceDisable(player, data);
             return;
         }
 		float dt = 1f / 20f;
@@ -327,13 +327,37 @@ public final class FlightSystem {
 	}
 
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {
+        disable(player,data,true);
+    }
+
+    /** Lifecycle cleanup must not be vetoed by a mounted actor's ordinary exit geometry.
+     * Disconnect/death/authoritative relocation already own the subsequent native position. */
+    public static void forceDisable(ServerPlayerEntity player,DescentPlayerData data){
+        disable(player,data,false);
+    }
+
+    private static void disable(ServerPlayerEntity player,DescentPlayerData data,boolean ordinaryExit){
 		DiagTrace.record("flight", "6DoF off for " + player.getGameProfile().getName()
 				+ (player.hasVehicle() ? " while riding " + player.getVehicle().getType() : ""));
+        // A native upright exit needs its own loaded clearance even when no foot field is
+        // active. Decide before severing links or clearing authority; a refused exit preserves
+        // the current pilot instead of publishing an embedded standing body.
+        PyroShipEntity exitHull=player.getVehicle() instanceof PyroShipEntity hull?hull:null;
+        Vec3d approvedExit=null;
+        if(ordinaryExit&&exitHull!=null&&player.isAlive()&&!player.isSpectator()
+            &&!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player)){
+            var plan=com.terminaldetector.drmd.world.gravity.GravityMount.uprightDismountPosition(player,exitHull);
+            if(plan.isEmpty())return;
+            approvedExit=plan.get();
+        }
         // Clear authority before dismount: the passenger callback must observe an explicit stop,
         // rather than re-enabling free flight while H is trying to turn it off.
         data.setEnabled(false);
         com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.discontinuity(player);
-        if(player.getVehicle() instanceof PyroShipEntity) player.stopRiding();
+        if(exitHull!=null){
+            if(approvedExit!=null)exitHull.dismountAt(player,approvedExit);
+            else player.stopRiding(); // existing death/spectator/local-foot owner paths
+        }
         clearInput(player.getUuid());
         data.setThrustSpool(0); data.setIdleTimer(0); data.setGravityFactor(0);
         data.setDashTimer(0); data.setDashCooldown(0);
@@ -366,6 +390,7 @@ public final class FlightSystem {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		if (data.isEnabled()) {
 			disable(player, data);
+            if(data.isEnabled())return; // ordinary exit was refused; native flight still owns this player
 			// Re-enter foot gravity if standing in a torch/generator field
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(player, player.getPos());
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);

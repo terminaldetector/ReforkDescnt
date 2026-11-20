@@ -280,7 +280,7 @@ public class DescentMod implements ModInitializer {
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if(entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
                 com.terminaldetector.drmd.world.build.ConstructionMode.clear(player.getUuid());
-                FlightSystem.disable(player,DescentPlayerData.get(player));
+                FlightSystem.forceDisable(player,DescentPlayerData.get(player));
                 com.terminaldetector.drmd.physics.GravyPhysics.release(player);
             }
         });
@@ -290,7 +290,7 @@ public class DescentMod implements ModInitializer {
             // A new player entity must not inherit a dead entity's thrust, roll or mount intent.
             var data=DescentPlayerData.get(newPlayer);
             boolean resume=alive&&data.isEnabled();
-            FlightSystem.disable(newPlayer,data);
+            FlightSystem.forceDisable(newPlayer,data);
             if(resume) FlightSystem.enableWithoutMount(newPlayer,data);
         });
 
@@ -309,7 +309,7 @@ public class DescentMod implements ModInitializer {
 
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             com.terminaldetector.drmd.world.build.ConstructionMode.clear(handler.player.getUuid());
-            FlightSystem.disable(handler.player,DescentPlayerData.get(handler.player));
+            FlightSystem.forceDisable(handler.player,DescentPlayerData.get(handler.player));
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(handler.player.getUuid());
             com.terminaldetector.drmd.world.level.LowerWorldRecovery.clear(handler.player.getUuid());
             com.terminaldetector.drmd.world.LocalOrientation.clear(handler.player.getUuid());

@@ -49,7 +49,7 @@ public final class LowerWorldRecovery {
             ship.setPosition(destination); ship.setVelocity(Vec3d.ZERO);
             data.setLastShip(ship.getUuid(),ship.getBlockPos());
         }
-        FlightSystem.disable(player,data);
+        FlightSystem.forceDisable(player,data);
         player.requestTeleport(destination.x,destination.y,destination.z);
         player.setVelocity(Vec3d.ZERO); player.fallDistance=0;
         FlightSystem.enableWithoutMount(player,data);
