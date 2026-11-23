@@ -1,3 +1,11 @@
+# Ungravity Stage B 1.1.36-stage-b.dev.1
+
+Интеграционная сборка для Minecraft Java 1.21.1, Fabric и Java 21. Исходники dd82103f82d1703f022c8ffa1b12c3fb8c8eb231.
+
+[JAR](releases/1.1.36-stage-b.dev.1/drmd-6dof-1.1.36-stage-b.dev.1.jar) · [Установка](releases/1.1.36-stage-b.dev.1/INSTALL_RU.txt) · [Проверки](releases/1.1.36-stage-b.dev.1/VERIFICATION_RU.md) · [SHA-256](releases/1.1.36-stage-b.dev.1/SHA256SUMS) · [Объединение веток](../docs/stage-b/README_RU.md)
+
+---
+
 # Ungravity 1.1.35-ufo-dev.1
 
 Сборка для Minecraft 1.21.1, Fabric и Java 21. Исходники 9cdb8dd48ed84ac850547fdeb309688a8bb2ee05.
