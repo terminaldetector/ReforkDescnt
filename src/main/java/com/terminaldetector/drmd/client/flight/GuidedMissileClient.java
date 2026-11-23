@@ -222,8 +222,8 @@ public final class GuidedMissileClient {
         var mc = MinecraftClient.getInstance();
         if (link == null || !link.isCurrent(mc) || mc.options.hudHidden || mc.currentScreen != null
                 || draw.getScaledWindowWidth() < 150 || draw.getScaledWindowHeight() < 120) return;
-        int y = 18;
-        int heightBudget = Math.max(47, draw.getScaledWindowHeight() / 2 - y - 34);
+        int y = 16;
+        int heightBudget = Math.max(45, draw.getScaledWindowHeight() / 2 - y - 57);
         int width = Math.min(Math.min(192, draw.getScaledWindowWidth() - 24),
                 heightBudget * VIDEO_WIDTH / VIDEO_HEIGHT);
         int height = width * VIDEO_HEIGHT / VIDEO_WIDTH;
