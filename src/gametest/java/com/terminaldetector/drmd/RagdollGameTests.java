@@ -52,13 +52,19 @@ public final class RagdollGameTests implements FabricGameTest {
             }
             if (actor.age - hitAge[0] < 12) return;
             var current = actor.getPos();
-            var muzzle = current.add(.16, 2.1, -3);
+            player.setPosition(current.add(0, .48, -3));
+            var muzzle = player.getEyePos().add(.16, 0, 0);
+            var shot = new com.terminaldetector.drmd.weapon.core.WeaponCore.HitContext[1];
+            // Hitscan distance is expressed in Source units. The beam goes eight blocks from its muzzle.
             com.terminaldetector.drmd.weapon.core.WeaponCore.hitscan(player, muzzle, new Vec3d(0, 0, 1),
-                    192, 1000, com.terminaldetector.drmd.weapon.core.DamageClass.ENERGY, null, false, false);
+                    640, 1000, com.terminaldetector.drmd.weapon.core.DamageClass.ENERGY, hit -> shot[0] = hit, false, false);
+            context.assertTrue(shot[0] != null && shot[0].hitEntity() == actor,
+                    "offset hitscan reaches the Shapes actor three blocks from the muzzle");
             var wrecks = world.getEntitiesByClass(RagdollEntity.class, new Box(current, current).expand(5),
                     RagdollEntity::isShapesInfantry);
             context.assertTrue(wrecks.size() == 1 && !actor.isAlive() && actor.isInvisible(),
-                    "normal fire leaves one visible replacement");
+                    "normal fire leaves one visible replacement, health=" + actor.getHealth()
+                            + ", invisible=" + actor.isInvisible() + ", wrecks=" + wrecks.size());
             var wreck = wrecks.getFirst();
             clock.track(wreck);
             context.assertTrue(wreck.rig().segments().size() == 6

@@ -212,7 +212,9 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
                 // Clear the fixture's artificial backing before the independent impact setup.
                 strip.forEach(at->place.accept(at.south(),Blocks.AIR.getDefaultState()));
                 var support=BlockPos.ofFloored(body.physicsCentre().add(0,-.2,8));
-                place.accept(support.down(),Blocks.BEDROCK.getDefaultState());
+                // Anchor behind the support. A block directly below it would expose an adjacent
+                // unbreakable face to the projectile's descending lower edge at the same TOI.
+                place.accept(support.south(),Blocks.BEDROCK.getDefaultState());
                 place.accept(support,Blocks.BRICKS.getDefaultState());
                 place.accept(support.up(),Blocks.IRON_BLOCK.getDefaultState());
                 place.accept(support.up().east(),Blocks.IRON_BLOCK.getDefaultState());
@@ -224,7 +226,9 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
                     r.bodies.addAll(detached);
                     c.assertTrue(world.getBlockState(support).isAir()&&world.getBlockState(support.up()).isAir()
                         &&world.getBlockState(support.up().east()).isAir()&&detached.size()==1&&detached.getFirst().physicsGravity(),
-                        "actual rail terrain collision breaks the support and transfers the roof to one falling body");
+                        "actual rail terrain collision breaks the support and transfers the roof to one falling body"
+                            +" support="+support+" state="+world.getBlockState(support)+" roof="+world.getBlockState(support.up())
+                            +" landedBodies="+detached.size()+" rail="+r.state(body));
                     r.complete();
                 });
             });
