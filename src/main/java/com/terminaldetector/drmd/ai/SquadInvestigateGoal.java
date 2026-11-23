@@ -13,7 +13,7 @@ public final class SquadInvestigateGoal extends Goal {
     private DroneSquadMailbox.Message task;
     private long nextRead;
     public SquadInvestigateGoal(DroneEntity drone){this.drone=drone;navigation=new DroneNavigation(drone);setControls(EnumSet.of(Control.MOVE,Control.LOOK));}
-    private boolean eligible(){return drone.isAlive()&&!drone.isAiDisabled()&&drone.getTarget()==null
+    private boolean eligible(){return drone.isAlive()&&!drone.isAiDisabled()&&drone.combatAllowed()&&drone.getTarget()==null
         &&drone.getHealth()/Math.max(1,drone.getMaxHealth())>=.22f&&!"support".equals(drone.getRole().ai);}
     private Vec3d point(){return new Vec3d(task.x(),task.y(),task.z());}
     @Override public boolean canStart(){
@@ -24,7 +24,7 @@ public final class SquadInvestigateGoal extends Goal {
     @Override public boolean shouldContinue(){return eligible()&&task!=null&&DroneSquadCoordinator.valid(drone,task)&&drone.getPos().squaredDistanceTo(point())>4;}
     @Override public boolean shouldRunEveryTick(){return true;}
     @Override public void tick(){
-        if(task==null||task.observedAt()<=drone.portalHintFloor()){stop();return;}
+        if(!drone.combatAllowed()||task==null||task.observedAt()<=drone.portalHintFloor()){stop();return;}
         long now=drone.getWorld().getTime();
         if(now>=nextRead){nextRead=now+DroneSquadMailbox.CADENCE;var newer=DroneSquadCoordinator.message(drone);if(newer.isPresent()&&newer.get().observedAt()>task.observedAt())task=newer.get();}
         // The route destination is the copied observation, never a target UUID's current position.

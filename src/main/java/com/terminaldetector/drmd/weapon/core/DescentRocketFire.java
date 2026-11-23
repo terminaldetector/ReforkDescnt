@@ -62,8 +62,7 @@ public final class DescentRocketFire {
 		// ---- Descent 2 supers ------------------------------------------------------------------
 		/** Concussion's brother: trades the kill for taking the fight away from the target. */
 		FLASH(1, 12f, 18f, 200f, 3200f, 0.9f, Guidance.NONE, Warhead.FLASH, 6.5f, 20f, 6f),
-		/** Homing's brother: no lock to break, because the pilot is the lock. Slow, and long-lived
-		 *  so there is time to fly it around a corner. */
+		/** Slow and long-lived enough for the owner to pilot around corners. */
 		GUIDED(1, 100f, 80f, 270f, 1700f, 1.15f, Guidance.PILOT, Warhead.PLAIN, 9.5f, 26f, 10f),
 		/** Smart's brother: no seekers, just far too fast to answer. */
 		MERCURY(1, 200f, 110f, 300f, 5200f, 1.0f, Guidance.NONE, Warhead.PLAIN, 3.5f, 40f, 34f),
@@ -154,12 +153,16 @@ public final class DescentRocketFire {
 			};
 			cfg.life = kind.life;
 			cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ROCKET;
+			cfg.visual = com.terminaldetector.drmd.weapon.projectile.ProjectileVisual.forMissile(kind);
 			cfg.visualScale = kind.scale;
 			cfg.worldBlast = true;
 			cfg.recoil = i == 0 ? kind.recoil : 0f;
 			cfg.dmgClass = DamageClass.EXPLOSIVE;
 			payload(cfg, user, kind.warhead);
-			WeaponCore.fireProjectile(cfg);
+			var projectile = WeaponCore.fireProjectile(cfg);
+			if (cfg.pilotGuided) {
+				com.terminaldetector.drmd.weapon.projectile.GuidedMissileControl.launch(user, projectile);
+			}
 		}
 		return true;
 	}

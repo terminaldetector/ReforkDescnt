@@ -32,6 +32,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private static final Vec3 ZERO=new Vec3(0,0,0);
     private static final Map<UUID,WeakReference<SkyUfoEntity>> ACTIVE=new ConcurrentHashMap<>();
     private final List<UUID> swarm=new ArrayList<>();
+    private final UfoEscortFormation escorts = new UfoEscortFormation();
     private boolean initialized,crashing,detonated,legacyThrusters,autopilot=true;
     private boolean legacyMotionPending;
     private int spawnCooldown,crashTicks,laserCooldown,rocketCooldown;
@@ -48,6 +49,8 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public boolean isMaterialized(){return !cells().isEmpty();}
     public boolean isVirtualFlight(){return false;}
     public boolean isCrashing(){return crashing;}
+    public Map<UfoEscortFormation.Slot, UUID> escortIdentities() { return escorts.deployed(); }
+    public boolean ownsEscort(UfoEscortFormation.Slot slot, UUID drone) { return escorts.owns(slot, drone); }
     public boolean reactorDetonated(){return detonated;}
     public int reactorEscapeTicks(){return reactorEscapeTicks;}
     public int reactorTicksRemaining(){return !crashing||detonated?0:ReactorEscapeWindow.remaining(reactorEscapeTicks,crashTicks);}
@@ -138,6 +141,10 @@ public class SkyUfoEntity extends BlockBodyEntity {
         // The captured carrier cannot keep deploying hostile AI against its pilot.
         // Preserve the existing bay timer so releasing control resumes the same cycle.
         if(crashing||piloted)return;
+        if (com.terminaldetector.drmd.world.profile.WorldProfile.isUngravity(world)) {
+            escorts.tick(world, this);
+            return;
+        }
         if(spawnCooldown>0)spawnCooldown--;
         else if(world.getPlayers().stream().anyMatch(p->p.isAlive()&&!p.isSpectator()&&squaredDistanceTo(p)<128*128)) {
             pruneSwarm(world);
@@ -213,6 +220,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     }
     private void enterCrash(List<BlockBodyEntity> fragments) {
         if(crashing)return;crashing=true;UfoControlSystem.releaseBody(this);setPassengerGravity(ZERO);setPhysicsGravity(true);
+        if (getWorld() instanceof ServerWorld world) escorts.release(world, this);
         for(var fragment:fragments)fragment.setPhysicsGravity(true);
         if(destructionMode==DestructionMode.SHOCKWAVE)crashTicks=reactorEscapeTicks;
         reactorAlarm((ServerWorld)getWorld());
@@ -277,6 +285,8 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public void debugOutlineBox(ServerWorld world){var p=physicsCentre();world.spawnParticles(ParticleTypes.END_ROD,p.x,p.y,p.z,8,radius(),1,radius(),0);}
     @Override public void remove(RemovalReason reason) {
         UfoControlSystem.releaseBody(this);
+        if ((reason.shouldDestroy() || reason == RemovalReason.CHANGED_DIMENSION)
+                && getWorld() instanceof ServerWorld world) escorts.release(world, this);
         if(turret!=null&&(reason.shouldDestroy()||reason==RemovalReason.CHANGED_DIMENSION))turret.detach(this);
         var ref=ACTIVE.get(getUuid());if(ref!=null&&ref.get()==this)ACTIVE.remove(getUuid());super.remove(reason);
     }
@@ -310,6 +320,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         turret=n.contains("turret",NbtElement.COMPOUND_TYPE)?SkyUfoTurret.read(n.getCompound("turret")):null;
         swarm.clear();var saved=n.getList("swarm",NbtElement.COMPOUND_TYPE);
         for(int i=0;i<Math.min(saved.size(),SWARM_CAP);i++)if(saved.getCompound(i).containsUuid("id"))swarm.add(saved.getCompound(i).getUuid("id"));
+        escorts.read(n.getCompound("escortFormation"));
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?2:0);n.putBoolean("legacyThrusters",legacyThrusters);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
@@ -320,5 +331,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         n.putString("destructionMode",destructionMode.name());n.putInt("laserCooldown",laserCooldown);n.putInt("rocketCooldown",rocketCooldown);
         if(turret!=null)n.put("turret",turret.write());
         var list=new NbtList();for(var id:swarm){var item=new NbtCompound();item.putUuid("id",id);list.add(item);}n.put("swarm",list);
+        NbtCompound formation = escorts.write();
+        if (!formation.isEmpty()) n.put("escortFormation", formation);
     }
 }

@@ -3,6 +3,7 @@ package com.terminaldetector.drmd.client.planet;
 import com.terminaldetector.drmd.world.planet.PlanetMap;
 import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry;
 import com.terminaldetector.drmd.world.store.SurfaceSection;
+import com.terminaldetector.drmd.world.volume.VolumeField;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -125,6 +126,16 @@ public final class PlanetSurfaceMesh {
 		return new PlanetSurfaceMesh(
 				Arrays.copyOf(positions, b.quads * 12), Arrays.copyOf(colours, b.quads), b.quads,
 				camX, camY, camZ, innerRadius, reach,Arrays.copyOf(b.orbitalMasks,b.quads),List.copyOf(b.orbitalKeys.keySet()));
+	}
+
+	static PlanetSurfaceMesh buildVolume(VolumeField field, boolean thinDecks, int bottomY, int topY,
+			double camX, double camY, double camZ, double inner, double reach) {
+		var volume = VolumeHorizonMesh.build(field, thinDecks, bottomY, topY, camX, camY, camZ);
+		int quads = volume.colours().length;
+		int[] masks = new int[quads];
+		Arrays.fill(masks, -1);
+		return new PlanetSurfaceMesh(volume.positions(), volume.colours(), quads, camX, camY, camZ,
+				inner, reach, masks, List.of());
 	}
 
 	/** Holds the build's shared state so the emit methods stay readable. */

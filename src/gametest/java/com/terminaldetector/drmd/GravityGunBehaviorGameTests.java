@@ -6,8 +6,11 @@ import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
+import com.terminaldetector.drmd.world.geometry.OrganicMaterials;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import com.terminaldetector.drmd.world.gravity.TransientGravityFields;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
@@ -152,6 +155,78 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
                     previous[0]=now;
                 });
                 r.later(12,()->{c.assertTrue(crossed[0]&&miss[0]<1.2,"ordinary gravity/body updates carry heavy rail material within 1.2 blocks of the aim centre at twelve blocks: crossed="+crossed[0]+" miss="+miss[0]);r.complete();});
+            });
+        });
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="stage-b-extract-rail",tickLimit=160)
+    public void railRipsFundedTerrainAndItsContactCutsAnEngineeredSupport(TestContext c) {
+        admitted(c,1400,new Vec3d(0,0,1),r->{
+            var world=c.getWorld();
+            var options=world.getServer().getSaveProperties().getGeneratorOptions();
+            var saved=WorldProfile.fromOptions(options);
+            var enabled=new WorldProfile(WorldProfile.CURRENT_SCHEMA,WorldProfile.Mode.UNGRAVITY,
+                WorldProfile.Preset.UNGRAVITY_CONTINUUM,WorldProfile.Scale.CUBIC_DEFAULT,
+                WorldProfile.Performance.BALANCED,WorldProfile.Start.SURVIVAL,options.getSeed());
+            r.undo.add(()->WorldProfile.attach(options,saved));
+            var p=r.player.getPos();
+            r.player.setPosition(p.x,p.y+Math.floor(r.player.getEyeY())+.5-r.player.getEyeY(),p.z);
+            var face=BlockPos.ofFloored(r.player.getEyePos().add(0,0,8));
+            var material=OrganicMaterials.intact(Blocks.STONE.getDefaultState());
+            var strip=List.of(face.west(),face,face.east());
+            var edits=new LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+            r.undo.add(()->edits.forEach(world::setBlockState));
+            java.util.function.BiConsumer<BlockPos,net.minecraft.block.BlockState> place=(at,state)->{
+                edits.putIfAbsent(at,world.getBlockState(at));
+                world.setBlockState(at,state);
+            };
+            strip.forEach(at->{place.accept(at,material);place.accept(at.south(),Blocks.BEDROCK.getDefaultState());});
+
+            WorldProfile.attach(options,WorldProfile.vanilla(options.getSeed()));
+            c.assertTrue(!r.use(ModItems.GRAVY_RAILGUN,true)&&strip.stream().allMatch(at->world.getBlockState(at).equals(material)),
+                "Vanilla per-save mode retains the rock despite an actual rail action");
+
+            WorldProfile.attach(options,enabled);
+            var data=DescentPlayerData.get(r.player);
+            data.setGravyEnergy(0);
+            c.assertTrue(!r.use(ModItems.GRAVY_RAILGUN,false)&&strip.stream().allMatch(at->world.getBlockState(at).equals(material)),
+                "an empty capacitor cannot move terrain ownership");
+            data.setGravyEnergy(100);
+            c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,false),"registered rail accepts the exposed funded terrain face");
+            var bodies=BodySpatialIndex.query(world,new Box(face).expand(3));
+            c.assertTrue(bodies.size()==1&&strip.stream().allMatch(at->world.getBlockState(at).isAir())
+                &&strip.stream().allMatch(at->world.getBlockState(at.south()).isOf(Blocks.BEDROCK)),
+                "exactly one finite fragment owns the face while protected backing stays static");
+            var body=bodies.getFirst();r.bodies.add(body);
+            c.assertTrue(body.cells().size()==3&&body.cells().stream().allMatch(cell->cell.state().equals(material))
+                &&GravyPhysics.isCaptured(body)&&Math.abs(data.getGravyEnergy()-84)<.001,
+                "the held identity retains all three exact material states and one capture charge");
+            var persisted=new BlockBodyEntity(com.terminaldetector.drmd.entity.ModEntities.BLOCK_BODY,world);
+            persisted.readNbt(body.writeNbt(new net.minecraft.nbt.NbtCompound()));
+            c.assertTrue(persisted.getUuid().equals(body.getUuid())&&persisted.cells().equals(body.cells()),
+                "saved body data retains this material and its identity");
+
+            r.later(8,()->{
+                c.assertTrue(body.physicsAngularVelocity().lengthSquared()>.01&&GravyPhysics.isCaptured(body),
+                    "normal hold ticks rotate the detached rail strip");
+                // Clear the fixture's artificial backing before the independent impact setup.
+                strip.forEach(at->place.accept(at.south(),Blocks.AIR.getDefaultState()));
+                var support=BlockPos.ofFloored(body.physicsCentre().add(0,-.2,8));
+                place.accept(support.down(),Blocks.BEDROCK.getDefaultState());
+                place.accept(support,Blocks.BRICKS.getDefaultState());
+                place.accept(support.up(),Blocks.IRON_BLOCK.getDefaultState());
+                place.accept(support.up().east(),Blocks.IRON_BLOCK.getDefaultState());
+                c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,false)&&!GravyPhysics.isCaptured(body),
+                    "the real second rail action launches the captured material");
+                r.later(12,()->{
+                    var detached=BodySpatialIndex.query(world,new Box(support).expand(6)).stream()
+                        .filter(b->b!=body&&b.cells().size()==2&&b.cells().stream().allMatch(cell->cell.state().isOf(Blocks.IRON_BLOCK))).toList();
+                    r.bodies.addAll(detached);
+                    c.assertTrue(world.getBlockState(support).isAir()&&world.getBlockState(support.up()).isAir()
+                        &&world.getBlockState(support.up().east()).isAir()&&detached.size()==1&&detached.getFirst().physicsGravity(),
+                        "actual rail terrain collision breaks the support and transfers the roof to one falling body");
+                    r.complete();
+                });
             });
         });
     }

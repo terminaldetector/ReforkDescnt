@@ -701,6 +701,10 @@ public class DescentWeaponItem extends Item {
 				? findPhysicsTargets(user, range, 16, 18)
 				: single(findPhysicsTarget(user, range));
 		int captured = GravyPhysics.tryGrab(player, mode, candidates);
+		// Detachment commits material ownership. Check the one-target cost before that edit.
+		if (captured == 0 && candidates.isEmpty() && data.getGravyEnergy() >= gravityCaptureCost(mode, 1)) {
+			captured = GravyPhysics.tryGrabTerrain(player, mode, range);
+		}
 		if (captured > 0) {
 			float cost = gravityCaptureCost(mode, captured);
 			if (data.getGravyEnergy() < cost) {
@@ -870,6 +874,14 @@ public class DescentWeaponItem extends Item {
 	protected WeaponCore.FireConfig baseCfg(PlayerEntity user) {
 		WeaponCore.FireConfig cfg = new WeaponCore.FireConfig();
 		cfg.fusionPortalCharge = "fusion".equals(def.id);
+		cfg.visual = switch (def.behavior) {
+			case "vulcan" -> com.terminaldetector.drmd.weapon.projectile.ProjectileVisual.VULCAN;
+			case "gatling" -> com.terminaldetector.drmd.weapon.projectile.ProjectileVisual.GATLING;
+			case "helix" -> com.terminaldetector.drmd.weapon.projectile.ProjectileVisual.HELIX;
+			case "fusion" -> com.terminaldetector.drmd.weapon.projectile.ProjectileVisual.FUSION;
+			case "plasma", "phoenix" -> com.terminaldetector.drmd.weapon.projectile.ProjectileVisual.PLASMA;
+			default -> com.terminaldetector.drmd.weapon.projectile.ProjectileVisual.DEFAULT;
+		};
 		cfg.owner = user;
 		cfg.pos = WeaponCore.muzzleFor(user, def.id, 1);
 		cfg.dir = WeaponCore.aimDir(user);
@@ -930,7 +942,7 @@ public class DescentWeaponItem extends Item {
 		if (block.getType() != HitResult.Type.MISS) end = block.getPos();
 		Entity best = null;
 		double bestDistance = Double.POSITIVE_INFINITY;
-		for (Entity entity : user.getWorld().getOtherEntities(user,
+		for (Entity entity : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(user.getWorld(), user,
 				user.getBoundingBox().stretch(end.subtract(start)).expand(1),
 				GravyPhysics::canGrab)) {
 			var hit = entity instanceof PhysicsTarget physics
@@ -958,9 +970,9 @@ public class DescentWeaponItem extends Item {
 		Vec3d aim = WeaponCore.aimDir(user).normalize();
 		double minimumDot = Math.cos(Math.toRadians(coneDegrees));
 		List<Scored> scored = new ArrayList<>();
-		for (Entity entity : user.getWorld().getOtherEntities(user,
+		for (Entity entity : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(user.getWorld(), user,
 				user.getBoundingBox().expand(range), GravyPhysics::canGrab)) {
-			Vec3d centre = entity instanceof PhysicsTarget ? entity.getPos() : entity.getBoundingBox().getCenter();
+			Vec3d centre = entity instanceof PhysicsTarget target ? target.physicsAimPoint() : entity.getBoundingBox().getCenter();
 			Vec3d delta = centre.subtract(start);
 			double distance = delta.length();
 			if (distance < .1 || distance > range) continue;

@@ -4,8 +4,13 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.d6.D6PortalTransform;
+import com.terminaldetector.drmd.entity.model.ShapesWreckRig;
+import com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity;
+import com.terminaldetector.drmd.physics.PhysicsProfileState;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
+import com.terminaldetector.drmd.physics.ragdoll.ActorImpact;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
+import com.terminaldetector.drmd.physics.ragdoll.RagdollBodyContacts;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSimulation;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSweep;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSleepController;
@@ -15,7 +20,11 @@ import com.terminaldetector.drmd.physics.ragdoll.RagdollPortalTransfer;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.entity.model.FlightWreckRig;
 import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
+import com.terminaldetector.drmd.world.contraption.boarding.BodyMotion;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.damage.DamageSource;
@@ -51,6 +60,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	private RagdollRig rig = RagdollRig.scoutDrone();
     private FlightEnemyKind flightHull;
+    private boolean shapesInfantry;
     private float hullScale=1;
     private int rigVersion=FlightWreckRig.LEGACY_VERSION;
     /** One owned optional metadata bundle; unsupported physics stays opaque and has no authority. */
@@ -103,7 +113,8 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private void refreshDebrisGroup(){
 		if(!(getWorld() instanceof ServerWorld world)||world.getEntity(getUuid())!=this||!rigVersionSupported()||opaqueDebrisData!=null||isRemoved())return;
 		if(debrisGroup==null){debrisGroup=getUuid();debrisBorn=world.getTime();}
-		if(!RagdollDebrisGroups.get(world).join(debrisGroup,debrisCause,debrisBorn,new RagdollDebrisGroups.Member(getUuid(),simulation.totalMass(),simulation.parts().size(),lifeTicks,rest.sleeping(),flightHull==null?"scout":flightHull.id)))
+		String profile = shapesInfantry ? ShapesWreckRig.ID : flightHull == null ? "scout" : flightHull.id;
+		if(!RagdollDebrisGroups.get(world).join(debrisGroup,debrisCause,debrisBorn,new RagdollDebrisGroups.Member(getUuid(),simulation.totalMass(),simulation.parts().size(),lifeTicks,rest.sleeping(),profile)))
 			com.terminaldetector.drmd.diag.DiagTrace.count("ragdoll.groupAdmissionRefused");
 	}
 	// Replicated discontinuity frame only; persistent rig/identity/lifetime schemas are unchanged.
@@ -124,42 +135,79 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	/** Spawn the current five-part scout wreck at a world-space centre. */
 	public static RagdollEntity spawnScout(ServerWorld world, Vec3d origin, Vec3d velocityPerTick) {
-        return spawnScout(world,origin,velocityPerTick,Quat.IDENTITY);
+        RagdollEntity wreck = createWreck(world, origin, velocityPerTick, Quat.IDENTITY, null, 1, false);
+        return wreck == null ? null : wreck.register(world);
     }
 
-    private static RagdollEntity spawnScout(ServerWorld world,Vec3d origin,Vec3d velocityPerTick,Quat rotation) {
-        return spawnHull(world,origin,velocityPerTick,rotation,null,1);
-    }
-
-    private static RagdollEntity spawnHull(ServerWorld world,Vec3d origin,Vec3d velocityPerTick,Quat rotation,FlightEnemyKind kind,float scale) {
+    private static RagdollEntity createWreck(ServerWorld world, Vec3d origin, Vec3d velocityPerTick,
+            Quat rotation, FlightEnemyKind kind, float scale, boolean shapes) {
 		RagdollEntity ragdoll = ModEntities.RAGDOLL.create(world);
 		if (ragdoll == null) return null;
-        ragdoll.configureHull(kind,scale,FlightWreckRig.currentVersion(kind));
+        ragdoll.configureHull(kind, scale, FlightWreckRig.currentVersion(kind), shapes);
 		Vec3 originD6 = pure(origin);
 		Vec3 velocityD6 = pure(velocityPerTick).scaled(20);
 		ragdoll.simulation = new RagdollSimulation(ragdoll.rig, originD6, rotation, velocityD6);
-		ragdoll.syncEntityFromSimulation();
-		ragdoll.dataTracker.set(POSE, ragdoll.trackedPose());
-		return world.spawnEntity(ragdoll) ? ragdoll : null;
+        return ragdoll;
 	}
+
+    private RagdollEntity register(ServerWorld world) {
+        syncEntityFromSimulation();
+        dataTracker.set(POSE, trackedPose());
+        return world.spawnEntity(this) ? this : null;
+    }
+
+    /** Explicit worlds own the actor mode. Earlier saves keep their persisted physics setting. */
+    public static boolean combatPhysicsActive(World world) {
+        return world instanceof ServerWorld serverWorld
+                && (WorldProfile.get(world) == null ? PhysicsProfileState.expanded(serverWorld) : WorldProfile.isUngravity(world));
+    }
 
 	/** Replace a destroyed combat drone with physical wreckage carrying its momentum. */
 	public static RagdollEntity spawnFromDrone(DroneEntity drone, DamageSource source) {
-		if (!(drone.getWorld() instanceof ServerWorld world) || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)) return null;
+		if (!(drone.getWorld() instanceof ServerWorld world) || !combatPhysicsActive(world)) return null;
 		Vec3d origin = drone.getPos().add(0, drone.getHeight() * .5, 0);
-		var rotation=com.terminaldetector.drmd.entity.model.FlightHullPose.physicalRotation(drone.getYaw(),drone.getPitch(),drone.getFlightRoll());
-		RagdollEntity ragdoll = spawnHull(world, origin, drone.getVelocity(),rotation,drone instanceof FlightEnemyEntity typed?typed.kind():null,drone.getScale());
+		var rotation = com.terminaldetector.drmd.entity.model.FlightHullPose.physicalRotation(drone.getYaw(), drone.getPitch(), drone.getFlightRoll());
+		RagdollEntity ragdoll = createWreck(world, origin, drone.getVelocity(), rotation,
+                drone instanceof FlightEnemyEntity typed ? typed.kind() : null, drone.getScale(), false);
 		if (ragdoll == null) return null;
 
-		Entity cause = source.getSource();
-		Vec3d direction = cause == null ? drone.getVelocity() : origin.subtract(cause.getPos());
-		if (direction.lengthSquared() < 1.0e-8) direction = new Vec3d(0, 1, 0);
-		Vec3d impulse = direction.normalize().multiply(8.0);
-		// Strike a spar rather than the centre so the death begins as a tumble, not a falling icon.
-		ragdoll.applyPhysicsImpulse(origin.add(.35, .12, 0), impulse);
-		ragdoll.debrisGroup=RagdollDebrisGroups.causeGroup(world,source);ragdoll.debrisCause=source.getName();ragdoll.debrisBorn=world.getTime();ragdoll.refreshDebrisGroup();
-		return ragdoll;
+        if (source instanceof ActorImpact impact) {
+            ragdoll.simulation.applyImpulseAt(pure(impact.point()), pure(impact.impulse()));
+        } else {
+            Entity cause = source.getSource();
+            Vec3d direction = cause == null ? drone.getVelocity() : origin.subtract(cause.getPos());
+            if (direction.lengthSquared() < 1.0e-8) direction = new Vec3d(0, 1, 0);
+            ragdoll.simulation.applyImpulseAt(pure(origin.add(.35, .12, 0)), pure(direction.normalize().multiply(8.0)));
+        }
+        return ragdoll.registerDeath(world, source);
 	}
+
+    public static RagdollEntity spawnFromShapes(ShapesInfantryEntity actor, DamageSource source) {
+        if (!(actor.getWorld() instanceof ServerWorld world) || !combatPhysicsActive(world)) return null;
+        RagdollEntity ragdoll = createWreck(world, actor.getPos(), actor.getVelocity(),
+                Quat.IDENTITY, null, actor.getScale(), true);
+        if (ragdoll == null) return null;
+        ShapesWreckRig.inheritPose(ragdoll.simulation, actor);
+        if (source instanceof ActorImpact impact) {
+            ragdoll.simulation.applyImpulseAt(pure(impact.point()), pure(impact.impulse()));
+        } else if (source.getPosition() != null) {
+            Vec3 point = pure(source.getPosition());
+            var torso = ragdoll.simulation.parts().getFirst().body();
+            Vec3 direction = torso.position().minus(point);
+            if (direction.lengthSquared() > 1e-8)
+                ragdoll.simulation.applyImpulseAt(torso.position(), direction.normalized().scaled(8));
+        }
+        return ragdoll.registerDeath(world, source);
+    }
+
+    private RagdollEntity registerDeath(ServerWorld world, DamageSource source) {
+        if (register(world) == null) return null;
+        debrisGroup = RagdollDebrisGroups.causeGroup(world, source);
+        debrisCause = source.getName();
+        debrisBorn = world.getTime();
+        refreshDebrisGroup();
+        return this;
+    }
 
 	@Override
 	public void tick() {
@@ -175,7 +223,8 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 			return;
 		}
 
-		Vec3 gravity = gravityVector();
+		List<BodyMotion> hulls = nearbyHulls();
+		Vec3 gravity = gravityVector(hulls);
 		refreshDebrisGroup();
 		if(rest.sleeping()){
 			if(certificateUnchanged()&&staticRestEnvironment(gravity,restSupports,restPlane)&&restInterestClear()&&rest.skipTick()){
@@ -189,8 +238,20 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 			for(var part:simulation.parts())systemRadius=Math.max(systemRadius,part.body().position().minus(systemCentre).length()+part.segment().halfExtents().length());
 			restContacts.begin(systemCentre,gravity,simulation.totalMass(),systemRadius,.05);
 		}
-		simulation.step(.05, gravity, RagdollSimulation.DEFAULT_SUBSTEPS,
-				RagdollSimulation.DEFAULT_SOLVER_ITERATIONS, this::resolveTerrain);
+        if (hulls.isEmpty()) {
+            simulation.step(.05, gravity, RagdollSimulation.DEFAULT_SUBSTEPS,
+                    RagdollSimulation.DEFAULT_SOLVER_ITERATIONS, this::resolveTerrain);
+        } else {
+            simulation.stepWithMovingContacts(.05, gravity, RagdollSimulation.DEFAULT_SUBSTEPS,
+                    RagdollSimulation.DEFAULT_SOLVER_ITERATIONS, (part, before, start, end) -> {
+                resolveTerrain(part, before);
+                RagdollBodyContacts.resolve(part, before, start, end, hulls, candidate -> {
+                    Box box = partBox(part.segment(), candidate, part.body().rotation());
+                    return insideLoadedWorld(box)
+                            && !getWorld().getBlockCollisions(this, box.contract(1e-7)).iterator().hasNext();
+                });
+            });
+        }
 		simulatedPhysicsTicks++;
 		// Mild air/contact loss prevents a permanently vibrating corpse without erasing a weapon throw.
 		for (RagdollSimulation.Part part : simulation.parts()) {
@@ -246,7 +307,8 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	}
 	private boolean restInterestClear(){
 		for(var player:getWorld().getPlayers())if(!player.isRemoved()&&player.squaredDistanceTo(this)<32*32)return false;
-		for(var other:getWorld().getOtherEntities(this,getBoundingBox().expand(8),e->e instanceof PhysicsTarget||e instanceof net.minecraft.entity.LivingEntity||e instanceof net.minecraft.entity.ItemEntity)){
+		for(var other:BodySpatialIndex.otherEntities(getWorld(),this,getBoundingBox().expand(8),
+				e->e instanceof PhysicsTarget||e instanceof net.minecraft.entity.LivingEntity||e instanceof net.minecraft.entity.ItemEntity)){
 			if(other instanceof RagdollEntity body&&debrisGroup!=null&&debrisGroup.equals(body.debrisGroup)){
                 if(body.readyForDebrisRest()||separateDebrisInteraction(body))continue;
             }
@@ -315,6 +377,20 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		Vec3d down = field.downDir().normalize();
 		return new Vec3(down.x, down.y, down.z).scaled(9.81 * field.strength());
 	}
+
+    private List<BodyMotion> nearbyHulls() {
+        // Part linear speeds are solver-bounded; query the full occupied/previous hull broadphase.
+        return BodySpatialIndex.query(getWorld(), getBoundingBox().expand(2))
+                .stream().limit(8).map(BlockBodyEntity::boardingMotion).toList();
+    }
+
+    private Vec3 gravityVector(List<BodyMotion> hulls) {
+        for (BodyMotion hull : hulls) {
+            var field = hull.gravity(simulation.centreOfMass(), 1);
+            if (field.isPresent()) return field.get();
+        }
+        return gravityVector();
+    }
 
 	private void resolveTerrain(RagdollSimulation.Part part, Vec3 fallbackPosition) {
 		Box bounds = partBox(part);
@@ -464,32 +540,39 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
     /** Null identifies a legacy scout, including old saves without hull metadata. */
     public FlightEnemyKind flightHullKind(){return flightHull;}
+    public boolean isShapesInfantry() { return shapesInfantry; }
     public float hullScale(){return hullScale;}
     public int rigVersion(){return rigVersion;}
     public boolean rigVersionSupported(){return opaqueRigData==null;}
-    private boolean configureHull(FlightEnemyKind kind,float scale,int version){
-        if(flightHull==kind&&Float.compare(hullScale,scale)==0&&rigVersion==version)return false;
-        flightHull=kind;hullScale=scale;rigVersion=version;
+    private boolean configureHull(FlightEnemyKind kind, float scale, int version, boolean shapes){
+        if(flightHull==kind&&Float.compare(hullScale,scale)==0&&rigVersion==version&&shapesInfantry==shapes)return false;
+        flightHull=kind;hullScale=scale;rigVersion=version;shapesInfantry=shapes;
         // Unsupported metadata may use recognizable geometry for display, never v1 physics.
-        rig=FlightWreckRig.create(kind,scale,FlightWreckRig.supportedVersion(version)?version:FlightWreckRig.LEGACY_VERSION);
+        rig=shapes ? ShapesWreckRig.create(scale)
+                : FlightWreckRig.create(kind,scale,FlightWreckRig.supportedVersion(version)?version:FlightWreckRig.LEGACY_VERSION);
         previousRenderParts=restRenderParts();currentRenderParts=previousRenderParts;return true;
     }
     private void writeHullIdentity(NbtCompound tag){
-        if(opaqueRigData!=null){copyKeys(opaqueRigData,tag,List.of("hullVersion","flightHull","hullScale","rigVersion"));return;}
+        if(opaqueRigData!=null){copyKeys(opaqueRigData,tag,List.of("hullVersion","flightHull","hullScale","rigVersion","actorRig"));return;}
         tag.putInt("hullVersion",1);tag.putString("flightHull",flightHull==null?"":flightHull.id);tag.putFloat("hullScale",hullScale);tag.putInt("rigVersion",rigVersion);
+        if (shapesInfantry) tag.putString("actorRig", ShapesWreckRig.ID);
     }
     private boolean readHullIdentity(NbtCompound tag){
         int version=tag.contains("rigVersion")?tag.getInt("rigVersion"):FlightWreckRig.LEGACY_VERSION;
         boolean supported=!tag.contains("rigVersion")||tag.contains("rigVersion",NbtElement.INT_TYPE)&&FlightWreckRig.supportedVersion(version);
+        boolean shapes = ShapesWreckRig.ID.equals(tag.getString("actorRig"));
+        if (tag.contains("actorRig")) {
+            supported &= shapes && version == FlightWreckRig.LEGACY_VERSION && tag.getString("flightHull").isEmpty();
+        }
         opaqueRigData=null;
         if(!supported){
             opaqueRigData=new NbtCompound();
-            copyKeys(tag,opaqueRigData,List.of("hullVersion","flightHull","hullScale","rigVersion","ragdoll","life"));
+            copyKeys(tag,opaqueRigData,List.of("hullVersion","flightHull","hullScale","rigVersion","actorRig","ragdoll","life"));
             version=0; // explicit refused state, not legacy authority
         }
         FlightEnemyKind kind=null;float scale=1;
         if(tag.getInt("hullVersion")==1){for(var value:FlightEnemyKind.values())if(value.id.equals(tag.getString("flightHull"))){kind=value;break;}scale=tag.contains("hullScale",NbtElement.NUMBER_TYPE)?tag.getFloat("hullScale"):1;if(!FlightWreckRig.validScale(scale))scale=1;}
-        return configureHull(kind,scale,version);
+        return configureHull(kind,scale,version,shapes);
     }
 
     private static void copyKeys(NbtCompound source,NbtCompound target,List<String> keys){

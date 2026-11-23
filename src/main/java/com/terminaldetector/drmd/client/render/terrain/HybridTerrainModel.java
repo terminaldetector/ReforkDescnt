@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.client.render.terrain;
 
 import com.terminaldetector.drmd.world.geometry.HybridMesh;
 import com.terminaldetector.drmd.world.geometry.HybridTerrain;
+import com.terminaldetector.drmd.world.geometry.NaturalGeometry;
 import com.terminaldetector.drmd.world.micro.MicroGrid;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
@@ -57,8 +58,10 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
             });
             super.emitBlockQuads(world,state,pos,random,context);context.popTransform();return;
         }
+        MinecraftClient client=MinecraftClient.getInstance();
         Object attachment=world.getBlockEntityRenderData(pos);
-        boolean natural=com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(state);
+        boolean implicitTerrain=NaturalGeometry.usesImplicitTerrain(client.world);
+        boolean natural=implicitTerrain && NaturalGeometry.applies(state);
         if(!natural && !(state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock)
                 && !(attachment instanceof HybridTerrain.Data)) {
             super.emitBlockQuads(world,state,pos,random,context);return;
@@ -67,7 +70,6 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
             new HybridTerrain.Data(organic.source(),MicroGrid.FULL,true) : attachment instanceof HybridTerrain.Data d ? d :
             new HybridTerrain.Data(state,MicroGrid.FULL,natural);
         if (data.mask()==0) return;
-        MinecraftClient client=MinecraftClient.getInstance();
         BakedModel source=client.getBlockRenderManager().getModel(data.source());
         var renderer=RendererAccess.INSTANCE.getRenderer();
         if (renderer==null) throw new IllegalStateException("DRMD hybrid terrain requires Fabric Renderer API support");
@@ -83,7 +85,7 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
             templates.add(quads);
         }
         QuadEmitter emitter=context.getEmitter();
-        for (var face:new HybridMesh(HybridTerrain.snapshot(world,pos,data)).faces()) {
+        for (var face:new HybridMesh(HybridTerrain.snapshot(world,pos,data,implicitTerrain)).faces()) {
             var quads=templates.get(face.direction());
             if (quads.isEmpty()) {
                 if (data.organic() || data.mask()!=MicroGrid.FULL) {

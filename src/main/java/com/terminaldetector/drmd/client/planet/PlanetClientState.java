@@ -2,10 +2,13 @@ package com.terminaldetector.drmd.client.planet;
 
 import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.diag.DiagTrace;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import com.terminaldetector.drmd.world.store.MemorySectionStorage;
 import com.terminaldetector.drmd.world.store.SectionKey;
 import com.terminaldetector.drmd.world.store.SurfaceSection;
 import com.terminaldetector.drmd.world.store.SurfaceStore;
+import com.terminaldetector.drmd.world.volume.PresetVolumeFields;
+import com.terminaldetector.drmd.world.volume.VolumeField;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,11 @@ public final class PlanetClientState {
     private volatile Set<HorizonLandmark> landmarkMembership=Set.of();
 	/** The field currently drawable. May be one rebuild out of date — see the accessor below. */
 	private volatile PlanetSurfaceMesh mesh;
+	// Accessed under this state's lock, with the immutable source captured in each worker build.
+	private record VolumeSource(WorldProfile profile, VolumeField field, int bottomY, int topY) {
+		boolean thinDecks() { return profile.preset() == WorldProfile.Preset.VERTICAL_MEGACITY; }
+	}
+	private VolumeSource volumeSource;
 	/** The data under the field changed, so rebuild even if the geometry still fits the eye. */
 	private volatile boolean dirty;
 	/**
@@ -139,6 +147,7 @@ public final class PlanetClientState {
 
 	public synchronized void clear() {
         worldEpoch.incrementAndGet();
+		volumeSource = null;
 		hasSeed = false;
 		seed = 0L;
 		scars.clear();
@@ -186,6 +195,19 @@ public final class PlanetClientState {
 		return current;
 	}
 
+	/** Keep the existing horizon's single build slot while selecting the saved XYZ source. */
+	public synchronized PlanetSurfaceMesh volumeMesh(WorldProfile profile, int bottomY, int topY,
+			double camX, double eyeY, double camZ, double inner, double reach) {
+		if (volumeSource == null || !volumeSource.profile().equals(profile)
+				|| volumeSource.bottomY() != bottomY || volumeSource.topY() != topY) {
+			volumeSource = new VolumeSource(profile, PresetVolumeFields.forProfile(profile), bottomY, topY);
+			worldEpoch.incrementAndGet();
+			mesh = null;
+			invalidate();
+		}
+		return mesh(camX, eyeY, camZ, inner, reach);
+	}
+
 	/**
 	 * Start a build unless one is already running.
 	 *
@@ -194,7 +216,8 @@ public final class PlanetClientState {
 	 * running was started for a nearby eye, and if it lands stale the next frame simply asks again.
 	 */
 	private synchronized void requestBuild(double camX, double eyeY, double camZ, double inner, double reach) {
-		if (!hasSeed) return;
+		VolumeSource volumeNow = volumeSource;
+		if (!hasSeed && volumeNow == null) return;
 		if (!building.compareAndSet(false, true)) return;
 
 		int startedGeneration = generation.get();
@@ -203,18 +226,20 @@ public final class PlanetClientState {
 		// Snapshot rather than share: both are read on the worker while the network thread may be
 		// writing them. scars is a concurrent set, so copyOf sees a consistent-enough view; landmarks
 		// is already immutable and only ever replaced wholesale.
-		Set<Long> scarsNow = Set.copyOf(scars);
-		List<HorizonLandmark> marksNow = nearestLandmarks(camX, eyeY, camZ);
+		Set<Long> scarsNow = volumeNow == null ? Set.copyOf(scars) : Set.of();
+		List<HorizonLandmark> marksNow = volumeNow == null ? nearestLandmarks(camX, eyeY, camZ) : List.of();
 
 		BUILDER.execute(() -> {
 			try {
 				long startedNanos = System.nanoTime();
-				PlanetSurfaceMesh built = PlanetSurfaceMesh.build(
-						seedNow, camX, eyeY, camZ, inner, reach, scarsNow, marksNow);
+				PlanetSurfaceMesh built = volumeNow == null
+						? PlanetSurfaceMesh.build(seedNow, camX, eyeY, camZ, inner, reach, scarsNow, marksNow)
+						: PlanetSurfaceMesh.buildVolume(volumeNow.field(), volumeNow.thinDecks(), volumeNow.bottomY(),
+								volumeNow.topY(), camX, eyeY, camZ, inner, reach);
 				recordBuild(built, (System.nanoTime() - startedNanos) / 1_000_000L, camX, eyeY, camZ);
 
 				synchronized(PlanetClientState.this) {
-                    if(worldEpoch.get()==startedWorld && hasSeed) {
+                    if(worldEpoch.get()==startedWorld && (hasSeed || volumeSource != null)) {
                         if (generation.get() == startedGeneration) {
                             mesh = built;
                             dirty = false;

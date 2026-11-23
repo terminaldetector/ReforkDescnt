@@ -6,9 +6,7 @@ import net.minecraft.util.math.Vec3d;
  * The turn a guided warhead makes in one tick.
  *
  * <p>Its own class because it is the one part of a missile that is pure geometry — no entity, no
- * world, nothing to bootstrap — and it is the part that was quietly wrong. Three weapons share it:
- * the Homing missile chasing a lock, the Guided missile chasing the pilot's aim, and the blobs a
- * Smart Missile sheds. They differ only by turn rate.
+ * world, nothing to bootstrap. Homing missiles and the seeking blobs shed by Smart missiles share it.
  */
 public final class MissileSteering {
 	private MissileSteering() {}

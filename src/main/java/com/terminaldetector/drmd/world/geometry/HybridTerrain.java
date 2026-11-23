@@ -22,6 +22,10 @@ public final class HybridTerrain {
     }
 
     public static HybridMesh.Neighbourhood snapshot(BlockView world, BlockPos origin, Data self) {
+        return snapshot(world, origin, self, NaturalGeometry.usesImplicitTerrain(world));
+    }
+
+    public static HybridMesh.Neighbourhood snapshot(BlockView world, BlockPos origin, Data self, boolean implicitTerrain) {
         var blocks=new ArrayList<HybridMesh.Block>(27);
         for (int y=-1;y<=1;y++) for (int z=-1;z<=1;z++) for (int x=-1;x<=1;x++) {
             BlockPos p=origin.add(x,y,z);
@@ -36,7 +40,7 @@ public final class HybridTerrain {
                     boolean hides=data.source.isOpaque() || data.source.equals(self.source);
                     blocks.add(data.meshBlock(hides,false));
                 } else blocks.add(new HybridMesh.Block(MicroGrid.FULL,false,true,true));
-            } else if (NaturalGeometry.applies(state)) {
+            } else if (implicitTerrain && NaturalGeometry.applies(state)) {
                 blocks.add(new Data(state,MicroGrid.FULL,true).meshBlock(state.isOpaque() || state.equals(self.source),false));
             } else if (state.isAir()||state.getBlock() instanceof net.minecraft.block.FluidBlock) blocks.add(HybridMesh.Block.AIR);
             else {

@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.pickup.BlastBlockDrops;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereRules;
+import com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse;
 import com.terminaldetector.drmd.world.fire.FireSystem;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
 import net.minecraft.block.Block;
@@ -121,20 +122,27 @@ public final class WeaponFx {
 
 		BlockState next = meltStage(st, intensity);
 		if (next == null) {
-			if (intensity >= 2 && hard < 20) {
-				world.breakBlock(pos, true, breaker);
-				return true;
-			}
-			return false;
+			return intensity >= 2 && hard < 20 && breakMeltedBlock(world, pos, st, intensity, breaker);
 		}
         if(next.equals(st))return false;
 		if (next.isAir()) {
-			world.breakBlock(pos, true, breaker);
-		} else {
-			world.setBlockState(pos, next, Block.NOTIFY_ALL);
-			if (intensity >= 2 && world.getRandom().nextInt(4) == 0) {
-				FireSystem.ignite(world, pos.up(), 1);
-			}
+			return breakMeltedBlock(world, pos, st, intensity, breaker);
+		}
+		world.setBlockState(pos, next, Block.NOTIFY_ALL);
+		if (intensity >= 2 && world.getRandom().nextInt(4) == 0) {
+			FireSystem.ignite(world, pos.up(), 1);
+		}
+		return true;
+	}
+
+	private static boolean breakMeltedBlock(ServerWorld world, BlockPos pos, BlockState previous,
+	                                       int intensity, Entity breaker) {
+		var carved = world.getBlockEntity(pos);
+		BlockState support = carved instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity cell && !cell.authoredOrganic()
+				? cell.source() : previous;
+		if (!world.breakBlock(pos, true, breaker)) return false;
+		try (var cuts = new BlastStructuralCollapse.SupportEdits(world, pos.toCenterPos(), intensity, breaker)) {
+			cuts.removed(pos, support);
 		}
 		return true;
 	}
@@ -198,7 +206,7 @@ public final class WeaponFx {
 			int r = MathHelper.clamp((int) (splashRadiusBlocks * 0.65f), 1, 5);
 			BlockPos center = BlockPos.ofFloored(pos);
             var affected=new java.util.ArrayList<BlockPos>();
-            boolean expanded=com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world);
+            boolean expanded=BlastStructuralCollapse.enabled(world);
 			var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
 			for (BlockPos p : BlockPos.iterate(center.add(-r, -r, -r), center.add(r, r, r))) {
 				if (p.getSquaredDistance(center) > r * r) continue;
@@ -237,18 +245,25 @@ public final class WeaponFx {
 		int r = MathHelper.clamp(radius, 1, 4);
 		float maxHard = r >= 2 ? 35f : 20f;
 		int melted = 0;
-		for (BlockPos p : BlockPos.iterate(center.add(-r, -r, -r), center.add(r, r, r))) {
-			int dx = p.getX() - center.getX();
-			int dy = p.getY() - center.getY();
-			int dz = p.getZ() - center.getZ();
-			if (dx * dx + dy * dy + dz * dz > (r + 0.35f) * (r + 0.35f)) continue;
-            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,breaker) || world.getBlockEntity(p)!=null && !(world.getBlockEntity(p) instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity))continue;
-			BlockState st = world.getBlockState(p);
-			float h = st.getHardness(world, p);
-			if (!st.isAir() && h >= 0 && h < maxHard && !st.isOf(Blocks.BEDROCK)) {
-				if (world.getRandom().nextInt(4) == 0) melt(world, p, r >= 2 ? 3 : 2, breaker);
-				else world.breakBlock(p, true, breaker);
-				melted++;
+		try (var cuts = new BlastStructuralCollapse.SupportEdits(world, center.toCenterPos(), r, breaker)) {
+			for (BlockPos p : BlockPos.iterate(center.add(-r, -r, -r), center.add(r, r, r))) {
+				int dx = p.getX() - center.getX();
+				int dy = p.getY() - center.getY();
+				int dz = p.getZ() - center.getZ();
+				if (dx * dx + dy * dy + dz * dz > (r + 0.35f) * (r + 0.35f)) continue;
+				if (!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world, p, breaker)) continue;
+				var entity = world.getBlockEntity(p);
+				if (entity != null && !(entity instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity)) continue;
+				BlockState state = world.getBlockState(p);
+				float hardness = state.getHardness(world, p);
+				if (state.isAir() || hardness < 0 || hardness >= maxHard || state.isOf(Blocks.BEDROCK)) continue;
+				if (world.getRandom().nextInt(4) == 0) {
+					if (melt(world, p, r >= 2 ? 3 : 2, breaker)) melted++;
+				} else if (world.breakBlock(p, true, breaker)) {
+					cuts.removed(p, entity instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity cell && !cell.authoredOrganic()
+							? cell.source() : state);
+					melted++;
+				}
 			}
 		}
 		world.spawnParticles(ParticleTypes.LAVA,

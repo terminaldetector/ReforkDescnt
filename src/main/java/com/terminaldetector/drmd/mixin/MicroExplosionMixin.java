@@ -32,7 +32,7 @@ public abstract class MicroExplosionMixin {
                 com.terminaldetector.drmd.world.access.WorldAccess.of(server).readIfLoaded(pos).isEmpty()
                 ||!com.terminaldetector.drmd.world.edit.WorldEditSafety.neighbourhoodLoaded(server,pos));
         }
-        if (!(world instanceof ServerWorld server) || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(server)) return;
+        if (!(world instanceof ServerWorld server) || !com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.enabled(server)) return;
         Explosion explosion=(Explosion)(Object)this;
         var type=explosion.getDestructionType();
         if(type!=Explosion.DestructionType.DESTROY && type!=Explosion.DestructionType.DESTROY_WITH_DECAY) return;

@@ -2,8 +2,10 @@ package com.terminaldetector.drmd.client.planet;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.terminaldetector.drmd.client.config.DescentConfig;
+import com.terminaldetector.drmd.world.access.CubicAvailability;
 import com.terminaldetector.drmd.world.compat.DistantHorizonsCompat;
 import com.terminaldetector.drmd.world.planet.PlanetMap;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
@@ -48,6 +50,11 @@ public final class PlanetFloorRenderer {
 		if (com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy()) return;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;
+		WorldProfile profile = WorldProfile.get(mc.world);
+		if (profile != null) {
+			if (WorldProfile.isUngravity(mc.world)) renderVolume(ctx, mc, profile);
+			return;
+		}
 		if (!PlanetClientState.INSTANCE.hasSeed()) return;
 
 		boolean endDim = mc.world.getRegistryKey() == World.END;
@@ -83,6 +90,27 @@ public final class PlanetFloorRenderer {
 		// for it rather than waiting. Drawing nothing for a frame or two is what buys never spending
 		// 26ms of one — see PlanetClientState.mesh.
 		if (mesh == null || mesh.quads == 0) return;
+		draw(ctx, mc, mesh, cam, endDim, false, inner, reach, (float) (opacity * backdrop));
+	}
+
+	private static void renderVolume(WorldRenderContext ctx, MinecraftClient mc, WorldProfile profile) {
+		if (CubicAvailability.backend(mc.world) != CubicAvailability.Backend.NATIVE_CUBIC
+				|| DistantHorizonsCompat.hasCubicTerrain(mc.world)) return;
+		Vec3d cam = ctx.camera().getPos();
+		double viewBlocks = mc.options.getClampedViewDistance() * 16.0;
+		// Keep the compressed silhouettes beyond the near render envelope, including diagonal cubes.
+		double horizontal = viewBlocks + 32;
+		double vertical = (profile.performance().verticalDistance() + 2) * 16.0;
+		double inner = Math.sqrt(2 * horizontal * horizontal + vertical * vertical);
+		double reach = viewBlocks * 4 * HorizonProjection.CLIP_USE_ORBIT;
+		if (reach <= inner + 16 || inner >= VolumeHorizonMesh.OUTER_RADIUS) return;
+		PlanetSurfaceMesh mesh = PlanetClientState.INSTANCE.volumeMesh(profile, mc.world.getBottomY(), mc.world.getTopY(),
+				cam.x, cam.y, cam.z, inner, reach);
+		if (mesh != null && mesh.quads > 0) draw(ctx, mc, mesh, cam, false, true, inner, reach, 1f);
+	}
+
+	private static void draw(WorldRenderContext ctx, MinecraftClient mc, PlanetSurfaceMesh mesh, Vec3d cam,
+			boolean endDim, boolean volume, double inner, double reach, float opacity) {
         float[] orbitalMask=HorizonOrbitalView.sample(mc,mesh,cam);
 
 		// In 1.21 the object stack is local; positionMatrix is the terrain view, including camera rotation.
@@ -97,15 +125,15 @@ public final class PlanetFloorRenderer {
         HorizonShader.orbitalMask(HorizonShader.program(),orbitalMask);
         HorizonShader.orbitalPixelShift(HorizonShader.program(),orbitalShift);
         HorizonShader.position((float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
-                (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
+                (float)(mesh.originZ-cam.z),(float)inner,(float)reach,volume);
         // This is the same getSkyColor result used by vanilla fog and the existing orbital
         // envelope. Its LevelSky interpolation is continuous across the asteroid/orbit bands.
         var sky=mc.world.getSkyColor(cam,ctx.tickCounter().getTickDelta(false));
-        HorizonShader.atmosphere(cam.y,(float)sky.x,(float)sky.y,(float)sky.z,overworld);
+        HorizonShader.atmosphere(cam.y,(float)sky.x,(float)sky.y,(float)sky.z,!endDim);
 
 		boolean write=org.lwjgl.opengl.GL11.glGetBoolean(org.lwjgl.opengl.GL11.GL_DEPTH_WRITEMASK);
         var previous=RenderSystem.getShader();
-        RenderSystem.depthMask(false);
+        RenderSystem.depthMask(volume);
         RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.disableCull(); // skirts are single quads seen from either side
@@ -114,20 +142,22 @@ public final class PlanetFloorRenderer {
 		// The climb's fade as a uniform rather than per-vertex alpha, which is what lets the geometry
 		// stay on the GPU across frames — see HorizonVertexBuffer. Each quad's own alpha is already
 		// baked in there; this multiplies the whole field by how far the map has faded in.
-		RenderSystem.setShaderColor(1f, 1f, 1f, (float) (opacity * backdrop));
+		RenderSystem.setShaderColor(1f, 1f, 1f, opacity);
 
-		if (HorizonVertexBuffer.prepare(mesh)) {
-			HorizonVertexBuffer.draw(mat);
-            com.terminaldetector.drmd.client.cloud.AltitudeCloudRenderer.captureFar(mesh,mat,
-                    (float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
-                    (float)(mesh.originZ-cam.z),(float)inner,(float)reach,orbitalMask,orbitalShift);
+		try {
+			if (HorizonVertexBuffer.prepare(mesh)) {
+				HorizonVertexBuffer.draw(mat);
+				if (!volume) com.terminaldetector.drmd.client.cloud.AltitudeCloudRenderer.captureFar(mesh,mat,
+						(float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
+						(float)(mesh.originZ-cam.z),(float)inner,(float)reach,orbitalMask,orbitalShift);
+			}
+		} finally {
+			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+			RenderSystem.enableCull();
+			RenderSystem.disableBlend();
+			RenderSystem.depthMask(write);
+			RenderSystem.setShader(()->previous);
 		}
-
-		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		RenderSystem.enableCull();
-		RenderSystem.disableBlend();
-        RenderSystem.depthMask(write);
-        RenderSystem.setShader(()->previous);
 	}
 
 	/**

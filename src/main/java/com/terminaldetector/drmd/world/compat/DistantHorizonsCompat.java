@@ -24,6 +24,19 @@ public final class DistantHorizonsCompat {
         return present;
     }
 
+    /** Let a running cubic DH provider own distant terrain when it exposes real vertical coverage. */
+    public static boolean hasCubicTerrain(World world) {
+        if (!isPresent() || RendererLookup.renderer == null
+                || CubicAvailability.backend(world) != CubicAvailability.Backend.NATIVE_CUBIC) return false;
+        try {
+            var renderer = RendererLookup.renderer;
+            return renderer.enabled() && renderer.cubic != null && renderer.cubic.active(world)
+                    && renderer.cubic.radius(world) > 0;
+        } catch (ReflectiveOperationException | LinkageError e) {
+            return false;
+        }
+    }
+
     /**
      * Multiplicative opacity of Ungravity's ground backdrop. Native cubic DH may own visible
      * volumes near the camera while the planet's lowest ground is outside its vertical band.

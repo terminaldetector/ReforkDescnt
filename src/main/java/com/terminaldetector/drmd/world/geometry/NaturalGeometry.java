@@ -1,10 +1,13 @@
 package com.terminaldetector.drmd.world.geometry;
 
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import net.minecraft.block.*;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.*;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.WorldChunk;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,6 +27,12 @@ public final class NaturalGeometry {
     }
     public static boolean applies(BlockState state) {
         return material(state)==HybridMaterialPolicy.Mask.SMOOTH_NATURAL;
+    }
+
+    /** Profiled saves use persisted organic states; only legacy terrain infers form from material. */
+    public static boolean usesImplicitTerrain(BlockView view) {
+        World world = view instanceof World actual ? actual : view instanceof WorldChunk chunk ? chunk.getWorld() : null;
+        return world == null || WorldProfile.get(world) == null;
     }
     /** Read original log properties; never substitute the material or mutate its palette state. */
     public static HybridMesh.LogAxis logAxis(BlockState state) {

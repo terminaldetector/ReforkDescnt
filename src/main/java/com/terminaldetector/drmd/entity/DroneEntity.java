@@ -1,5 +1,12 @@
 package com.terminaldetector.drmd.entity;
 
+import com.terminaldetector.drmd.physics.GravyPhysics;
+import com.terminaldetector.drmd.physics.ragdoll.ActorImpact;
+import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
+import com.terminaldetector.drmd.world.mega.SkyUfoEntity;
+import com.terminaldetector.drmd.world.mega.UfoControlSystem;
+import com.terminaldetector.drmd.world.mega.UfoEscortFormation;
+
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.ai.AiRole;
 import com.terminaldetector.drmd.ai.BombardVillageGoal;
@@ -43,6 +50,9 @@ public class DroneEntity extends HostileEntity {
 	private float phaseTimer;
 	private float resistK, resistE, resistX;
 	private boolean ragdollAttempted,ragdollReplaced;
+    private record Escort(java.util.UUID carrier, UfoEscortFormation.Slot slot) {}
+    private Escort escort;
+    private long escortHoldoffUntil;
 	private long portalFrameRevision,portalHintFloor=Long.MIN_VALUE;
 
 	public DroneEntity(EntityType<? extends DroneEntity> type, World world) {
@@ -81,6 +91,35 @@ public class DroneEntity extends HostileEntity {
     /** Goal input before navigation; generic drones keep their existing direct steering. */
     public Vec3d steerFlightVelocity(Vec3d desired){return desired;}
     public boolean continuousFlightSteering(){return false;}
+    public boolean controlSuspended() { return GravyPhysics.isCaptured(this); }
+
+    public boolean hasEscortAssignment() { return escort != null; }
+    public UfoEscortFormation.Slot escortSlot() { return escort == null ? null : escort.slot(); }
+
+    public void assignEscort(java.util.UUID carrier, UfoEscortFormation.Slot slot) {
+        if (getWorld().isClient || age != 0 || escort != null) throw new IllegalStateException("escort already assigned");
+        escort = new Escort(java.util.Objects.requireNonNull(carrier), java.util.Objects.requireNonNull(slot));
+    }
+
+    public void releaseEscort(java.util.UUID carrier) {
+        if (getWorld().isClient || escort == null || !escort.carrier().equals(carrier)) return;
+        escort = null;
+        escortHoldoffUntil = getWorld().getTime() + 120;
+        setTarget(null);
+    }
+
+    public SkyUfoEntity escortCarrier() {
+        if (escort == null || getWorld().isClient) return null;
+        var body = BodySpatialIndex.find(getWorld(), escort.carrier()).orElse(null);
+        return body instanceof SkyUfoEntity carrier && carrier.ownsEscort(escort.slot(), getUuid()) ? carrier : null;
+    }
+
+    public boolean combatAllowed() {
+        if (controlSuspended() || getWorld().getTime() < escortHoldoffUntil) return false;
+        if (escort == null) return true;
+        var carrier = escortCarrier();
+        return carrier != null && carrier.hasPoweredReactor() && !UfoControlSystem.hasPilot(carrier);
+    }
 
     private long steeringUpdates;
     private long coastingUpdates;
@@ -137,6 +176,7 @@ public class DroneEntity extends HostileEntity {
 
 	@Override
 	protected void initGoals() {
+        this.goalSelector.add(0, new com.terminaldetector.drmd.ai.UfoEscortGoal(this));
 		// Bombers climb the settlement before dogfighting random livestock.
 		this.goalSelector.add(0, new BombardVillageGoal(this));
 		this.goalSelector.add(1, new DroneAi.CombatGoal(this));
@@ -154,8 +194,11 @@ public class DroneEntity extends HostileEntity {
 	public void tick() {
 		super.tick();
 		this.setNoGravity(true);
-        com.terminaldetector.drmd.ai.DroneSquadCoordinator.tick(this);
 		if (!getWorld().isClient) {
+			if (controlSuspended()) getNavigation().stop();
+            var carrier = escortCarrier();
+            if (carrier != null && carrier.isCrashing()) releaseEscort(carrier.getUuid());
+            if (combatAllowed()) com.terminaldetector.drmd.ai.DroneSquadCoordinator.tick(this);
 			if(ragdollReplaced&&!isAlive())setInvisible(true);
 			modEnergy = Math.min(100f, modEnergy + 20f / 20f);
 			if (attackCooldown > 0) attackCooldown -= 1f / 20f;
@@ -186,6 +229,7 @@ public class DroneEntity extends HostileEntity {
 		resist = Math.min(0.9f, Math.max(0f, resist));
 		amount *= (1f - resist);
 
+		float oldShield = shield, oldArmor = armor;
 		// Shield → Armor → Hull
 		if (shield > 0) {
 			float abs = Math.min(shield, amount);
@@ -197,11 +241,22 @@ public class DroneEntity extends HostileEntity {
 			armor -= abs;
 			amount -= abs;
 		}
-		if (amount <= 0) {
-			this.scheduleVelocityUpdate();
-			return false;
+		if (amount <= 0) scheduleVelocityUpdate();
+		boolean damaged = amount > 0 && super.damage(source, amount);
+		if (isAlive() && (damaged || shield < oldShield || armor < oldArmor) && source instanceof ActorImpact hit
+				&& RagdollEntity.combatPhysicsActive(getWorld())) {
+			double mass = getScale();
+			mass = mass * mass * mass * (this instanceof FlightEnemyEntity flight
+					? com.terminaldetector.drmd.entity.model.FlightWreckRig.create(flight.kind(), 1).segments()
+							.stream().mapToDouble(com.terminaldetector.drmd.physics.ragdoll.RagdollRig.Segment::mass).sum()
+					: 6.8);
+			hit.applyLiveRecoil(this, mass);
+			Vec3d lever = hit.point().subtract(getBoundingBox().getCenter());
+			double spin = lever.crossProduct(hit.impulse()).dotProduct(getRotationVec(1));
+			float bank = (float) Math.clamp(12 * spin / mass, -18, 18);
+			setFlightRoll(net.minecraft.util.math.MathHelper.wrapDegrees(getFlightRoll() + bank));
 		}
-		return super.damage(source, amount);
+		return damaged;
 	}
 
 	@Override
@@ -235,7 +290,7 @@ public class DroneEntity extends HostileEntity {
         // An explicit server weapon action remains usable by isolated AI-disabled fixtures;
         // target/owner validity and loaded muzzle authority still apply before any resource debit.
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!isAlive()||isRemoved()
-            ||attackCooldown>0||target==null||!target.isAlive()||target.isRemoved()||target.getWorld()!=world
+            ||!combatAllowed()||attackCooldown>0||target==null||!target.isAlive()||target.isRemoved()||target.getWorld()!=world
             ||!HostileEnvironment.isHostileTarget(this,target)||isTeammate(target)
             ||com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(this)!=null)return false;
         if(!Float.isFinite(modEnergy)||modEnergy<role.weaponCost)return false;
@@ -289,6 +344,11 @@ public class DroneEntity extends HostileEntity {
 	public void writeCustomDataToNbt(NbtCompound nbt) {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putString("role", role.id);
+        if (escort != null) {
+            nbt.putUuid("escortCarrier", escort.carrier());
+            nbt.putString("escortSlot", escort.slot().id());
+        }
+        if (escortHoldoffUntil > getWorld().getTime()) nbt.putLong("escortHoldoffUntil", escortHoldoffUntil);
         nbt.putBoolean("wreckReplaced",ragdollReplaced);
 		nbt.putFloat("shield", shield);
 		nbt.putFloat("armor", armor);
@@ -301,6 +361,9 @@ public class DroneEntity extends HostileEntity {
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
+        var slot = UfoEscortFormation.Slot.fromId(nbt.getString("escortSlot"));
+        escort = slot != null && nbt.containsUuid("escortCarrier") ? new Escort(nbt.getUuid("escortCarrier"), slot) : null;
+        escortHoldoffUntil = Math.min(getWorld().getTime() + 120, Math.max(0, nbt.getLong("escortHoldoffUntil")));
 		float savedHealth=getHealth();
 		applyRole(AiRole.fromId(nbt.getString("role"),defaultRole()));
 		if(nbt.contains("Health",net.minecraft.nbt.NbtElement.NUMBER_TYPE))setHealth(savedHealth);

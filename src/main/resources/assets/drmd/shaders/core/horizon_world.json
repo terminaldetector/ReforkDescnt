@@ -153,6 +153,14 @@
       ]
     },
     {
+      "name": "VolumeHorizon",
+      "type": "int",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
       "name": "OrbitalOpacity[0]",
       "type": "float",
       "count": 4,

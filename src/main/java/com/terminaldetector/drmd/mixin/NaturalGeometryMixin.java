@@ -15,7 +15,7 @@ public class NaturalGeometryMixin {
     @Inject(method="getCollisionShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/shape/VoxelShape;",at=@At("HEAD"),cancellable=true)
     private void drmd$uncachedNaturalShape(BlockView world,BlockPos pos,CallbackInfoReturnable<VoxelShape> cir) {
         BlockState state=(BlockState)(Object)this;
-        if(world!=net.minecraft.world.EmptyBlockView.INSTANCE && NaturalGeometry.applies(state))
+        if(world!=net.minecraft.world.EmptyBlockView.INSTANCE && NaturalGeometry.applies(state) && NaturalGeometry.usesImplicitTerrain(world))
             cir.setReturnValue(NaturalGeometry.shape(state,world,pos));
     }
     @Inject(method={"getCollisionShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/ShapeContext;)Lnet/minecraft/util/shape/VoxelShape;",
@@ -24,7 +24,7 @@ public class NaturalGeometryMixin {
     private void drmd$naturalShape(BlockView world,BlockPos pos,ShapeContext context,CallbackInfoReturnable<VoxelShape> cir) {
         BlockState state=(BlockState)(Object)this;
         // Bootstrap caches must describe the vanilla block, not an isolated block in an empty world.
-        if(world!=net.minecraft.world.EmptyBlockView.INSTANCE && NaturalGeometry.applies(state))
+        if(world!=net.minecraft.world.EmptyBlockView.INSTANCE && NaturalGeometry.applies(state) && NaturalGeometry.usesImplicitTerrain(world))
             cir.setReturnValue(NaturalGeometry.shape(state,world,pos));
     }
 }

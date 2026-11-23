@@ -38,6 +38,7 @@ public final class BombardVillageGoal extends Goal {
 
 	@Override
 	public boolean canStart() {
+		if (drone.hasEscortAssignment() || !drone.combatAllowed()) return false;
 		if(!currentFrame())return false;
 		if (!drone.getRole().villageBomber) return false;
 		if (bombCooldown > 0) {
@@ -58,7 +59,8 @@ public final class BombardVillageGoal extends Goal {
 
 	@Override
 	public boolean shouldContinue() {
-		return currentFrame()&&drone.getRole().villageBomber && villageAim != null && bombCooldown <= 0;
+		return !drone.hasEscortAssignment() && drone.combatAllowed() && currentFrame()
+				&& drone.getRole().villageBomber && villageAim != null && bombCooldown <= 0;
 	}
 
 	@Override
@@ -68,7 +70,7 @@ public final class BombardVillageGoal extends Goal {
 
 	@Override
 	public void tick() {
-		if(!currentFrame())return;
+		if(drone.hasEscortAssignment() || !drone.combatAllowed() || !currentFrame())return;
 		if (villageAim == null) return;
 		if (--repathTicks <= 0) {
 			repathTicks = 40;

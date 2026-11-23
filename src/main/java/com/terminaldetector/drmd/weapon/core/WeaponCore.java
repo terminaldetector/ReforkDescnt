@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ProjectileEntity;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.shield.ShieldSystem;
+import com.terminaldetector.drmd.weapon.projectile.ProjectileVisual;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -16,6 +17,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
@@ -66,6 +68,7 @@ public final class WeaponCore {
 		/** Visual mesh: 0 bolt, 1 rocket, 2 orb, 3 drill. */
 		public int meshKind = 0;
 		public float visualScale = 1f;
+		public ProjectileVisual visual = ProjectileVisual.DEFAULT;
 		/** True → createExplosion crater (heavy ordinance). */
 		public boolean worldBlast = false;
 		/** True → 3×3 soft carve on block hit (drill charge). */
@@ -166,6 +169,7 @@ public final class WeaponCore {
 		proj.setOnHit(cfg.onHit);
 		proj.setVisualScale(cfg.visualScale);
 		proj.setMeshKind(cfg.meshKind);
+		proj.setProjectileVisual(cfg.visual);
 		proj.setWorldBlast(cfg.worldBlast);
 		proj.setDrillCarve(cfg.drillCarve);
 		proj.setFuse(cfg.fuse, cfg.fuseSeconds, cfg.armSeconds, cfg.proximityRadius);
@@ -177,7 +181,7 @@ public final class WeaponCore {
 		if (!world.spawnEntity(proj)) return null;
 		if(anchor!=null||mounted!=null)com.terminaldetector.drmd.world.trap.PointDefenseInterception.track(proj);
 		com.terminaldetector.drmd.network.ModNetworking.shotFx(world, cfg.pos,
-				proj.getColorRgb(), cfg.visualScale, false);
+				proj.getColorRgb(), cfg.visualScale, false, proj.getProjectileVisual(), dir, -1);
 
 		if(cfg.owner!=null)applyRecoil(cfg.owner, dir, recoilFactor);
 		return proj;
@@ -198,7 +202,11 @@ public final class WeaponCore {
 	}
 
 	public static void directDamage(Entity attacker, Entity target, float amount, DamageClass dmgClass) {
-		if (amount <= 0 || target == null || !target.isAlive()) return;
+		directDamage(attacker, target, amount, dmgClass, null, null);
+	}
+	public static void directDamage(Entity attacker, Entity target, float amount, DamageClass dmgClass,
+									Vec3d impact, Vec3d direction) {
+		if (amount <= 0 || !Float.isFinite(amount) || target == null || !target.isAlive()) return;
 		if (target instanceof PlayerEntity ply) {
 			DescentPlayerData data = DescentPlayerData.get(ply);
 			amount = ShieldSystem.absorb(data, amount, dmgClass);
@@ -209,25 +217,35 @@ public final class WeaponCore {
 		if (attacker instanceof PlayerEntity p) {
 			src = attacker.getDamageSources().playerAttack(p);
 		}
+		if (target instanceof com.terminaldetector.drmd.entity.DroneEntity
+				|| target instanceof com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity)
+			src = com.terminaldetector.drmd.physics.ragdoll.ActorImpact.at(src, impact, direction, amount, dmgClass);
 		target.damage(src, amount);
 	}
 
 	public static void splashDamage(Entity attacker, ServerWorld world, Vec3d pos, float amount, float radius, DamageClass dmgClass) {
 		if (amount <= 0 || radius <= 0) return;
 		Box box = new Box(pos, pos).expand(radius);
+		// A wreck created by this blast already receives its contact through the lethal damage.
+		List<Entity> bodies = com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(
+				world, attacker instanceof LivingEntity ? attacker : null, box,
+				entity -> entity instanceof PhysicsTarget && entity.isAlive());
 		List<LivingEntity> list = world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != attacker);
 		for (LivingEntity e : list) {
 			double dist = e.getPos().distanceTo(pos);
 			if (dist > radius) continue;
 			float falloff = (float) (1.0 - dist / radius);
-			directDamage(attacker, e, amount * falloff, dmgClass);
+			Box bounds = e.getBoundingBox();
+			Vec3d contact = new Vec3d(MathHelper.clamp(pos.x, bounds.minX, bounds.maxX),
+					MathHelper.clamp(pos.y, bounds.minY, bounds.maxY), MathHelper.clamp(pos.z, bounds.minZ, bounds.maxZ));
+			directDamage(attacker, e, amount * falloff, dmgClass, contact, bounds.getCenter().subtract(pos));
 			Vec3d knock = e.getPos().subtract(pos).normalize().multiply(0.4 * falloff);
 			e.addVelocity(knock.x, knock.y + 0.1, knock.z);
 			e.velocityModified = true;
 		}
 		// A physical launcher remains vulnerable to its own returning blast.
-		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(world, attacker instanceof LivingEntity?attacker:null, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
-            ((PhysicsTarget)e).weaponBlast(pos, amount, radius);
+		for (Entity e : bodies) {
+            if (e.isAlive() && !e.isRemoved()) ((PhysicsTarget)e).weaponBlast(pos, amount, radius);
 		}
 	}
 
@@ -250,7 +268,7 @@ public final class WeaponCore {
 			impact = entityHit.getPos();
 			if (entityHit.getEntity() instanceof PhysicsTarget target)
 				target.weaponHit(impact, dir, damage);
-			directDamage(owner, entityHit.getEntity(), damage, dmgClass);
+			directDamage(owner, entityHit.getEntity(), damage, dmgClass, impact, dir);
 			if (onHit != null) onHit.accept(new HitContext(null, entityHit.getEntity(), entityHit.getPos(), dir.negate(), false));
 		} else if (blockHit.getType() != HitResult.Type.MISS) {
 			impact = blockHit.getPos();

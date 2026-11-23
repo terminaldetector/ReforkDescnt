@@ -8,13 +8,20 @@ import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.physics.collision.*;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlAARotation;
+import com.terminaldetector.drmd.weapon.core.DamageClass;
+import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.world.cubic.CubicBlockCodec;
+import com.terminaldetector.drmd.world.geometry.NaturalGeometry;
+import com.terminaldetector.drmd.world.geometry.OrganicBlock;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.block.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.data.*;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.*;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.registry.tag.BlockTags;
@@ -63,6 +70,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Vec3 centre = new Vec3(0, 0, 0);
     private Vec3 pivot = new Vec3(0,0,0);
     private long shapeRevision;
+    private boolean implicitTerrain;
     private D6MassProperties massProperties=new D6MassProperties();
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED);
     private Quat previousRotation = Quat.IDENTITY;
@@ -73,6 +81,10 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     private boolean remoteMotionPaused=true;
     private boolean publishingPhysicsPosition;
     private boolean collisionUnavailable;
+    private UUID railOwner;
+    private long railImpactUntil;
+    private RailContact railContact;
+    private record RailContact(BlockPos block,Vec3d point,double normalSpeed) {}
     /** Non-ticking entities retain their momentum for resume, but their current contact surface is still. */
     public boolean boardingMotionPaused(){return getWorld().isClient?remoteMotionPaused:physicsTick!=getWorld().getTime();}
     private long portalEpoch;
@@ -95,10 +107,11 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
-    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || BodyLocalHatches.supports(state) || BodyLocalDoors.supports(state) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || BlastStructuralCollapse.buildingMaterial(state) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_CONTROL_CORE) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
+    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || BodyLocalHatches.supports(state) || BodyLocalDoors.supports(state) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || TerrainExtraction.supports(state) || BlastStructuralCollapse.buildingMaterial(state) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_CONTROL_CORE) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
+        implicitTerrain=NaturalGeometry.usesImplicitTerrain(world);
     }
     @Override public void setPosition(double x,double y,double z) {
         super.setPosition(x,y,z);
@@ -160,7 +173,9 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         publishingPhysicsPosition=true;try{setPosition(at.x(),at.y(),at.z());}finally{publishingPhysicsPosition=false;}
     }
     private NbtCompound shapeTag(){
-        var n=BodyShapeCodec.write(cells);vector(n,"pivot",pivot);n.putLong("revision",shapeRevision);return n;
+        var n=BodyShapeCodec.write(cells);
+        vector(n,"pivot",pivot);n.putLong("revision",shapeRevision);n.putBoolean("implicitTerrain",implicitTerrain);
+        return n;
     }
     public Quat rotation() { return body.rotation(); }
     public Quat previousRotation() { return previousRotation; }
@@ -214,6 +229,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
 
     private void loadShape(NbtCompound tag) {
+        boolean beforeImplicitTerrain=implicitTerrain;
+        if(tag.contains("implicitTerrain"))implicitTerrain=tag.getBoolean("implicitTerrain");
         Vec3 oldPivot=pivot;var previous=new HashMap<BlockPos,BlockState>();for(var c:cells)previous.put(c.pos(),c.state());
         var nextVolume=new D6Volume<BlockState>(Blocks.AIR.getDefaultState());
         List<Cell> next = new ArrayList<>();
@@ -239,7 +256,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         cells = List.copyOf(next); massProperties=mass;centre = mass.centreOfMass(); body.withMassProperties(mass);
         pivot=tag.contains("pivotx")?vector(tag,"pivot"):centre;shapeRevision=tag.getLong("revision");
         Set<BlockPos> changed=null;
-        if(!previous.isEmpty()&&oldPivot.equals(pivot)) {
+        if(!previous.isEmpty()&&oldPivot.equals(pivot)&&beforeImplicitTerrain==implicitTerrain) {
             changed=new HashSet<>();var remaining=new HashMap<>(previous);
             for(var cell:cells)if(!cell.state().equals(remaining.remove(cell.pos())))markGeometryNeighbours(changed,cell.pos());
             for(var pos:remaining.keySet())markGeometryNeighbours(changed,pos);
@@ -256,15 +273,16 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         meshes.keySet().removeIf(p->!occupied.contains(p));
         for(var cell:cells) {
             if(dirty!=null&&!dirty.contains(cell.pos()))continue;
-            if(!com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(cell.state())){meshes.remove(cell.pos());continue;}
+            if(!smooth(cell.state())){meshes.remove(cell.pos());continue;}
             var neighbours=new ArrayList<com.terminaldetector.drmd.world.geometry.HybridMesh.Block>(27);
             for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)for(int x=-1;x<=1;x++) {
                 var state=volume.get(cell.pos().getX()+x,cell.pos().getY()+y,cell.pos().getZ()+z);
-                boolean natural=com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(state);
+                BlockState source=state.getBlock() instanceof OrganicBlock organic?organic.source():state;
+                boolean natural=smooth(state);
                 neighbours.add(state.isAir()?com.terminaldetector.drmd.world.geometry.HybridMesh.Block.AIR:
                     new com.terminaldetector.drmd.world.geometry.HybridMesh.Block(-1L,natural,!natural,
-                        state.isOpaque() || state.equals(cell.state()),List.of(),
-                        com.terminaldetector.drmd.world.geometry.NaturalGeometry.logAxis(state)));
+                        source.isOpaque() || state.equals(cell.state()),List.of(),
+                        com.terminaldetector.drmd.world.geometry.NaturalGeometry.logAxis(source)));
             }
             meshes.put(cell.pos(),new com.terminaldetector.drmd.world.geometry.HybridMesh(
                 new com.terminaldetector.drmd.world.geometry.HybridMesh.Neighbourhood(neighbours)));
@@ -358,6 +376,10 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         radius = .5;
         for (Cell c : cells) radius = Math.max(radius,
             Math.max(new Vec3(c.pos.getX()+.5,c.pos.getY()+.5,c.pos.getZ()+.5).minus(pivot).length(),new Vec3(c.pos.getX()+.5,c.pos.getY()+.5,c.pos.getZ()+.5).minus(centre).length()) + Math.sqrt(3) / 2);
+    }
+
+    private boolean smooth(BlockState state) {
+        return state.getBlock() instanceof OrganicBlock||implicitTerrain&&NaturalGeometry.applies(state);
     }
     public BlockState getLocalBlock(BlockPos pos){return !validLocal(pos)?Blocks.AIR.getDefaultState():volume.get(pos.getX(),pos.getY(),pos.getZ());}
     public Map<BlockPos,BodyBounds> localBlockBounds(){return cellBounds;}
@@ -457,7 +479,9 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
                 var pos=new BlockPos(cell.x(),cell.y(),cell.z());fragmentCells.add(next.get(pos));parentEdits.put(pos,Blocks.AIR.getDefaultState());
             }
             fragmentCells.sort(Comparator.comparingInt((Cell c)->c.pos().getX()).thenComparingInt(c->c.pos().getY()).thenComparingInt(c->c.pos().getZ()));
-            var fragment=new BlockBodyEntity(ModEntities.BLOCK_BODY,world);fragment.loadShape(BodyShapeCodec.write(fragmentCells));
+            var fragment=new BlockBodyEntity(ModEntities.BLOCK_BODY,world);
+            fragment.implicitTerrain=implicitTerrain;
+            fragment.loadShape(BodyShapeCodec.write(fragmentCells));
             fragment.body.withRotation(body.rotation());
             Vec3 shift=body.rotation().rotate(fragment.centre.minus(centre)),position=massPosition().plus(shift);
             fragment.setPosition(position.x(),position.y(),position.z());
@@ -537,7 +561,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);clientShapeListener.accept(this,before);
     }
-    private static double blockMass(BlockState state){return state.isIn(BlockTags.LEAVES)?.08:1;}
+    static double blockMass(BlockState state){return state.isIn(BlockTags.LEAVES)?.08:1;}
     @Override public void onTrackedDataSet(TrackedData<?> data) {
         super.onTrackedDataSet(data);
         if (getWorld().isClient && body != null) {
@@ -775,6 +799,10 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         BodyJointSystem.cancelDeferred(this);
         // Substeps bound corner travel to about 0.15 blocks, including rotation. Inelastic contact.
+        ServerWorld world=(ServerWorld)getWorld();
+        ServerPlayerEntity railPlayer=railOwner==null?null:railPlayer(world);
+        Vec3 launchVelocity=body.linearVelocity();
+        RailContact impact=null;
         int steps=BodyStepBudget.steps(body,pendingTorque,radius,gravity);
         Vec3 externalTorque=pendingTorque;pendingTorque=new Vec3(0,0,0);
         for (int step = 0; step < steps; step++) {
@@ -789,7 +817,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             // independent of body speed/radius and therefore of the chosen substep count.
             body.applyTorque(externalTorque);
             body.step(.05 / steps);
-            boolean collision=blocked();
+            boolean collision=blocked(railPlayer!=null&&impact==null);
+            if(railContact!=null)impact=railContact;
             if(collisionUnavailable) {
                 // Unavailable terrain is not an impact. Pause with momentum intact; no
                 // synchronous generation or fake collision may destroy a ship's velocity.
@@ -806,6 +835,11 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         Vec3 v = pure(surfaceVelocityAt(getPos())); setVelocity(v.x()/20, v.y()/20, v.z()/20);
         setBoundingBox(new Box(getPos(), getPos()).expand(radius));
         dataTracker.set(POSE, pose()); velocityModified = true;
+        if(railPlayer!=null&&!hitRailActor(world,railPlayer,launchVelocity)&&impact!=null) {
+            railOwner=null;
+            float load=(float)Math.min(140,(impact.normalSpeed()-8)*Math.sqrt(body.mass())*2);
+            BlastStructuralCollapse.impact(world,impact.block(),impact.point(),load,railPlayer);
+        }
     }
 
     /** Joint-island phase: force integration, shared constraints, then terrain-checked pose. */
@@ -1019,9 +1053,63 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         if(getWorld().isClient || !Float.isFinite(damage) || damage<=0 || !Double.isFinite(direction.lengthSquared()))return;
         applyPhysicsImpulse(impact,direction.normalize().multiply(Math.min(80,damage*.15)));
     }
+
+    public void armRailImpact(ServerPlayerEntity player) {
+        if(getWorld() instanceof ServerWorld world&&world.getServer().isOnThread()&&player.getWorld()==world
+            && radius<=8&&cells.size()<=BlastStructuralCollapse.MAX_COMPONENT
+            && com.terminaldetector.drmd.world.profile.WorldProfile.isUngravity(world)) {
+            railOwner=player.getUuid();
+            railImpactUntil=world.getTime()+100;
+        }
+    }
+
+    private ServerPlayerEntity railPlayer(ServerWorld world) {
+        if(world.getTime()<railImpactUntil&&!com.terminaldetector.drmd.physics.GravyPhysics.isCaptured(this)
+            && world.getEntity(railOwner) instanceof ServerPlayerEntity player&&player.isAlive()&&!player.isSpectator()) return player;
+        railOwner=null;
+        return null;
+    }
+
+    private boolean hitRailActor(ServerWorld world,ServerPlayerEntity owner,Vec3 incoming) {
+        Vec3 travel=body.position().minus(previousPhysicsPosition);
+        if(incoming.lengthSquared()<14*14||travel.lengthSquared()<1e-6)return false;
+        var candidates=new ArrayList<LivingEntity>();
+        var bounds=new Box(minecraft(previousPhysicsPosition),minecraft(body.position())).expand(radius);
+        world.collectEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),bounds,
+            actor->actor.isAlive()&&!actor.isSpectator()&&actor!=owner&&!owner.isTeammate(actor)
+                &&(!(actor instanceof PlayerEntity player)||!player.isCreative()&&owner.shouldDamagePlayer(player)),candidates,16);
+        if(candidates.isEmpty())return false;
+        var start=new BodyCollisionQuery(collider,previousPhysicsPosition,centre,previousRotation);
+        BodyCollisionQuery.Sweep first=null;
+        LivingEntity victim=null;
+        for(var candidate:candidates){
+            var actor=OrientedBox.axisAligned(bounds(candidate.getBoundingBox()));
+            var hit=start.sweep(actor,new Vec3(0,0,0),travel,true).orElse(null);
+            if(hit!=null&&(first==null||hit.fraction()<first.fraction())){first=hit;victim=candidate;}
+        }
+        if(first==null)return false;
+        var step=travel.scaled(first.fraction());
+        var point=start.closestPoint(first.localShape(),pure(victim.getBoundingBox().getCenter()).minus(step)).plus(step);
+        double speed=Math.max(0,incoming.dot(first.normal()));
+        if(speed<14)return false;
+        railOwner=null;
+        float damage=(float)Math.min(24,(speed-8)*Math.sqrt(body.mass())*.35);
+        var direction=minecraft(first.normal());
+        WeaponCore.directDamage(owner,victim,damage,DamageClass.KINETIC,minecraft(point),direction);
+        Vec3d knockback=direction.multiply(Math.min(.7,damage*.03));
+        if(victim.isAlive()){
+            victim.addVelocity(knockback.x,knockback.y,knockback.z);
+            victim.velocityModified=true;
+        }
+        applyPhysicsImpulse(minecraft(point),knockback.multiply(-body.mass()*10));
+        return true;
+    }
+
     /** World shape boxes are candidates. Only an actual oriented overlap blocks the body. */
-    private boolean blocked() {
+    private boolean blocked() {return blocked(false);}
+    private boolean blocked(boolean railImpact) {
         collisionUnavailable=false;
+        railContact=null;
         Quat inverse=body.rotation().inverse();
         // Visit occupied section envelopes rather than the entire (possibly mostly empty)
         // ship AABB. A long sparse hull must not scan millions of intervening world blocks.
@@ -1032,9 +1120,18 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             for(var shape:getWorld().getBlockCollisions(this,broad.contract(1e-6)))for(Box obstacle:shape.getBoundingBoxes()) {
                 BodyBounds worldBox=bounds(obstacle);
                 var localObstacle=new OrientedBox(inverse.rotate(worldBox.centre().minus(body.position())).plus(centre),worldBox.half(),inverse);
-                for(BodyBounds solid:section.query(localObstacle.bounds()))
-                    if(OrientedBox.axisAligned(solid).contact(localObstacle,0)
-                        .filter(contact->contact.penetration()>1e-6).isPresent())return true;
+                for(BodyBounds solid:section.query(localObstacle.bounds())) {
+                    var contact=OrientedBox.axisAligned(solid).contact(localObstacle,0).orElse(null);
+                    if(contact==null||contact.penetration()<=1e-6)continue;
+                    if(railImpact) {
+                        Vec3 normal=body.rotation().rotate(contact.normal());
+                        var hull=OrientedBox.local(solid,body.position(),centre,body.rotation());
+                        var hit=OrientedBox.axisAligned(worldBox).closestPoint(hull.supportCentre(normal.scaled(-1)));
+                        double speed=-body.velocityAtPoint(hit.minus(body.position())).dot(normal);
+                        if(speed>=14)railContact=new RailContact(BlockPos.ofFloored(obstacle.getCenter()),minecraft(hit),speed);
+                    }
+                    return true;
+                }
             }
         }
         return false;

@@ -11,10 +11,10 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-/** Shared native offscreen world view. Reflect or transform the camera, clip at the source/destination plane,
- * then composite depth-tested apertures with screen-space texture sampling. One target, no recursion. */
+/** Shared offscreen world render for portal surfaces and remote cameras, with recursion disabled. */
 public final class OffscreenWorldView {
 	private OffscreenWorldView() {}
 
@@ -112,6 +112,36 @@ public final class OffscreenWorldView {
 			return false;
 		}
 
+		Matrix4f projection = clipped(outerProjection, viewMatrix, viewPos, clipPoint, clipNormal);
+		drawWorld(context, accessor, camera, target, outerProjection, new View(
+				viewPos, viewYaw, viewPitch, null, viewMatrix, projection, outerProjection, reflected));
+
+		boolean composited = SurfaceComposite.draw(target, outerProjection, framePosition, camera.getPos(), apertures);
+		if (composited) DiagTrace.count("view.drawn");
+		// The outer world pass continues drawing depth-tested geometry after the aperture.
+		RenderSystem.enableDepthTest();
+		return composited;
+	}
+
+	/** Capture an ordinary perspective view into a caller-owned target for later HUD composition. */
+	public static boolean capture(WorldRenderContext context, Framebuffer target, Vec3d position,
+			Quaternionf cameraRotation, Matrix4f projection) {
+		if (busy() || frameProjection == null || framePosition == null) return false;
+		Camera camera = context.camera();
+		var direction = cameraRotation.transform(new Vector3f(0, 0, -1));
+		float yaw = (float) Math.toDegrees(Math.atan2(-direction.x, direction.z));
+		float pitch = (float) -Math.toDegrees(Math.asin(Math.clamp(direction.y, -1f, 1f)));
+		var viewMatrix = new Matrix4f().rotation(new Quaternionf(cameraRotation).conjugate());
+		drawWorld(context, (CameraAccessor) camera, camera, target, frameProjection, new View(
+				position, yaw, pitch, cameraRotation, viewMatrix, projection, projection, false));
+		return true;
+	}
+
+	private record View(Vec3d position, float yaw, float pitch, Quaternionf rotation,
+						Matrix4f viewMatrix, Matrix4f projection, Matrix4f visibilityProjection, boolean reflected) {}
+
+	private static void drawWorld(WorldRenderContext context, CameraAccessor accessor, Camera camera,
+			Framebuffer target, Matrix4f outerProjection, View view) {
 		Vec3d originalPos = camera.getPos();
         var originalCamera = new BorrowedCameraState(camera,accessor);
 
@@ -124,27 +154,32 @@ public final class OffscreenWorldView {
         var savedFog=com.terminaldetector.drmd.client.presentation.Ps1WorldFog.capture();
         int originalWinding = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_FRONT_FACE);
 		depth++;
-        var nestedTargets=new NestedViewTargets(context.worldRenderer());
-		try {
+		try (var nestedTargets = new NestedViewTargets(context.worldRenderer())) {
 			((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(target);
-            accessor.drmd$invokeSetPos(viewPos);
-			accessor.drmd$invokeSetRotation(viewYaw, viewPitch);
+			accessor.drmd$invokeSetPos(view.position);
+			accessor.drmd$invokeSetRotation(view.yaw, view.pitch);
+			if (view.rotation != null) {
+				camera.getRotation().set(view.rotation);
+				view.rotation.transform(camera.getHorizontalPlane().set(0, 0, -1));
+				view.rotation.transform(camera.getVerticalPlane().set(0, 1, 0));
+				view.rotation.transform(camera.getDiagonalPlane().set(-1, 0, 0));
+			}
 
-			Matrix4f positionMatrix = new Matrix4f(viewMatrix);
-			if (reflected) org.lwjgl.opengl.GL11.glFrontFace(originalWinding == org.lwjgl.opengl.GL11.GL_CCW
+			Matrix4f positionMatrix = new Matrix4f(view.viewMatrix);
+			if (view.reflected) org.lwjgl.opengl.GL11.glFrontFace(originalWinding == org.lwjgl.opengl.GL11.GL_CCW
 				? org.lwjgl.opengl.GL11.GL_CW : org.lwjgl.opengl.GL11.GL_CCW);
-			Matrix4f projection = clipped(outerProjection, positionMatrix, viewPos, clipPoint, clipNormal);
 			// GameRenderer prepares visibility before the main render. A nested render must do
 			// the same for its own camera; Sodium consumes this frustum when building its
 			// visible section list, so reusing the outer one drops geometry behind the player.
 			// Keep visibility conservative: vanilla expands this frustum around the camera.
 			// An oblique near plane excludes that box and can make the expansion loop forever.
 			// The actual draw still uses the oblique projection to clip at the aperture.
-			context.worldRenderer().setupFrustum(viewPos, positionMatrix, outerProjection);
+			context.worldRenderer().setupFrustum(view.position, positionMatrix, view.visibilityProjection);
 
 			target.setClearColor(0f, 0f, 0f, 1f);
 			target.clear(MinecraftClient.IS_SYSTEM_MAC);
 			target.beginWrite(true);
+			if (view.rotation != null) RenderSystem.setProjectionMatrix(view.projection, savedSorting);
 
 			context.worldRenderer().render(
 					context.tickCounter(),
@@ -156,13 +191,12 @@ public final class OffscreenWorldView {
 					// confirmed against Fabric's own mixin on this method, not from memory. Passing them
 					// the other way round is what the first live diagnostics report caught.
 					positionMatrix,
-					projection);
+					view.projection);
 		} finally {
 			// Restore in the reverse order of setup, and unconditionally: leaving the camera moved or the
 			// off-screen target bound would corrupt every system that reads either next frame, not just
 			// this one view's picture.
             try {
-                nestedTargets.close();
                 org.lwjgl.opengl.GL11.glFrontFace(originalWinding);
                 target.endWrite();
                 ((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(mainTarget);
@@ -179,12 +213,6 @@ public final class OffscreenWorldView {
                 }
             }
 		}
-
-        boolean composited = SurfaceComposite.draw(target, outerProjection, framePosition, originalPos, apertures);
-        if (composited) DiagTrace.count("view.drawn");
-        // The outer world pass continues drawing depth-tested geometry after the aperture.
-		RenderSystem.enableDepthTest();
-		return composited;
 	}
 
 	/**

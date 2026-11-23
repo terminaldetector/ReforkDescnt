@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.energy.EnergyPreset;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.flight.FlightSystem;
+import com.terminaldetector.drmd.weapon.projectile.ProjectileVisual;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryByteBuf;
@@ -14,6 +15,7 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 
 public final class ModNetworking {
     public record PortalProjectorPayload(int slot,boolean reset,float x,float y,float z) implements CustomPayload {
@@ -484,21 +486,31 @@ public final class ModNetworking {
             ServerPlayNetworking.send(watcher,event);
     }
 
-	public record ShotFxPayload(double x, double y, double z, int rgb, float scale, boolean impact) implements CustomPayload {
-		public static final Id<ShotFxPayload> ID = new Id<>(Identifier.of(DescentMod.MOD_ID, "shot_fx"));
+	public record ShotFxPayload(double x, double y, double z, int rgb, float scale, boolean impact,
+			ProjectileVisual visual, Vec3d direction, int surfaceRgb) implements CustomPayload {
+		public static final Id<ShotFxPayload> ID = new Id<>(Identifier.of(DescentMod.MOD_ID, "shot_fx_v2"));
 		public static final PacketCodec<RegistryByteBuf, ShotFxPayload> CODEC = PacketCodec.of(
 				(p, buf) -> { buf.writeDouble(p.x); buf.writeDouble(p.y); buf.writeDouble(p.z);
-					buf.writeInt(p.rgb); buf.writeFloat(p.scale); buf.writeBoolean(p.impact); },
+					buf.writeInt(p.rgb); buf.writeFloat(p.scale); buf.writeBoolean(p.impact);
+					buf.writeVarInt(p.visual.ordinal());
+					buf.writeFloat((float)p.direction.x); buf.writeFloat((float)p.direction.y);
+					buf.writeFloat((float)p.direction.z); buf.writeInt(p.surfaceRgb); },
 				buf -> new ShotFxPayload(buf.readDouble(), buf.readDouble(), buf.readDouble(),
-						buf.readInt(), buf.readFloat(), buf.readBoolean()));
+						buf.readInt(), buf.readFloat(), buf.readBoolean(), ProjectileVisual.fromWire(buf.readVarInt()),
+						new Vec3d(buf.readFloat(), buf.readFloat(), buf.readFloat()), buf.readInt()));
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
 	public static void shotFx(net.minecraft.server.world.ServerWorld world, net.minecraft.util.math.Vec3d pos,
 			int rgb, float scale, boolean impact) {
-		var event = new ShotFxPayload(pos.x, pos.y, pos.z, rgb, scale, impact);
+		shotFx(world, pos, rgb, scale, impact, ProjectileVisual.DEFAULT, Vec3d.ZERO, -1);
+	}
+
+	public static void shotFx(net.minecraft.server.world.ServerWorld world, Vec3d pos, int rgb,
+			float scale, boolean impact, ProjectileVisual visual, Vec3d direction, int surfaceRgb) {
+		var event = new ShotFxPayload(pos.x, pos.y, pos.z, rgb, scale, impact, visual, direction, surfaceRgb);
 		for (var player : net.fabricmc.fabric.api.networking.v1.PlayerLookup.around(world, pos, 128))
-			ServerPlayNetworking.send(player, event);
+			if (ServerPlayNetworking.canSend(player, ShotFxPayload.ID)) ServerPlayNetworking.send(player, event);
 	}
 
     public record PhysicsProfilePayload(String profile,boolean canChange) implements CustomPayload {

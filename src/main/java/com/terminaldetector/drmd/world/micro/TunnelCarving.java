@@ -1,5 +1,7 @@
 package com.terminaldetector.drmd.world.micro;
 
+import com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse;
+import com.terminaldetector.drmd.world.engineer.HeavyDrillDrops;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
@@ -127,7 +129,8 @@ public final class TunnelCarving {
 		double r2 = radius * radius;
 		int carved = 0;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
-        try(var drops=compactDrops?new com.terminaldetector.drmd.world.engineer.HeavyDrillDrops(world,breaker,segStart):null) {
+        try(var cuts=new BlastStructuralCollapse.SupportEdits(world,segStart,(float)radius,breaker);
+            var drops=compactDrops?new HeavyDrillDrops(world,breaker,segStart):null) {
 		for (int x = minX; x <= maxX; x++) {
 			for (int y = minY; y <= maxY; y++) {
 				for (int z = minZ; z <= maxZ; z++) {
@@ -139,14 +142,14 @@ public final class TunnelCarving {
 					if (!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,breaker) || !isBoreable(world, pos)) continue;
 
 					if (centerDist < radius - HALF_DIAGONAL) {
-						if (drops==null?world.breakBlock(pos.toImmutable(),true,breaker):drops.breakBlock(pos.toImmutable())) carved++;
+						if (breakCutCell(world, pos, breaker, drops, cuts)) carved++;
 						continue;
 					}
 
 					long mask = capsuleMask(x, y, z, segStart, segEnd, r2);
 					if (mask == MicroGrid.FULL) continue;
 					if (mask == MicroGrid.EMPTY) {
-						if (drops==null?world.breakBlock(pos.toImmutable(),true,breaker):drops.breakBlock(pos.toImmutable())) carved++;
+						if (breakCutCell(world, pos, breaker, drops, cuts)) carved++;
 						continue;
 					}
 					BlockState state = world.getBlockState(pos);
@@ -154,7 +157,7 @@ public final class TunnelCarving {
                         long remaining=existing.mask() & mask;
                         if(remaining==existing.mask())continue;
                         if(remaining==MicroGrid.EMPTY) {
-                            if(drops==null?world.breakBlock(pos.toImmutable(),true,breaker):drops.breakBlock(pos.toImmutable()))carved++;
+                            if(breakCutCell(world,pos,breaker,drops,cuts))carved++;
                             continue;
                         }
                     }
@@ -164,6 +167,17 @@ public final class TunnelCarving {
 		}
 		return carved;
 	}
+    }
+
+    private static boolean breakCutCell(ServerWorld world,BlockPos pos,LivingEntity breaker,
+                                        HeavyDrillDrops drops,BlastStructuralCollapse.SupportEdits cuts) {
+        BlockPos at=pos.toImmutable();
+        var blockEntity=world.getBlockEntity(at);
+        BlockState before=blockEntity instanceof CarvedBlockEntity carved&&!carved.authoredOrganic()
+            ?carved.source():world.getBlockState(at);
+        if(!(drops==null?world.breakBlock(at,true,breaker):drops.breakBlock(at)))return false;
+        cuts.removed(at,before);
+        return true;
     }
 
 	/** Mirrors the hardness/bedrock gate {@code WeaponFx.drillTunnel} already applied. */

@@ -14,6 +14,35 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RagdollSimulationTest {
+    @Test
+    void movingDeckContactsCarryAndThenReleaseARagdollPart() {
+        var shape = new com.terminaldetector.drmd.physics.collision.CompoundCollider(List.of(
+                new com.terminaldetector.drmd.physics.collision.BodyBounds(new Vec3(-2, -.25, -2), new Vec3(2, 0, 2))));
+        var deckBody = new com.terminaldetector.drmd.d6.D6PhysicsBody().withMass(400)
+                .withInertia(com.terminaldetector.drmd.d6.D6Mat3.diagonal(400, 400, 400))
+                .withPosition(new Vec3(0, 1, 0)).withLinearVelocity(new Vec3(4, 0, 0));
+        var deck = new com.terminaldetector.drmd.world.contraption.boarding.BodyMotion(
+                1, shape, new Vec3(0, 0, 0), new Vec3(-.2, 1, 0), Quat.IDENTITY,
+                new Vec3(0, 1, 0), Quat.IDENTITY, deckBody);
+        var rig = new RagdollRig(List.of(new RagdollRig.Segment(
+                "core", 2, new Vec3(.2, .2, .2), new Vec3(0, 0, 0))), List.of());
+        var falling = new RagdollSimulation(rig, new Vec3(0, 1.25, 0), Quat.IDENTITY, new Vec3(0, -4, 0));
+        falling.stepWithMovingContacts(.05, new Vec3(0, -9.81, 0), 4, 4, (part, from, start, end) ->
+                com.terminaldetector.drmd.physics.ragdoll.RagdollBodyContacts.resolve(
+                        part, from, start, end, List.of(deck), candidate -> true));
+        assertTrue(falling.centreOfMass().y() >= 1.2, "the part remains above the physical deck");
+        assertTrue(falling.centreVelocity().x() > .1, "surface velocity transfers through friction");
+        assertTrue(deckBody.linearVelocity().x() < 4, "the same contact reacts on the carrier");
+        double supportedHeight = falling.centreOfMass().y();
+        Vec3 releasedVelocity = falling.centreVelocity();
+        falling.step(.1, new Vec3(0, -9.81, 0));
+        assertEquals(releasedVelocity.x(), falling.centreVelocity().x(), 1e-10);
+        assertEquals(releasedVelocity.y() - .981, falling.centreVelocity().y(), 1e-10,
+                "the first unsupported step adds only gravity and retains the last deck impulse");
+        falling.step(.2, new Vec3(0, -9.81, 0));
+        assertTrue(falling.centreOfMass().y() < supportedHeight - .1, "removing the deck releases the support");
+    }
+
 	@Test
 	void authoredLimitedJetRoutesAFrontCoreHitByHullAndRetainsExactEffectiveMass(){
 		var rig=com.terminaldetector.drmd.entity.model.FlightWreckRig.create(com.terminaldetector.drmd.entity.FlightEnemyKind.JET,1,2);

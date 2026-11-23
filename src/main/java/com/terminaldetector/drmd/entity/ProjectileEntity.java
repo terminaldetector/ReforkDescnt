@@ -5,6 +5,9 @@ import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.MissileSteering;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
+import com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget;
+import com.terminaldetector.drmd.weapon.projectile.ProjectileVisual;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import com.terminaldetector.drmd.world.LocalOrientation;
 import com.terminaldetector.drmd.world.portal.mirror.MirrorReflection;
 import com.terminaldetector.drmd.world.portal.mirror.ReflectiveBlock;
@@ -19,12 +22,14 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
@@ -50,6 +55,7 @@ public class ProjectileEntity extends Entity {
 	// Vanilla spawn/velocity packets clamp each component to +/-3.9 blocks/tick. Some DRMD
 	// weapons exceed that speed. Metadata carries the full vector without changing server physics.
 	private static final TrackedData<Vector3f> VISUAL_VELOCITY = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.VECTOR3F);
+	private static final TrackedData<Integer> VISUAL = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
 	private UUID ownerUuid;
 	private Entity owner;
@@ -184,13 +190,7 @@ public class ProjectileEntity extends Entity {
 	public void setDrag(float v) { this.drag = v; }
 	public void setHoming(boolean h, float turn, Entity target) { this.homing = h; this.turnRate = turn; this.homeTarget = target; }
 
-	/**
-	 * Fly the owner's aim rather than a target — the Guided Missile.
-	 *
-	 * <p>Steering to a direction and not to a point is the faithful reading: in Descent the pilot's
-	 * stick becomes the missile's stick, so it goes where you are facing, not where you are looking
-	 * at. That is what lets it be walked around a corner into a room you cannot see into.
-	 */
+	/** Steer this missile only while its owner has an active remote piloting link. */
 	public void setPilotGuided(boolean v) { this.pilotGuided = v; }
 	public void setPierceCount(int v) { this.pierceCount = v; }
 	public void setOnHit(Consumer<WeaponCore.HitContext> cb) { this.onHit = cb; }
@@ -231,10 +231,16 @@ public class ProjectileEntity extends Entity {
 
 	public void setVisualScale(float s) { dataTracker.set(SCALE, s); }
 	public void setMeshKind(int kind) { dataTracker.set(MESH, kind); }
+	public void setProjectileVisual(ProjectileVisual visual) {
+		if (visual == ProjectileVisual.DEFAULT)
+			visual = ProjectileVisual.fromProjectile(getMeshKind(), dmgClass, homing, pilotGuided);
+		dataTracker.set(VISUAL, visual.ordinal());
+	}
 
 	public int getColorRgb() { return dataTracker.get(COLOR); }
 	public float getVisualScale() { return dataTracker.get(SCALE); }
 	public int getMeshKind() { return dataTracker.get(MESH); }
+	public ProjectileVisual getProjectileVisual() { return ProjectileVisual.fromWire(dataTracker.get(VISUAL)); }
 	public int getColorR() { return (getColorRgb() >> 16) & 255; }
 	public int getColorG() { return (getColorRgb() >> 8) & 255; }
 	public int getColorB() { return getColorRgb() & 255; }
@@ -265,8 +271,10 @@ public class ProjectileEntity extends Entity {
 		super.tick();
 		if (getWorld().isClient) {
 			setVelocity(getVisualVelocity());
-			setPosition(visualPrediction.advance(getPos(), getVelocity()));
-			drawTracer();
+			Vec3d previousTip = getPos();
+			Vec3d predictedTip = visualPrediction.advance(previousTip, getVelocity());
+			setPosition(clipVisualStep(previousTip, predictedTip));
+			drawTracer(previousTip);
 			return;
 		}
 
@@ -301,12 +309,7 @@ public class ProjectileEntity extends Entity {
 		Vec3d vel = getVelocity();
 
 		if (pilotGuided) {
-			// No lock to acquire or lose: while the pilot is there to fly it, it turns when they turn.
-			// Once they are not — dead, gone, on foot elsewhere — it coasts on its last heading.
-			LivingEntity own = getOwnerLiving();
-			if (own instanceof PlayerEntity ply) {
-				vel = MissileSteering.steer(vel, WeaponCore.aimDir(ply), turnRate);
-			}
+			vel = com.terminaldetector.drmd.weapon.projectile.GuidedMissileControl.steer(this, vel, turnRate);
 		} else if (homing) {
 			Entity target = homeTarget;
 			if (target == null || !target.isAlive()) {
@@ -375,44 +378,37 @@ public class ProjectileEntity extends Entity {
 		setPosition(next);
 	}
 
-	/**
-	 * The visible shot: a bead of light every half block along the ground the round covered this tick.
-	 *
-	 * <p>This used to drop one particle per tick at the entity's position, which is why the guns
-	 * looked like they were firing nothing. A Descent laser moves 6200 source units a second — some
-	 * seventy blocks in a tick — so one bead per tick is one dot of light every seventy blocks, and
-	 * the round is past the far wall before a second one is drawn. Nothing joins them up, so there is
-	 * no bolt on screen at any point in its flight.
-	 *
-	 * <p>Filling the segment instead gives a continuous streak at any speed, which is what the
-	 * original's bolts read as. Spacing is fixed rather than a fixed bead count so a slow rocket does
-	 * not get a dense clot of particles around it. The client allocates dust for the visible segment
-	 * and reserves part of its allowance for rounds crossing close to the camera.
-	 */
-	private void drawTracer() {
-		Vec3d vel = getVelocity();
-		double travel = vel.length();
-		int preferred = travel < 1e-3 ? 1 : (int) Math.min(48, Math.max(2, travel / 0.5));
-		Vec3d head = getPos();
-		int beads = com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.CLIENT.take(head, vel, preferred);
-		if (beads == 0) return;
+	/** Keep speculative art on our side of the nearest loaded collider. The server resolves contact. */
+	private Vec3d clipVisualStep(Vec3d start, Vec3d predicted) {
+		if (start.squaredDistanceTo(predicted) < 1e-10) return start;
+		Vec3d end = WorldEditSafety.loadedEnd(getWorld(), start, predicted);
+		if (start.squaredDistanceTo(end) < 1e-10) return start;
+		var hit = getWorld().raycast(new RaycastContext(start, end,
+				RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, this));
+		if (hit.getType() == HitResult.Type.MISS) return end;
+		double distance = start.distanceTo(hit.getPos());
+		return start.lerp(hit.getPos(), Math.max(0, distance - 1e-4) / Math.max(distance, 1e-4));
+	}
 
-		float scale = getVisualScale();
-		boolean bolt = getMeshKind() == MESH_BOLT;
-		Vector3f rgb = new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f);
-		float size = (bolt ? 1.5f : 1.15f) * Math.max(0.6f, scale);
+	private void drawTracer(Vec3d previousTip) {
+		if ((age & 1) != 0) return;
+		Vec3d step = getPos().subtract(previousTip);
+		if (step.lengthSquared() < 1e-8) return;
+		var family = getProjectileVisual().family();
+		if (family == ProjectileVisual.Family.LIGHT || family == ProjectileVisual.Family.MINE) return;
+		if (ProjectileTracerBudget.CLIENT.take(getPos(), step, 1) == 0) return;
 
-		if (travel < 1e-3) {
-			getWorld().addParticle(new DustParticleEffect(rgb, size), getX(), getY(), getZ(), 0, 0, 0);
-			return;
-		}
-
-		// Where it was a tick ago: the client has already moved it, so walk back down the velocity.
-		for (int i = 0; i < beads; i++) {
-			Vec3d p = head.subtract(vel.multiply(i / (double) beads));
-			// The head stays brightest; the tail thins out so the streak has a direction.
-			float f = size * (1f - 0.55f * i / (float) beads);
-			getWorld().addParticle(new DustParticleEffect(rgb, f), p.x, p.y, p.z, 0, 0, 0);
+		// The interpolated tip is ahead of the preceding tip. Emit smoke and sparks behind both.
+		float size = Math.clamp(getVisualScale(), .25f, 4f);
+		Vec3d backward = getVelocity().normalize().negate();
+		Vec3d trail = previousTip.add(backward.multiply((getMeshKind() == MESH_ROCKET ? .88 : .25) * size));
+		if (getMeshKind() == MESH_ROCKET) {
+			getWorld().addParticle(ParticleTypes.SMOKE, trail.x, trail.y, trail.z,
+					backward.x * .04, backward.y * .04, backward.z * .04);
+		} else {
+			Vector3f rgb = new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f);
+			getWorld().addParticle(new DustParticleEffect(rgb, size * .45f),
+					trail.x, trail.y, trail.z, 0, 0, 0);
 		}
 	}
 
@@ -488,7 +484,7 @@ public class ProjectileEntity extends Entity {
             target.weaponHit(impact, getVelocity(), directDamage);
 		}
 		if (own != null) {
-			WeaponCore.directDamage(own, hit.getEntity(), directDamage, dmgClass);
+			WeaponCore.directDamage(own, hit.getEntity(), directDamage, dmgClass, impact, getVelocity());
 			detonate(own, impact);
 		}
 		if (igniteOnHit) {
@@ -549,7 +545,8 @@ public class ProjectileEntity extends Entity {
 		var owner = getOwnerEntity();
 		Entity own = owner == null ? this : owner;
 		if (getWorld() instanceof ServerWorld sw) {
-			impactVisual(hit.getPos().add(Vec3d.of(hit.getSide().getVector()).multiply(.03)));
+			impactVisual(hit.getPos(), Vec3d.of(hit.getSide().getVector()),
+					hitState.getMapColor(sw, hit.getBlockPos()).color);
 			detonate(own, hit.getPos(), explosive ? ()->structuralImpact(sw,hit,own) : null);
 			if (drillCarve) {
 				WeaponFx.drillCarve(sw, hit.getBlockPos(), own);
@@ -594,8 +591,13 @@ public class ProjectileEntity extends Entity {
 	}
 
 	private void impactVisual(Vec3d pos) {
+		impactVisual(pos, getVelocity().normalize().negate(), -1);
+	}
+
+	private void impactVisual(Vec3d pos, Vec3d normal, int surfaceRgb) {
 		if (getWorld() instanceof ServerWorld world)
-			com.terminaldetector.drmd.network.ModNetworking.shotFx(world, pos, getColorRgb(), getVisualScale(), true);
+			com.terminaldetector.drmd.network.ModNetworking.shotFx(world, pos, getColorRgb(), getVisualScale(),
+					true, getProjectileVisual(), normal, surfaceRgb);
 	}
 
 	@Override
@@ -604,6 +606,7 @@ public class ProjectileEntity extends Entity {
 		builder.add(SCALE, 1f);
 		builder.add(MESH, MESH_BOLT);
 		builder.add(VISUAL_VELOCITY, new Vector3f());
+		builder.add(VISUAL, ProjectileVisual.DEFAULT.ordinal());
 	}
 
 	@Override
@@ -620,6 +623,7 @@ public class ProjectileEntity extends Entity {
 		drillCarve = nbt.getBoolean("drill");
 		setVisualScale(nbt.contains("scale") ? nbt.getFloat("scale") : 1f);
 		setMeshKind(nbt.getInt("mesh"));
+		setProjectileVisual(ProjectileVisual.fromSave(nbt.getString("visual")));
 		setColorRgb(dmgClass.r, dmgClass.g, dmgClass.b);
 		defenseSource=null;
 		restoredDefense=false;
@@ -659,6 +663,7 @@ public class ProjectileEntity extends Entity {
 		nbt.putBoolean("drill", drillCarve);
 		nbt.putFloat("scale", getVisualScale());
 		nbt.putInt("mesh", getMeshKind());
+		nbt.putString("visual", getProjectileVisual().name());
 		if(defenseSource!=null&&defenseSource.mounted()){
             var mounted=new NbtCompound();mounted.putInt("schema",1);mounted.putUuid("body",defenseSource.body());mounted.putLong("cell",defenseSource.cell().asLong());
             mounted.putUuid("principal",defenseSource.principal());mounted.putUuid("claim",defenseSource.claim());mounted.putUuid("target",defenseSource.target());nbt.put("pdMounted",mounted);

@@ -4,6 +4,8 @@ import com.terminaldetector.drmd.physics.PhysicsProfileState;
 import com.terminaldetector.drmd.physics.collision.BodyTopology;
 import com.terminaldetector.drmd.physics.collision.UnsupportedStructure;
 import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.geometry.OrganicBlock;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.tag.BlockTags;
@@ -34,9 +36,35 @@ public final class BlastStructuralCollapse {
     private static Budget budget(ServerWorld world){
         var b=BUDGETS.get(world);if(b==null||b.tick!=world.getTime()){b=new Budget(world.getTime());BUDGETS.put(world,b);}return b;
     }
-    private static boolean enabled(ServerWorld world){return world.getServer().isOnThread()&&PhysicsProfileState.expanded(world);}
+    public static boolean enabled(ServerWorld world){
+        if(!world.getServer().isOnThread())return false;
+        var profile=WorldProfile.get(world);
+        return profile==null?PhysicsProfileState.expanded(world)
+            :profile.mode()==WorldProfile.Mode.UNGRAVITY&&world.getRegistryKey()==net.minecraft.world.World.OVERWORLD;
+    }
+
+    static boolean canDetach(ServerWorld world,Vec3d centre){
+        return enabled(world) && Double.isFinite(centre.lengthSquared()) && budget(world).bodies<MAX_BODIES
+            && BodySpatialIndex.query(world,new Box(centre,centre).expand(32)).stream()
+                .filter(BlockBodyEntity::physicsGravity).limit(MAX_NEARBY).count()<MAX_NEARBY;
+    }
+
+    static BlockBodyEntity detach(ServerWorld world,Map<BlockPos,BlockState> selected){
+        var b=budget(world);
+        if(b.bodies>=MAX_BODIES)return null;
+        try {
+            var body=BlockBodyEntity.assembleSelection(world,selected);
+            b.bodies++;
+            return body;
+        } catch(RuntimeException failure) {
+            // A rejected move is recoverable only once every source cell is readable and intact.
+            var access=WorldAccess.of(world);
+            if(selected.entrySet().stream().allMatch(e->access.readIfLoaded(e.getKey()).filter(e.getValue()::equals).isPresent()))return null;
+            throw failure;
+        }
+    }
     static boolean buildingMaterial(BlockState state){
-        if(state.hasBlockEntity()||!state.getFluidState().isEmpty()||state.isAir())return false;
+        if(state.hasBlockEntity()||!state.getFluidState().isEmpty()||state.isAir()||TerrainExtraction.supports(state))return false;
         if(INERT.contains(state.getBlock())||state.isIn(BlockTags.PLANKS)||partialMaterial(state))return true;
         // Ordinary masonry and decorative full blocks can be used in any building.
         // Bulk stone, soil and sediment keep anchoring the surviving structure to the world.
@@ -50,8 +78,11 @@ public final class BlastStructuralCollapse {
         return state.isIn(BlockTags.SLABS)||state.isIn(BlockTags.STAIRS)||state.isIn(BlockTags.WALLS)
             ||state.isIn(BlockTags.FENCES)||state.isIn(BlockTags.FENCE_GATES);
     }
-    private static boolean inert(BlockState state){
-        return buildingMaterial(state) || state.isIn(BlockTags.LOGS) && state.getFluidState().isEmpty();
+    private static boolean inert(BlockState state,boolean authoredTerrain){
+        if(state.getBlock() instanceof OrganicBlock||state.hasBlockEntity()||!state.getFluidState().isEmpty())return false;
+        return buildingMaterial(state)||state.isIn(BlockTags.LOGS)
+            ||authoredTerrain&&TerrainExtraction.supports(state)
+                &&state.isFullCube(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN);
     }
     /** Material resistance is shared by direct cuts and the pressure that reaches blast cells. */
     public static boolean canBreak(ServerWorld world,BlockPos pos,BlockState state,double pressure){
@@ -64,17 +95,17 @@ public final class BlastStructuralCollapse {
         var state=WorldAccess.of(world).readIfLoaded(pos);
         // Log beams that belong to a building can fail the tree-specific cut.
         // They are still load-bearing material for the ordinary structural solver.
-        if(state.isEmpty()||!inert(state.get())||!canBreak(world,pos,state.get(),damage))return;
+        if(state.isEmpty()||!inert(state.get(),WorldProfile.isUngravity(world))||!canBreak(world,pos,state.get(),damage))return;
         if(world.breakBlock(pos,true,attacker))finish(world,List.of(pos),impact,damage/24,
             p->WorldEditSafety.mayChange(world,p,attacker));
     }
     /** Snapshot only the blast's own admitted inert material, before vanilla or microdamage edits it. */
     public static List<BlockPos> capture(ServerWorld world,List<BlockPos> affected){
         if(!enabled(world))return List.of();var b=budget(world);if(b.bodies>=MAX_BODIES)return List.of();
-        var cuts=new LinkedHashSet<BlockPos>();var access=WorldAccess.of(world);
+        var cuts=new LinkedHashSet<BlockPos>();var access=WorldAccess.of(world);boolean authoredTerrain=WorldProfile.isUngravity(world);
         for(int i=0;i<Math.min(CAPTURE_SCAN,affected.size())&&cuts.size()<MAX_CUTS;i++){
             if(!b.read())break;var p=affected.get(i);var state=access.readIfLoaded(p);
-            if(state.isPresent()&&inert(state.get()))cuts.add(p.toImmutable());
+            if(state.isPresent()&&inert(state.get(),authoredTerrain))cuts.add(p.toImmutable());
         }
         return List.copyOf(cuts);
     }
@@ -83,10 +114,8 @@ public final class BlastStructuralCollapse {
         return finish(world,cuts,centre,power,p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,null));
     }
     public static int finish(ServerWorld world,List<BlockPos> cuts,Vec3d centre,float power,Predicate<BlockPos> mayDetach){
-        if(!enabled(world)||cuts.isEmpty()||cuts.size()>MAX_CUTS||!Float.isFinite(power)||power<=0
-            ||!Double.isFinite(centre.lengthSquared()))return 0;
-        var b=budget(world);if(b.bodies>=MAX_BODIES)return 0;
-        if(BodySpatialIndex.query(world,new Box(centre,centre).expand(32)).stream().filter(BlockBodyEntity::physicsGravity).limit(MAX_NEARBY).count()>=MAX_NEARBY)return 0;
+        if(cuts.isEmpty()||cuts.size()>MAX_CUTS||!Float.isFinite(power)||power<=0||!canDetach(world,centre))return 0;
+        var b=budget(world);
         Objects.requireNonNull(mayDetach);
         var read=new Reader(world,b,mayDetach);var considered=new HashSet<BodyTopology.Cell>();int created=0;
         for(var cut:cuts){
@@ -98,14 +127,9 @@ public final class BlastStructuralCollapse {
                 if(probe.status()!=UnsupportedStructure.Status.DETACHED||probe.cells().size()<2)continue;
                 var selected=new LinkedHashMap<BlockPos,BlockState>();
                 for(var c:probe.cells()){var p=pos(c);selected.put(p,read.state(p).orElseThrow());}
-                BlockBodyEntity body;
-                try{body=BlockBodyEntity.assembleSelection(world,selected);}
-                catch(RuntimeException failure){
-                    // An assembler rejection may be contained only after its complete rollback is observed.
-                    if(selected.entrySet().stream().allMatch(e->WorldAccess.of(world).readIfLoaded(e.getKey()).filter(e.getValue()::equals).isPresent()))continue;
-                    throw failure;
-                }
-                b.bodies++;created++;body.setPhysicsGravity(true);
+                var body=detach(world,selected);
+                if(body==null)continue;
+                created++;body.setPhysicsGravity(true);
                 var direction=body.getBoundingBox().getCenter().subtract(centre);
                 if(direction.lengthSquared()<1e-8)direction=new Vec3d(1,0,0);
                 var point=selected.keySet().stream().min(Comparator.comparingDouble(p->p.toCenterPos().squaredDistanceTo(centre))).orElseThrow().toCenterPos();
@@ -116,6 +140,34 @@ public final class BlastStructuralCollapse {
         }
         return created;
     }
+
+    /** Actual support losses grouped once per beam/drill pulse, sharing blast query budgets. */
+    public static final class SupportEdits implements AutoCloseable {
+        private final ServerWorld world;
+        private final Vec3d centre;
+        private final float power;
+        private final Entity actor;
+        private final boolean active;
+        private final List<BlockPos> cuts=new ArrayList<>();
+
+        public SupportEdits(ServerWorld world,Vec3d centre,float power,Entity actor){
+            this.world=world;
+            this.centre=centre;
+            this.power=power;
+            this.actor=actor;
+            active=world.getServer().isOnThread()&&WorldProfile.isUngravity(world);
+        }
+
+        public void removed(BlockPos pos,BlockState previous){
+            if(active&&cuts.size()<MAX_CUTS&&inert(previous,true))cuts.add(pos.toImmutable());
+        }
+
+        @Override public void close(){
+            if(cuts.isEmpty())return;
+            finish(world,cuts,centre,power,pos->WorldEditSafety.mayChange(world,pos,actor));
+            cuts.clear();
+        }
+    }
     private static BodyTopology.Cell cell(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
     private static BlockPos pos(BodyTopology.Cell c){return new BlockPos(c.x(),c.y(),c.z());}
     private static boolean empty(BlockState state){return state.isAir()||state.isReplaceable()||state.isIn(BlockTags.LEAVES);}
@@ -124,7 +176,10 @@ public final class BlastStructuralCollapse {
         private static final double CONTACT_EPSILON=1e-6;
         final ServerWorld world;final Budget budget;final Predicate<BlockPos> permission;final Map<BlockPos,Optional<BlockState>> cache=new HashMap<>();
         final Map<BlockState,List<Box>> shapes=new HashMap<>();
-        Reader(ServerWorld world,Budget budget,Predicate<BlockPos> permission){this.world=world;this.budget=budget;this.permission=permission;}
+        final boolean authoredTerrain;
+        Reader(ServerWorld world,Budget budget,Predicate<BlockPos> permission){
+            this.world=world;this.budget=budget;this.permission=permission;this.authoredTerrain=WorldProfile.isUngravity(world);
+        }
         Optional<BlockState> state(BlockPos p){
             var known=cache.get(p);if(known!=null)return known;
             if(!budget.read())return Optional.empty();
@@ -133,7 +188,7 @@ public final class BlastStructuralCollapse {
         }
         UnsupportedStructure.Contact contact(BodyTopology.Cell cell){
             var state=state(pos(cell));return state.isEmpty()?UnsupportedStructure.Contact.UNKNOWN
-                :empty(state.get())?UnsupportedStructure.Contact.EMPTY:inert(state.get())&&permission.test(pos(cell))?UnsupportedStructure.Contact.MATERIAL:UnsupportedStructure.Contact.ANCHOR;
+                :empty(state.get())?UnsupportedStructure.Contact.EMPTY:inert(state.get(),authoredTerrain)&&permission.test(pos(cell))?UnsupportedStructure.Contact.MATERIAL:UnsupportedStructure.Contact.ANCHOR;
         }
         boolean touching(BodyTopology.Cell from,BodyTopology.Cell to) {
             var first=state(pos(from)).orElseThrow();var second=state(pos(to)).orElseThrow();

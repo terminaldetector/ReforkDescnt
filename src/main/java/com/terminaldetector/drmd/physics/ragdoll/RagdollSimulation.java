@@ -30,6 +30,12 @@ public final class RagdollSimulation {
 		void resolve(Part part, Vec3 fallbackPosition);
 	}
 
+    /** Fractional times distinguish an integration sweep from a same-pose joint correction. */
+    @FunctionalInterface
+    public interface MovingCollisionResolver {
+        void resolve(Part part, Vec3 fallbackPosition, double fromTime, double toTime);
+    }
+
 	public static final class Part {
 		private final RagdollRig.Segment segment;
 		private final D6PhysicsBody body;
@@ -122,6 +128,12 @@ public final class RagdollSimulation {
 	 */
 	public void step(double seconds, Vec3 gravity, int substeps, int solverIterations,
 			CollisionResolver collisionResolver) {
+        stepWithMovingContacts(seconds, gravity, substeps, solverIterations, collisionResolver == null
+                ? null : (part, from, start, end) -> collisionResolver.resolve(part, from));
+    }
+
+    public void stepWithMovingContacts(double seconds, Vec3 gravity, int substeps, int solverIterations,
+            MovingCollisionResolver collisionResolver) {
 		if (!Double.isFinite(seconds) || seconds <= 0 || seconds > .25)
 			throw new IllegalArgumentException("invalid ragdoll timestep");
 		if (gravity == null || !finite(gravity)) throw new IllegalArgumentException("invalid ragdoll gravity");
@@ -130,11 +142,13 @@ public final class RagdollSimulation {
 		double dt = seconds / substeps;
 		Vec3[] beforeConstraints = collisionResolver == null ? null : new Vec3[parts.size()];
 		for (int substep = 0; substep < substeps; substep++) {
+            double startTime = (double) substep / substeps;
+            double endTime = (double) (substep + 1) / substeps;
 			for (Part part : parts) {
 				Vec3 before = part.body().position();
 				part.body().applyForce(gravity.scaled(part.body().mass()));
 				part.body().step(dt);
-				if (collisionResolver != null) collisionResolver.resolve(part, before);
+				if (collisionResolver != null) collisionResolver.resolve(part, before, startTime, endTime);
 			}
 			for (int iteration = 0; iteration < solverIterations; iteration++) {
 				if (collisionResolver != null)
@@ -155,7 +169,7 @@ public final class RagdollSimulation {
 				// Resolve each iteration while its correction is still short and unambiguous.
 				if (collisionResolver != null)
 					for (int part = 0; part < parts.size(); part++)
-						collisionResolver.resolve(parts.get(part), beforeConstraints[part]);
+						collisionResolver.resolve(parts.get(part), beforeConstraints[part], endTime, endTime);
 			}
 		}
 	}

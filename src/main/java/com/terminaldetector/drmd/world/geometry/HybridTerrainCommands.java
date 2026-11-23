@@ -56,13 +56,27 @@ public final class HybridTerrainCommands {
             BlockPos p=cursor.toImmutable();var state=world.getBlockState(p);
             var existing=world.getBlockEntity(p) instanceof CarvedBlockEntity c?c:null;
             if (!organic) {
+                var source = state.getBlock() instanceof OrganicBlock intact ? intact.source()
+                        : existing == null ? state : existing.source();
+                boolean implicitRock = NaturalGeometry.usesImplicitTerrain(world) && NaturalGeometry.applies(source);
                 if (state.getBlock() instanceof OrganicBlock intact) {
-                    world.setBlockState(p,intact.source(),Block.NOTIFY_ALL);changed++;continue;
+                    if (!implicitRock) {
+                        if (world.setBlockState(p, intact.source(), Block.NOTIFY_ALL)) changed++;
+                        continue;
+                    }
                 }
-                if (existing!=null && existing.organic()) {
-                    if (existing.mask()==MicroGrid.FULL) CarvedBlock.restore(world,p);
-                    else existing.setOrganic(false);
+                if (existing != null && existing.authoredOrganic() && !existing.thermalReadOnly()) {
+                    existing.setOrganic(false);
+                    if (!implicitRock && existing.mask() == MicroGrid.FULL && existing.thermal() == null) {
+                        CarvedBlock.restore(world, p);
+                    }
                     changed++;
+                } else if (existing == null && implicitRock) {
+                    var rigid = CarvedBlock.replace(world, p, state, MicroGrid.FULL);
+                    if (rigid != null) {
+                        rigid.setOrganic(false);
+                        changed++;
+                    }
                 }
                 continue;
             }

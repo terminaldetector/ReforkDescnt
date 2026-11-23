@@ -1,0 +1,129 @@
+{
+  "source": "Original Ungravity Stage B functional art",
+  "scale": 0.22,
+  "nozzleZ": -4,
+  "texture": "drmd:textures/entity/missile.png",
+  "variants": {
+    "ROCKET": {
+      "item": "concussion",
+      "mesh": "standard",
+      "materials": {
+        "shell": "818993",
+        "nose": "aeb3b3",
+        "band": "deb05b",
+        "fin": "68757a",
+        "engine": "51545b",
+        "emissive": "ffa65e"
+      }
+    },
+    "HOMING": {
+      "item": "homing",
+      "mesh": "homing",
+      "materials": {
+        "shell": "738388",
+        "nose": "5cbec8",
+        "band": "78d7d7",
+        "fin": "52686d",
+        "engine": "51545b",
+        "emissive": "8be8f5"
+      }
+    },
+    "GUIDED": {
+      "item": "guided",
+      "mesh": "guided",
+      "materials": {
+        "shell": "8b918b",
+        "nose": "d6e1cb",
+        "band": "cdd662",
+        "fin": "668570",
+        "engine": "51545b",
+        "emissive": "ffd388"
+      }
+    },
+    "SMART": {
+      "item": "smart_missile",
+      "mesh": "cluster",
+      "materials": {
+        "shell": "7f718b",
+        "nose": "c393c2",
+        "band": "d891d4",
+        "fin": "76627e",
+        "engine": "51545b",
+        "emissive": "f4aae0"
+      }
+    },
+    "MEGA": {
+      "item": "mega_missile",
+      "mesh": "heavy",
+      "materials": {
+        "shell": "99918a",
+        "nose": "c9af97",
+        "band": "f28657",
+        "fin": "866858",
+        "engine": "51545b",
+        "emissive": "ffab5f"
+      }
+    },
+    "FLASH": {
+      "item": "flash",
+      "mesh": "homing",
+      "materials": {
+        "shell": "a0a3a5",
+        "nose": "efedbc",
+        "band": "eee67d",
+        "fin": "777a71",
+        "engine": "51545b",
+        "emissive": "ffffaa"
+      }
+    },
+    "MERCURY": {
+      "item": "mercury",
+      "mesh": "dart",
+      "materials": {
+        "shell": "74858d",
+        "nose": "c6d3d8",
+        "band": "d6bda0",
+        "fin": "61737d",
+        "engine": "51545b",
+        "emissive": "bfdee7"
+      }
+    },
+    "EARTHSHAKER": {
+      "item": "earthshaker",
+      "mesh": "heavy",
+      "materials": {
+        "shell": "6f777c",
+        "nose": "9eabac",
+        "band": "e3624b",
+        "fin": "6a6669",
+        "engine": "51545b",
+        "emissive": "ffa875"
+      }
+    },
+    "DUAL": {
+      "item": "rockets",
+      "mesh": "standard",
+      "materials": {
+        "shell": "838d99",
+        "nose": "d8d9d2",
+        "band": "85bddb",
+        "fin": "5a7787",
+        "engine": "51545b",
+        "emissive": "b2e6f2"
+      },
+      "pair": true
+    },
+    "HEAVY": {
+      "item": "frag",
+      "mesh": "heavy",
+      "materials": {
+        "shell": "87929a",
+        "nose": "b6c2c3",
+        "band": "cca574",
+        "fin": "74777f",
+        "engine": "51545b",
+        "emissive": "ffc570"
+      }
+    }
+  }
+}

@@ -44,11 +44,11 @@ write('portal_stabilizer','purple_concrete','cyan_concrete',[
     ([3,3,5],[5,13,11],'body'),([11,3,5],[13,13,11],'body'),([5,3,5],[11,5,11],'body'),
     ([5,11,5],[11,13,11],'body'),([6,6,6],[10,10,10],'accent')])
 
-# Preserve ancestor geometry/textures and add class-specific rails/racks to each super weapon.
+# Preserve ancestor geometry for the original box-model primaries.
+# Missiles use a separate OBJ and inventory sprites baked by render_missile_icons.py.
 for parent,child,colour,count in [
-    ('concussion','flash','yellow',1),('flak','helix','lime',2),('fusion','omega','cyan',3),
-    ('homing','guided','light_blue',1),('mega_missile','earthshaker','red',3),
-    ('plasma','phoenix','orange',2),('smart_missile','mercury','white',2),('vulcan','gauss','purple',2),
+    ('flak','helix','lime',2),('fusion','omega','cyan',3),
+    ('plasma','phoenix','orange',2),('vulcan','gauss','purple',2),
 ]:
     data=json.loads((ROOT/('weapon_d6_'+parent+'.json')).read_text())
     data.setdefault('textures',{})['audit_band']='minecraft:block/'+colour+'_concrete'
@@ -58,4 +58,4 @@ for parent,child,colour,count in [
     (ROOT/('weapon_d6_'+child+'.json')).write_text(json.dumps(data,indent=2)+'\n')
 
 if __name__=='__main__':
-    print('Wrote 16 distinct inventory meshes; validate them in the real-client inventory scene.')
+    print('Wrote 12 distinct inventory meshes. Validate them in the real-client inventory scene.')

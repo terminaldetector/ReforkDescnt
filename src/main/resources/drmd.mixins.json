@@ -9,6 +9,8 @@
     "NativeCubicScheduleBudgetMixin",
     "MicroExplosionMixin",
     "NaturalGeometryMixin",
+    "GeneratorOptionsProfileMixin",
+    "UngravityWorldSpawnMixin",
     "ServerPlayerFlightTravelMixin",
     "LivingEntityMixin",
     "EnderDragonFightMixin",

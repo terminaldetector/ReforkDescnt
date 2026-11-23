@@ -12,6 +12,7 @@ import com.terminaldetector.drmd.world.DrmdServerConfig;
 import com.terminaldetector.drmd.world.WorldFeatures;
 import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
 import com.terminaldetector.drmd.world.gen2.MegaStructureGenerator;
@@ -171,6 +172,11 @@ public final class DescentSession {
 		data.ensureInit();
 
 		ServerWorld world = player.getServerWorld();
+		WorldProfile profile = WorldProfile.get(world);
+		if (profile != null) {
+			onProfiledPlayerJoin(player, data, profile);
+			return;
+		}
 		DescentWorldState state = DescentWorldState.get(world);
 		if (state.isPsychedelic()) {
 			if (!data.isSessionWelcomed()) {
@@ -202,6 +208,17 @@ public final class DescentSession {
 						"§aCreative: Pyro + arsenal + spawn eggs · options kit / /d6 weapons give_all"), false);
 			}
 		}
+	}
+
+	private static void onProfiledPlayerJoin(ServerPlayerEntity player, DescentPlayerData data, WorldProfile profile) {
+		if (!data.isSessionWelcomed()) {
+			data.setSessionWelcomed(true);
+			if (profile.mode() == WorldProfile.Mode.UNGRAVITY && profile.start() == WorldProfile.Start.GLIDER_DOCK) {
+				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
+				player.sendMessage(Text.translatable("screen.drmd.world_profile.deploy_glider"), false);
+			}
+		}
+		if (data.isEnabled()) resumeMovement(player, data);
 	}
 
     private static void resumeMovement(ServerPlayerEntity player,DescentPlayerData data) {

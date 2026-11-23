@@ -56,6 +56,7 @@ public final class DroneAi {
 
 		@Override
 		public boolean canStart() {
+			if (!drone.combatAllowed()) return false;
 			return com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(drone)!=null
                 || drone.getTarget() != null && drone.getTarget().isAlive()
 					&& HostileEnvironment.isHostileTarget(drone, drone.getTarget()) || quietSupportAvailable();
@@ -63,6 +64,7 @@ public final class DroneAi {
 
 		@Override
 		public boolean shouldContinue() {
+			if (!drone.combatAllowed()) return false;
 			LivingEntity t = drone.getTarget();
 			return com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(drone)!=null
                 || t != null && t.isAlive() && HostileEnvironment.isHostileTarget(drone, t) || quietSupportAvailable();
@@ -88,6 +90,7 @@ public final class DroneAi {
 
 		@Override
 		public void tick() {
+            if (!drone.combatAllowed()) return;
             var retiringFrom=com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(drone);
             if(retiringFrom!=null){
                 drone.setTarget(null);tickFlee(drone.getPos(),retiringFrom,1f/20f);return;

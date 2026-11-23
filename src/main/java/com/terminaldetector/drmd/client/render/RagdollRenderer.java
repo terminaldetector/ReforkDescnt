@@ -1,15 +1,21 @@
 package com.terminaldetector.drmd.client.render;
 
 import com.terminaldetector.drmd.entity.RagdollEntity;
+import com.terminaldetector.drmd.entity.model.ShapesWreckRig;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
+import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.model.ModelTransform;
+import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.entity.model.EndermanEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RotationAxis;
 import org.joml.Quaternionf;
 
 import java.util.List;
@@ -17,10 +23,18 @@ import java.util.List;
 /** Draws every authoritative ragdoll segment as a separately transformed low-poly wreck part. */
 public final class RagdollRenderer extends EntityRenderer<RagdollEntity> {
 	private static final Identifier WHITE = Identifier.ofVanilla("textures/misc/white.png");
+    private final List<ModelPart> infantryParts;
+    private final ModelPart infantryHat;
 
 	public RagdollRenderer(EntityRendererFactory.Context context) {
 		super(context);
 		shadowRadius = .55f;
+        ModelPart infantry = EndermanEntityModel.getTexturedModelData().createModel();
+        infantryParts = ShapesWreckRig.parts().stream()
+                .map(part -> infantry.getChild(part.modelPart())).toList();
+        infantryParts.forEach(part -> part.setTransform(ModelTransform.NONE));
+        infantryHat = infantry.getChild("hat");
+        infantryHat.setTransform(ModelTransform.NONE);
 	}
 
     /** Cubic air volumes have no terrain render section to certify Sodium's section occlusion.
@@ -61,7 +75,17 @@ public final class RagdollRenderer extends EntityRenderer<RagdollEntity> {
 					(float) b.rotation().z(), (float) b.rotation().w()), tickDelta);
 			matrices.multiply(rotation);
 
-            if(entity.flightHullKind()==null){
+            if(entity.isShapesInfantry()) {
+                float scale = entity.hullScale();
+                matrices.scale(scale, scale, scale);
+                matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180));
+                var part = ShapesWreckRig.parts().get(i);
+                matrices.translate(0, -part.assetCenterY(), 0);
+                var infantryVertices = consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(ShapesInfantryRenderer.TEXTURE));
+                infantryParts.get(i).render(matrices, infantryVertices, light, OverlayTexture.DEFAULT_UV);
+                if (part == ShapesWreckRig.Part.HEAD)
+                    infantryHat.render(matrices, infantryVertices, light, OverlayTexture.DEFAULT_UV);
+            } else if(entity.flightHullKind()==null){
                 int colour=i==0?0xFF33434B:(i%2==0?0xFF9B382E:0xFF6F2B2B);
                 drawBox(vertices,matrices.peek(),(float)segment.halfExtents().x(),(float)segment.halfExtents().y(),(float)segment.halfExtents().z(),colour,light);
             }else{

@@ -3,207 +3,234 @@ package com.terminaldetector.drmd.client.hud;
 import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
-import com.terminaldetector.drmd.flight.ShipAttitude;
-import com.terminaldetector.drmd.world.WorldRules;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
+import org.joml.Matrix4f;
+import org.lwjgl.glfw.GLFW;
 
-/**
- * Pyro GX tactical 3D terrain map (Overlord Vertor–style volumetric scanner).
- * Toggle with Tab+H while piloting Pyro GX (or with 6DoF on as fallback).
- *
- * Isometric heightfield of nearby columns in ship-local axes + macro markers.
- */
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+/** Isometric scanner of nearby geometry, with independent XYZ samples and selectable depth. */
 public final class TerrainMap3d {
-	private static final int GRID = 28;          // samples per side
-	private static final int STEP = 3;           // blocks between samples
-	private static final int PANEL_W = 220;
-	private static final int PANEL_H = 160;
+    private static final int PANEL_WIDTH = 210;
+    private static final int PANEL_HEIGHT = 154;
+    private static final int MAX_BODY_MARKERS = 32;
+    private static final int NATURAL = 0xFF667F83;
+    private static final int ENGINEERED = 0xFFC08951;
+    private static final int LIQUID = 0xFF497C9E;
+    private static final int MOVING = 0xFFAFF5C4;
+    private static final int LABEL = 0xFFD1DAE1;
+    private static final List<TerrainMapVolume.Cell> sortedSurface = new ArrayList<>();
+    private static KeyBinding higher;
+    private static KeyBinding lower;
+    private static boolean open;
+    private static int altitudeOffset;
+    private static float yaw;
+    private static World world;
+    private static TerrainMapVolume scan;
+    private static TerrainMapVolume.Snapshot snapshot;
 
-	private static boolean open;
-	private static int[][] heights;              // relative Y to player
-	private static byte[][] kinds;               // 0 air/void, 1 solid, 2 liquid, 3 industrial
-	private static int scanAge;
-	private static float yawView;
+    private TerrainMap3d() {}
 
-	private TerrainMap3d() {}
+    public static void register() {
+        higher = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.map_up", InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_PAGE_UP, "key.category.drmd"));
+        lower = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.map_down", InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_PAGE_DOWN, "key.category.drmd"));
+    }
 
-	public static boolean isOpen() { return open; }
+    public static boolean isOpen() { return open; }
 
-	public static void toggle() {
-		open = !open;
-		if (open) {
-			scanAge = 999;
-			MinecraftClient mc = MinecraftClient.getInstance();
-			if (mc.player != null) {
-				mc.player.sendMessage(Text.literal("§bPYRO GX §f· 3D MAP ON §7(Tab+H)"), true);
-			}
-		} else {
-			MinecraftClient mc = MinecraftClient.getInstance();
-			if (mc.player != null) {
-				mc.player.sendMessage(Text.literal("§7PYRO GX · 3D MAP OFF"), true);
-			}
-		}
-	}
+    public static void toggle() {
+        if (open) close();
+        else open = true;
+    }
 
-	public static void close() { open = false; }
+    public static void close() {
+        open = false;
+        altitudeOffset = 0;
+        world = null;
+        clearScan();
+    }
 
-	/** Allowed when piloting Pyro GX, or 6DoF enabled (ship systems online). */
-	public static boolean canUse(ClientPlayerEntity player) {
-		if (player == null) return false;
-		if (player.getVehicle() instanceof PyroShipEntity) return true;
-		return DescentClientState.enabled;
-	}
+    private static void clearScan() {
+        scan = null;
+        snapshot = null;
+        sortedSurface.clear();
+    }
 
-	public static void tick(MinecraftClient mc) {
-		if (!open || mc.player == null || mc.world == null) return;
-		if (!canUse(mc.player)) {
-			open = false;
-			return;
-		}
-		// Live yaw every tick so the mesh turns with the hull without a full rescan.
-		if (DescentClientState.attitudeValid) {
-			yawView = ShipAttitudeClient.get().yawDegrees();
-		} else {
-			yawView = mc.player.getYaw();
-		}
-		scanAge++;
-		// Slower + lighter during hard rolls; heightmap-only (no vertical solid hunt).
-		int period = Math.abs(ShipAttitudeClient.rollSpeed()) > 90f ? 16 : 10;
-		if (scanAge < period && heights != null) return;
-		scanAge = 0;
-		rescan(mc.world, mc.player);
-	}
+    public static boolean canUse(ClientPlayerEntity player) {
+        return player != null && (player.getVehicle() instanceof PyroShipEntity || DescentClientState.enabled);
+    }
 
-	private static void rescan(World world, ClientPlayerEntity player) {
-		if (heights == null) {
-			heights = new int[GRID][GRID];
-			kinds = new byte[GRID][GRID];
-		}
-		BlockPos origin = player.getBlockPos();
-		int half = (GRID * STEP) / 2;
-		BlockPos.Mutable m = new BlockPos.Mutable();
-		for (int ix = 0; ix < GRID; ix++) {
-			for (int iz = 0; iz < GRID; iz++) {
-				int wx = origin.getX() - half + ix * STEP;
-				int wz = origin.getZ() - half + iz * STEP;
-				if (!world.isChunkLoaded(wx >> 4, wz >> 4)) {
-					heights[ix][iz] = 0;
-					kinds[ix][iz] = 0;
-					continue;
-				}
-				int top = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, wx, wz);
-				heights[ix][iz] = top - origin.getY();
-				m.set(wx, Math.max(world.getBottomY(), top - 1), wz);
-				BlockState st = world.getBlockState(m);
-				if (st.isOf(Blocks.WATER) || st.isOf(Blocks.LAVA)) kinds[ix][iz] = 2;
-				else if (st.isOf(Blocks.BEACON) || st.isOf(Blocks.LODESTONE) || st.isOf(Blocks.IRON_BLOCK)
-						|| st.isOf(Blocks.COPPER_BLOCK) || st.isOf(Blocks.SEA_LANTERN)) kinds[ix][iz] = 3;
-				else if (st.isAir()) kinds[ix][iz] = 0;
-				else kinds[ix][iz] = 1;
-			}
-		}
-	}
+    public static void tick(MinecraftClient mc) {
+        int depth = altitudeOffset;
+        while (higher.wasPressed()) depth += 16;
+        while (lower.wasPressed()) depth -= 16;
+        if (!open) return;
+        if (!canUse(mc.player) || mc.world == null) {
+            close();
+            return;
+        }
 
-	public static void render(DrawContext ctx, MinecraftClient mc) {
-		if (!open || mc.player == null || heights == null) return;
-		int sw = mc.getWindow().getScaledWidth();
-		int sh = mc.getWindow().getScaledHeight();
-		int px = sw - PANEL_W - 10;
-		int py = sh / 2 - PANEL_H / 2;
+        depth = MathHelper.clamp(depth, -512, 512);
+        if (world != mc.world || depth != altitudeOffset) {
+            world = mc.world;
+            altitudeOffset = depth;
+            clearScan();
+        }
 
-		// Panel
-		ctx.fill(px - 2, py - 14, px + PANEL_W + 2, py + PANEL_H + 2, 0xCC000810);
-		ctx.fill(px - 2, py - 14, px + PANEL_W + 2, py - 13, 0xFF1AFF7A);
-		ctx.fill(px - 2, py + PANEL_H + 1, px + PANEL_W + 2, py + PANEL_H + 2, 0xFF1AFF7A);
-		ctx.drawText(mc.textRenderer, Text.literal("PYRO GX · 3D MAP"), px, py - 11, 0xFF33FF88, false);
-		ctx.drawText(mc.textRenderer, Text.literal("Tab+H"), px + PANEL_W - 36, py - 11, 0xAA22AA55, false);
+        yaw = DescentClientState.attitudeValid ? ShipAttitudeClient.get().yawDegrees() : mc.player.getYaw();
+        if (scan == null) scan = new TerrainMapVolume(world, mc.player.getBlockPos(), altitudeOffset);
+        if (scan.advance(world)) {
+            snapshot = scan.finish();
+            sortedSurface.clear();
+            sortedSurface.addAll(snapshot.surface());
+            scan = null;
+        }
 
-		float yaw = yawView * ((float) Math.PI / 180f);
-		float cos = MathHelper.cos(yaw);
-		float sin = MathHelper.sin(yaw);
-		// Isometric projection factors
-		float sx = 3.2f;
-		float sy = 1.55f;
-		int ox = px + PANEL_W / 2;
-		int oy = py + PANEL_H / 2 + 8;
+        float angle = yaw * MathHelper.RADIANS_PER_DEGREE;
+        float cosine = MathHelper.cos(angle);
+        float sine = MathHelper.sin(angle);
+        sortedSurface.sort(Comparator.comparingDouble(cell ->
+                (cosine + sine) * cell.x() + (cosine - sine) * cell.z() + 0.45 * cell.y()));
+    }
 
-		ShipAttitude att = DescentClientState.attitudeValid ? ShipAttitudeClient.get() : null;
-		Vec3d up = att != null ? att.up() : new Vec3d(0, 1, 0);
+    public static void render(DrawContext ctx, MinecraftClient mc) {
+        if (!open || mc.player == null || mc.world != world) return;
+        int left = mc.getWindow().getScaledWidth() - PANEL_WIDTH - 8;
+        int top = Math.max(18, (mc.getWindow().getScaledHeight() - PANEL_HEIGHT) / 2);
+        int right = left + PANEL_WIDTH;
+        int bottom = top + PANEL_HEIGHT;
+        ctx.fill(left, top, right, bottom, 0xEB11181E);
+        ctx.fill(left, top, right, top + 1, 0xFF7A9C9E);
+        ctx.drawText(mc.textRenderer, Text.translatable("hud.drmd.volume_map"), left + 6, top + 5, LABEL, false);
+        String depthKeys = higher.getBoundKeyLocalizedText().getString() + "/" + lower.getBoundKeyLocalizedText().getString();
+        ctx.drawText(mc.textRenderer, depthKeys, right - 6 - mc.textRenderer.getWidth(depthKeys), top + 5, LABEL, false);
+        if (snapshot == null) {
+            ctx.drawText(mc.textRenderer, Text.translatable("hud.drmd.volume_map.scanning"),
+                    left + 6, top + 19, LABEL, false);
+            return;
+        }
 
-		// Heightfield wire mesh
-		for (int ix = 0; ix < GRID - 1; ix++) {
-			for (int iz = 0; iz < GRID - 1; iz++) {
-				int[] a = project(ix, iz, heights[ix][iz], cos, sin, sx, sy, ox, oy);
-				int[] b = project(ix + 1, iz, heights[ix + 1][iz], cos, sin, sx, sy, ox, oy);
-				int[] c = project(ix, iz + 1, heights[ix][iz + 1], cos, sin, sx, sy, ox, oy);
-				int col = colorFor(kinds[ix][iz], heights[ix][iz], up.y);
-				if (inPanel(a, px, py) || inPanel(b, px, py)) line(ctx, a[0], a[1], b[0], b[1], col);
-				if (inPanel(a, px, py) || inPanel(c, px, py)) line(ctx, a[0], a[1], c[0], c[1], col);
-			}
-		}
+        var region = snapshot.region();
+        var scope = region.getCenter();
+        float angle = yaw * MathHelper.RADIANS_PER_DEGREE;
+        var view = new Projection(mc.player.getX(), scope.y, mc.player.getZ(),
+                left + PANEL_WIDTH / 2f, top + 74, MathHelper.cos(angle), MathHelper.sin(angle));
 
-		// Player pip at center
-		ctx.fill(ox - 2, oy - 2, ox + 3, oy + 3, 0xFFFFFFFF);
-		ctx.fill(ox - 1, oy - 5, ox + 2, oy - 2, 0xFF33FF88);
+        ctx.enableScissor(left + 2, top + 16, right - 2, bottom - 26);
+        VertexConsumer buffer = ctx.getVertexConsumers().getBuffer(RenderLayer.getGui());
+        Matrix4f matrix = ctx.getMatrices().peek().getPositionMatrix();
+        for (var cell : sortedSurface) drawCell(buffer, matrix, view, cell);
+        ctx.draw();
+        int markers = 0;
+        for (var body : BodySpatialIndex.query(world, region)) {
+            Vec3d point = body.getPos();
+            if (!region.contains(point)) continue;
+            if (markers++ == MAX_BODY_MARKERS) break;
+            marker(ctx, view, point, MOVING);
+        }
+        if (region.contains(mc.player.getPos())) marker(ctx, view, mc.player.getPos(), 0xFFFFFFFF);
+        ctx.disableScissor();
 
-		var layer = WorldRules.practicalLayer(mc.player.getY());
-		ctx.drawText(mc.textRenderer, Text.literal(WorldRules.biomeLabel(layer)), px + 4, py + PANEL_H - 10, 0xAA22AA55, false);
-		String mode = mc.player.getVehicle() instanceof PyroShipEntity ? "PILOT" : "LINK";
-		ctx.drawText(mc.textRenderer, Text.literal(mode), px + PANEL_W - 28, py + PANEL_H - 10, 0xFF33FF88, false);
-	}
+        ctx.drawText(mc.textRenderer, Text.translatable("hud.drmd.volume_map.range", (int) region.minY,
+                (int) region.maxY - 1, snapshot.freePercent(), snapshot.unknownPercent()), left + 6, bottom - 23, LABEL, false);
+        legend(ctx, mc, left + 6, bottom - 11, NATURAL, "hud.drmd.volume_map.natural");
+        legend(ctx, mc, left + 68, bottom - 11, ENGINEERED, "hud.drmd.volume_map.engineered");
+        legend(ctx, mc, left + 146, bottom - 11, MOVING, "hud.drmd.volume_map.body");
+    }
 
-	private static int[] project(int ix, int iz, int h, float cos, float sin, float sx, float sy, int ox, int oy) {
-		float cx = (ix - GRID / 2f) * STEP;
-		float cz = (iz - GRID / 2f) * STEP;
-		float rx = cx * cos - cz * sin;
-		float rz = cx * sin + cz * cos;
-		int x = ox + (int) ((rx - rz) * sx * 0.22f);
-		int y = oy + (int) ((rx + rz) * sy * 0.22f - h * 0.45f);
-		return new int[]{x, y};
-	}
+    private static void legend(DrawContext ctx, MinecraftClient mc, int x, int y, int color, String label) {
+        ctx.fill(x, y + 2, x + 5, y + 7, color);
+        ctx.drawText(mc.textRenderer, Text.translatable(label), x + 9, y, LABEL, false);
+    }
 
-	private static boolean inPanel(int[] p, int px, int py) {
-		return p[0] >= px && p[0] <= px + PANEL_W && p[1] >= py && p[1] <= py + PANEL_H;
-	}
+    private static void marker(DrawContext ctx, Projection view, Vec3d point, int color) {
+        int x = (int) view.screenX(point.x, point.z);
+        int y = (int) view.screenY(point.x, point.y, point.z);
+        ctx.fill(x - 2, y - 2, x + 3, y + 3, color);
+    }
 
-	private static int colorFor(byte kind, int h, double upY) {
-		// Dimmer when ship is inverted (up.y < 0) — still readable
-		int alpha = upY < -0.3 ? 0xAA000000 : 0xFF000000;
-		return switch (kind) {
-			case 2 -> alpha | 0x4488FF;
-			case 3 -> alpha | 0xFFAA44;
-			case 0 -> alpha | 0x224433;
-			default -> {
-				int g = MathHelper.clamp(80 + h * 3, 40, 200);
-				yield alpha | (g << 8) | 0x330000 | MathHelper.clamp(60 + h, 20, 120);
-			}
-		};
-	}
+    private static void drawCell(VertexConsumer vertices, Matrix4f matrix, Projection view,
+                                 TerrainMapVolume.Cell cell) {
+        int x = cell.x();
+        int y = cell.y();
+        int z = cell.z();
+        int size = TerrainMapVolume.CELL;
+        float ax = view.screenX(x, z);
+        float bx = view.screenX(x + size, z);
+        float cx = view.screenX(x + size, z + size);
+        float dx = view.screenX(x, z + size);
+        float ay = view.screenY(x, y + size, z);
+        float by = view.screenY(x + size, y + size, z);
+        float cy = view.screenY(x + size, y + size, z + size);
+        float dy = view.screenY(x, y + size, z + size);
+        float height = size * Projection.VERTICAL_SCALE;
+        int color = switch (cell.material()) {
+            case ENGINEERED -> ENGINEERED;
+            case LIQUID -> LIQUID;
+            default -> NATURAL;
+        };
 
-	private static void line(DrawContext ctx, int x0, int y0, int x1, int y1, int color) {
-		int dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
-		int sx = x0 < x1 ? 1 : -1;
-		int sy = y0 < y1 ? 1 : -1;
-		int err = dx - dy;
-		int x = x0, y = y0;
-		int steps = 0;
-		while (true) {
-			ctx.fill(x, y, x + 1, y + 1, color);
-			if (x == x1 && y == y1) break;
-			if (++steps > 200) break;
-			int e2 = 2 * err;
-			if (e2 > -dy) { err -= dy; x += sx; }
-			if (e2 < dx) { err += dx; y += sy; }
-		}
-	}
+        if (view.cosine + view.sine >= 0) {
+            side(vertices, matrix, bx, by, cx, cy, height, shade(color, 4));
+        } else {
+            side(vertices, matrix, dx, dy, ax, ay, height, shade(color, 4));
+        }
+        if (view.cosine - view.sine >= 0) {
+            side(vertices, matrix, cx, cy, dx, dy, height, shade(color, 3));
+        } else {
+            side(vertices, matrix, ax, ay, bx, by, height, shade(color, 3));
+        }
+        vertex(vertices, matrix, ax, ay, color);
+        vertex(vertices, matrix, dx, dy, color);
+        vertex(vertices, matrix, cx, cy, color);
+        vertex(vertices, matrix, bx, by, color);
+    }
+
+    private static void side(VertexConsumer vertices, Matrix4f matrix, float ax, float ay,
+                             float bx, float by, float height, int color) {
+        vertex(vertices, matrix, ax, ay, color);
+        vertex(vertices, matrix, bx, by, color);
+        vertex(vertices, matrix, bx, by + height, color);
+        vertex(vertices, matrix, ax, ay + height, color);
+    }
+
+    private static void vertex(VertexConsumer vertices, Matrix4f matrix, float x, float y, int color) {
+        vertices.vertex(matrix, x, y, 0).color(color);
+    }
+
+    private static int shade(int color, int fifths) {
+        int red = ((color >>> 16) & 255) * fifths / 5;
+        int green = ((color >>> 8) & 255) * fifths / 5;
+        int blue = (color & 255) * fifths / 5;
+        return 0xFF000000 | red << 16 | green << 8 | blue;
+    }
+
+    private record Projection(double x, double y, double z, float ox, float oy, float cosine, float sine) {
+        private static final float VERTICAL_SCALE = 0.91f;
+
+        float screenX(double wx, double wz) {
+            return ox + (float) ((wx - x) * (cosine - sine) - (wz - z) * (cosine + sine)) * 1.08f;
+        }
+
+        float screenY(double wx, double wy, double wz) {
+            return oy + (float) ((wx - x) * (cosine + sine) + (wz - z) * (cosine - sine)) * 0.37f
+                    - (float) (wy - y) * VERTICAL_SCALE;
+        }
+    }
 }

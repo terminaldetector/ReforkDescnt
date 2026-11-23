@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.micro;
 import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse;
 
 import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import com.terminaldetector.drmd.world.engineer.HeavyDrillDrops;
@@ -44,7 +45,8 @@ public final class ThermalDrillCut {
             cursor=new Cursor(a,b,radius,now);if(cursor.volume>MAX_SCAN){budget.refused++;return 0;}budget.emitters.put(user.getUuid(),cursor);
         }
         cursor.last=now;int changes=0,visited=0;
-        try(var drops=new HeavyDrillDrops(world,user,cursor.a)){
+        try(var supports=new BlastStructuralCollapse.SupportEdits(world,cursor.a,radius,user);
+            var drops=new HeavyDrillDrops(world,user,cursor.a)){
             while(visited++<cursor.volume&&budget.scan<MAX_SCAN&&budget.reads<MAX_READS&&budget.writes<MAX_WRITES){
                 if(cursor.complete)break;
                 if(cursor.cycleFinished){cursor.cycleFinished=false;if(cursor.incomplete==0){cursor.complete=true;break;}cursor.incomplete=0;}
@@ -68,7 +70,10 @@ public final class ThermalDrillCut {
                 long mask=carved==null?MicroGrid.FULL:carved.mask(),after=next.mask(mask);
                 boolean geometry=after!=mask||!before.bores().equals(next.bores());
                 if(after==MicroGrid.EMPTY){
-                    if(drops.breakBlock(pos)){budget.writes++;budget.cuts++;changes++;updates(world,pos);}
+                    if(drops.breakBlock(pos)){
+                        budget.writes++;budget.cuts++;changes++;updates(world,pos);
+                        supports.removed(pos,carved==null||carved.authoredOrganic()?state:carved.source());
+                    }
                     continue;
                 }
                 boolean wrapped=carved==null;

@@ -21,6 +21,66 @@ import net.minecraft.util.math.Vec3d;
 import java.util.UUID;
 
 public final class RagdollGameTests implements FabricGameTest {
+    @GameTest(templateName = EMPTY_STRUCTURE, batchId = "stage-b-shapes-impact", tickLimit = 180)
+    public void shapesCombatContactProducesOneArticulatedRailTarget(TestContext context) {
+        var world = context.getWorld();
+        var base = context.getAbsolutePos(new BlockPos(7, 80, 7));
+        var clock = new CodecClock(context, base);
+        var actor = ModEntities.SHAPES_INFANTRY.create(world);
+        context.assertTrue(actor != null, "registered Shapes infantry is available");
+        var origin = Vec3d.ofCenter(base);
+        actor.setPosition(origin);
+        actor.setNoGravity(true);
+        var player = context.createMockCreativeServerPlayerInWorld();
+        clock.track(player);
+        player.setPosition(origin.add(0, 0, -3));
+        player.setNoGravity(true);
+        player.setYaw(0);
+        clock.onClose(() -> com.terminaldetector.drmd.physics.GravyPhysics.release(player));
+        int[] hitAge = {-1};
+        clock.run(() -> {
+            if (hitAge[0] < 0) {
+                if (!clock.ready(actor.getBlockPos())) return;
+                clock.spawn(actor);
+                var contact = actor.getPos().add(.16, 2.1, -.18);
+                com.terminaldetector.drmd.weapon.core.WeaponCore.directDamage(player, actor, 4,
+                        com.terminaldetector.drmd.weapon.core.DamageClass.KINETIC, contact, new Vec3d(0, 0, 1));
+                context.assertTrue(actor.isAlive() && actor.getVelocity().z > 0 && !actor.isAiDisabled(),
+                        "a live contact imparts movement while retaining the actor's AI");
+                hitAge[0] = actor.age;
+                return;
+            }
+            if (actor.age - hitAge[0] < 12) return;
+            var current = actor.getPos();
+            var muzzle = current.add(.16, 2.1, -3);
+            com.terminaldetector.drmd.weapon.core.WeaponCore.hitscan(player, muzzle, new Vec3d(0, 0, 1),
+                    192, 1000, com.terminaldetector.drmd.weapon.core.DamageClass.ENERGY, null, false, false);
+            var wrecks = world.getEntitiesByClass(RagdollEntity.class, new Box(current, current).expand(5),
+                    RagdollEntity::isShapesInfantry);
+            context.assertTrue(wrecks.size() == 1 && !actor.isAlive() && actor.isInvisible(),
+                    "normal fire leaves one visible replacement");
+            var wreck = wrecks.getFirst();
+            clock.track(wreck);
+            context.assertTrue(wreck.rig().segments().size() == 6
+                            && wreck.rig().joints().stream().allMatch(joint -> joint.angularLimits() != null)
+                            && wreck.simulation().parts().stream().anyMatch(part -> part.body().angularMomentum().length() > .01),
+                    "the off-centre contact reaches the shared six-part model and imparts angular momentum");
+            var tag = new NbtCompound();
+            wreck.writeNbt(tag);
+            var restored = new RagdollEntity(ModEntities.RAGDOLL, world);
+            restored.readNbt(tag);
+            context.assertTrue(restored.isShapesInfantry()
+                            && restored.physicsVelocity().distanceTo(wreck.physicsVelocity()) < 1e-8,
+                    "the profile and actual motion round-trip through the entity save");
+            restored.discard();
+            var rail = com.terminaldetector.drmd.physics.GravyPhysics.Mode.RAIL;
+            context.assertTrue(com.terminaldetector.drmd.physics.GravyPhysics.tryGrab(player, rail, java.util.List.of(wreck)) == 1
+                            && com.terminaldetector.drmd.physics.GravyPhysics.fling(player) == 1,
+                    "the normal rail API captures and throws the replacement part group");
+            clock.complete();
+        });
+    }
+
 	@GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-thin-wall-sweep",tickLimit=180)
 	public void aPlayerKilledSmallOrbCannotCrossAThinTrapdoorBetweenClearEndpoints(TestContext context){
 		var world=context.getWorld();var base=context.getAbsolutePos(new BlockPos(7,80,7));var clock=new CodecClock(context,base);

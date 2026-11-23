@@ -66,6 +66,7 @@ public class DescentClient implements ClientModInitializer {
 				com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.CLIENT.begin(
 						client.world == null ? null : client.gameRenderer.getCamera().getPos()));
 		DescentConfig.load();
+        com.terminaldetector.drmd.client.world.WorldProfileClient.register();
         com.terminaldetector.drmd.client.presentation.ScenePresentation.register();
         ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PhysicsProfilePayload.ID,(payload,context)->context.client().execute(()->{
             DescentClientState.physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.parse(payload.profile());
@@ -73,11 +74,13 @@ public class DescentClient implements ClientModInitializer {
         }));
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.DroneLoadoutPayload.ID,(payload,context)->context.client().execute(()->{var p=context.client().player;if(p!=null)com.terminaldetector.drmd.inventory.DroneLoadout.load(p,payload.nbt());}));
         DescentKeybinds.register();
+        com.terminaldetector.drmd.client.hud.TerrainMap3d.register();
         net.minecraft.client.gui.screen.ingame.HandledScreens.register(com.terminaldetector.drmd.inventory.DroneInventoryHandler.TYPE,com.terminaldetector.drmd.client.screen.DroneInventoryScreen::new);
 		ModEntityRenderers.register();
 		com.terminaldetector.drmd.client.render.ShotRenderLayers.register();
         com.terminaldetector.drmd.client.portal.SurfaceComposite.register();
 		com.terminaldetector.drmd.client.render.ShotFxRenderer.register();
+        com.terminaldetector.drmd.client.render.MissileItemRenderer.register();
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
 		// No seam curtain. It painted a two-colour checkerboard across every layer boundary within
@@ -95,6 +98,7 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.portal.OffscreenWorldView.register();
 		com.terminaldetector.drmd.client.portal.MirrorReflectionRenderer.register();
 		com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer.register();
+        com.terminaldetector.drmd.client.flight.GuidedMissileClient.register();
 		registerRenderLayers();
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.WeaponLoadPayload.ID, (payload, context) ->
                 context.client().execute(() -> com.terminaldetector.drmd.client.render.WeaponLoadState.accept(payload.ownerId(),payload.load())));
@@ -195,6 +199,7 @@ public class DescentClient implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
 				(handler, client) -> {
 					DescentClientState.resetSession();
+                    com.terminaldetector.drmd.client.hud.TerrainMap3d.close();
 					com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.clear();
 					userFlightChoice = false;
 					sawSync = false;

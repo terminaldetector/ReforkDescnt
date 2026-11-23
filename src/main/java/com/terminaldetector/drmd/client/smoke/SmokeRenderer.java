@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.smoke;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -13,11 +14,22 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
-/**
- * Smoke by distance band: far columns → large puffs → local blobs.
- */
+/** Soft view-aligned density slices for the existing smoke fields. */
 public final class SmokeRenderer {
+	private static final int SEGMENTS = 10;
+	private static final float[] RING_X = new float[SEGMENTS + 1];
+	private static final float[] RING_Y = new float[SEGMENTS + 1];
+
+	static {
+		for (int i = 0; i <= SEGMENTS; i++) {
+			double azimuth = 2 * Math.PI * i / SEGMENTS;
+			RING_X[i] = (float) Math.cos(azimuth);
+			RING_Y[i] = (float) Math.sin(azimuth);
+		}
+	}
+
 	private SmokeRenderer() {}
 
 	public static void register() {
@@ -26,11 +38,19 @@ public final class SmokeRenderer {
 
 	private static void render(WorldRenderContext ctx) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.player == null || mc.world == null) return;
-		var clouds = SmokeSystem.visibleNear(mc.player.getPos(), 64);
+		if (mc.world == null || ctx.matrixStack() == null) return;
+		Vec3d cam = ctx.camera().getPos();
+		var profile = WorldProfile.get(mc.world);
+		int budget = profile == null ? 48 : switch (profile.performance()) {
+			case COMPACT -> 24;
+			case BALANCED -> 48;
+			case EXTENDED -> 64;
+		};
+		var clouds = SmokeSystem.visibleNear(cam, budget);
 		if (clouds.isEmpty()) return;
 
-		Vec3d cam = ctx.camera().getPos();
+		var right = new Vector3f(1, 0, 0).rotate(ctx.camera().getRotation());
+		var up = new Vector3f(0, 1, 0).rotate(ctx.camera().getRotation());
 		Matrix4f mat = ctx.matrixStack().peek().getPositionMatrix();
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
@@ -38,62 +58,59 @@ public final class SmokeRenderer {
 		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 		RenderSystem.depthMask(false);
 
-		BufferBuilder buf = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-		int drawn = 0;
-		for (SmokeSystem.Cloud c : clouds) {
-			SmokeSystem.Band band = SmokeSystem.drawBand(c, cam);
-			float a = switch (band) {
-				case FAR -> 0.12f * c.density;
-				case MID -> 0.18f * c.density;
-				case NEAR -> 0.28f * c.density;
-				case LOCAL -> 0.35f * c.density;
-			};
-			float r = ((c.colorRgb >> 16) & 0xFF) / 255f;
-			float g = ((c.colorRgb >> 8) & 0xFF) / 255f;
-			float b = (c.colorRgb & 0xFF) / 255f;
-			float rad = c.radius * switch (band) {
-				case FAR -> 2.2f;
-				case MID -> 1.4f;
-				default -> 1.0f;
-			};
-			int puffs = band == SmokeSystem.Band.FAR ? 1 : band == SmokeSystem.Band.MID ? 3 : 5;
-			for (int i = 0; i < puffs; i++) {
-				float ox = (i - puffs / 2f) * rad * 0.35f;
-				box(buf, mat,
-						(float) (c.pos.x + ox - cam.x),
-						(float) (c.pos.y - cam.y),
-						(float) (c.pos.z - cam.z),
-						rad * (band == SmokeSystem.Band.FAR ? 1.5f : 0.7f),
-						r, g, b, a);
-				if (++drawn > 400) break;
+		try {
+			BufferBuilder buf = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
+			for (int index = clouds.size() - 1; index >= 0; index--) {
+				var cloud = clouds.get(index);
+				var band = SmokeSystem.drawBand(cloud, cam);
+				int puffs = switch (band) {
+					case FAR, MID -> 1;
+					case NEAR -> 2;
+					case LOCAL -> 4;
+				};
+				int seed = cloud.id.hashCode();
+				for (int i = 0; i < puffs; i++) {
+					float angle = ((seed & 0xFF) * 0.02464f) + i * 2.39996f;
+					float dispersion = cloud.radius * (i == 0 ? 0 : 0.38f);
+					float x = (float) (cloud.pos.x - cam.x) + (float) Math.cos(angle) * dispersion;
+					float y = (float) (cloud.pos.y - cam.y) + i * cloud.radius * 0.13f;
+					float z = (float) (cloud.pos.z - cam.z) + (float) Math.sin(angle) * dispersion;
+					float radius = cloud.radius * (puffs == 1 ? 1.18f : 0.82f - 0.055f * i);
+					int opacity = Math.min(100, Math.round(cloud.density * (puffs == 1 ? 80 : 67)));
+					puff(buf, mat, right, up, x, y, z, radius, cloud.colorRgb, opacity);
+				}
 			}
-			if (drawn > 400) break;
+			var built = buf.endNullable();
+			if (built != null) BufferRenderer.drawWithGlobalProgram(built);
+		} finally {
+			RenderSystem.depthMask(true);
+			RenderSystem.enableCull();
+			RenderSystem.disableBlend();
 		}
-		var built = buf.endNullable();
-		if (built != null) BufferRenderer.drawWithGlobalProgram(built);
-		RenderSystem.depthMask(true);
-		RenderSystem.enableCull();
-		RenderSystem.disableBlend();
 	}
 
-	private static void box(BufferBuilder buf, Matrix4f mat, float cx, float cy, float cz,
-							float r, float red, float g, float b, float a) {
-		float x0 = cx - r, x1 = cx + r, y0 = cy - r * 0.6f, y1 = cy + r * 1.2f, z0 = cz - r, z1 = cz + r;
-		quad(buf, mat, x0, y0, z0, x1, y0, z0, x1, y1, z0, x0, y1, z0, red, g, b, a);
-		quad(buf, mat, x0, y0, z1, x0, y1, z1, x1, y1, z1, x1, y0, z1, red, g, b, a);
-		quad(buf, mat, x0, y0, z0, x0, y0, z1, x1, y0, z1, x1, y0, z0, red, g, b, a);
-		quad(buf, mat, x0, y1, z0, x1, y1, z0, x1, y1, z1, x0, y1, z1, red, g, b, a);
-		quad(buf, mat, x0, y0, z0, x0, y1, z0, x0, y1, z1, x0, y0, z1, red, g, b, a);
-		quad(buf, mat, x1, y0, z0, x1, y0, z1, x1, y1, z1, x1, y1, z0, red, g, b, a);
+	private static void puff(BufferBuilder buf, Matrix4f mat, Vector3f right, Vector3f up,
+							 float x, float y, float z, float radius, int rgb, int opacity) {
+		int core = opacity << 24 | rgb;
+		int feather = (opacity / 3) << 24 | rgb;
+		for (int i = 0; i < SEGMENTS; i++) {
+			buf.vertex(mat, x, y, z).color(core);
+			vertex(buf, mat, right, up, x, y, z, radius * 0.58f, i, feather);
+			vertex(buf, mat, right, up, x, y, z, radius * 0.58f, i + 1, feather);
+			vertex(buf, mat, right, up, x, y, z, radius * 0.58f, i, feather);
+			vertex(buf, mat, right, up, x, y, z, radius, i, rgb);
+			vertex(buf, mat, right, up, x, y, z, radius, i + 1, rgb);
+			vertex(buf, mat, right, up, x, y, z, radius * 0.58f, i, feather);
+			vertex(buf, mat, right, up, x, y, z, radius, i + 1, rgb);
+			vertex(buf, mat, right, up, x, y, z, radius * 0.58f, i + 1, feather);
+		}
 	}
 
-	private static void quad(BufferBuilder buf, Matrix4f mat,
-							 float x0, float y0, float z0, float x1, float y1, float z1,
-							 float x2, float y2, float z2, float x3, float y3, float z3,
-							 float r, float g, float b, float a) {
-		buf.vertex(mat, x0, y0, z0).color(r, g, b, a);
-		buf.vertex(mat, x1, y1, z1).color(r, g, b, a);
-		buf.vertex(mat, x2, y2, z2).color(r, g, b, a);
-		buf.vertex(mat, x3, y3, z3).color(r, g, b, a);
+	private static void vertex(BufferBuilder buf, Matrix4f mat, Vector3f right, Vector3f up,
+							   float x, float y, float z, float radius, int vertex, int color) {
+		float u = RING_X[vertex] * radius;
+		float v = RING_Y[vertex] * radius;
+		buf.vertex(mat, x + u * right.x + v * up.x, y + u * right.y + v * up.y,
+				z + u * right.z + v * up.z).color(color);
 	}
 }

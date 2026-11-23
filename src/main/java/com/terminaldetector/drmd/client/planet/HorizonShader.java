@@ -14,12 +14,13 @@ public final class HorizonShader {
                 Identifier.of("drmd","horizon_world"),VertexFormats.POSITION_TEXTURE_COLOR,shader->program=shader));
     }
     public static ShaderProgram program() { return program; }
-    public static void position(float x,float y,float z,float inner,float reach) {
+    public static void position(float x,float y,float z,float inner,float reach,boolean volume) {
         if(program==null) return;
         program.getUniform("FieldOriginDelta").set(x,y,z);
         program.getUniform("InnerRadius").set(inner);
         program.getUniform("FieldReach").set(reach);
-        program.getUniform("FieldOuterRadius").set(HorizonExtent.outerRadius());
+        program.getUniform("FieldOuterRadius").set(volume ? VolumeHorizonMesh.OUTER_RADIUS : HorizonExtent.outerRadius());
+        program.getUniform("VolumeHorizon").set(volume ? 1 : 0);
         com.terminaldetector.drmd.client.presentation.Ps1WorldFog.uniforms(program);
     }
 

@@ -33,6 +33,7 @@ public class CarvedBlockEntity extends BlockEntity {
 	private net.minecraft.util.shape.VoxelShape cachedOrganicShape;
 
 	public boolean organic() { return organic || thermal!=null&&!thermal.bores().isEmpty(); }
+	public boolean authoredOrganic() { return organic; }
 	public ThermalDrillCell thermal(){return thermal;}
 	public boolean thermalReadOnly(){return opaqueThermal!=null;}
 	public void setThermal(ThermalDrillCell value){

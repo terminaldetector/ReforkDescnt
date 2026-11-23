@@ -21,11 +21,11 @@ public final class ShapesCombatGoal extends Goal {
         return FlightRouteSpace.clearSight(mob,mob.getEyePos(),muzzle,range)
             &&FlightRouteSpace.clearSight(mob,muzzle,target.getBoundingBox().getCenter(),range);
     }
-    @Override public boolean canStart(){return !mob.isAiDisabled()&&mob.validEnemy(mob.getTarget());}
+    @Override public boolean canStart(){return !mob.isAiDisabled()&&!mob.controlSuspended()&&mob.validEnemy(mob.getTarget());}
     @Override public boolean shouldContinue(){return canStart();}
     @Override public boolean shouldRunEveryTick(){return true;}
     @Override public void tick(){
-        var target=mob.getTarget();if(!mob.validEnemy(target))return;
+        var target=mob.getTarget();if(mob.controlSuspended()||!mob.validEnemy(target))return;
         long now=mob.getWorld().getTime();
         boolean visible=FlightRouteSpace.clearSight(mob,mob.getEyePos(),target.getEyePos(),
             Math.min(128,mob.getAttributeValue(EntityAttributes.GENERIC_FOLLOW_RANGE)))&&mob.canSee(target);

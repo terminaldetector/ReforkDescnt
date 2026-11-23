@@ -22,6 +22,16 @@ public final class ProjectileFramework {
 		cfg.gravity = kind.gravity;
 		cfg.drag = kind.drag;
 		cfg.homing = kind.defaultHoming;
+		cfg.visual = switch (kind) {
+			case LASER -> ProjectileVisual.LASER;
+			case BURN_LANCE -> ProjectileVisual.BURN;
+			case KINETIC -> ProjectileVisual.SLUG;
+			case PLASMA, ENERGY_ORB, AIRBURST -> ProjectileVisual.PLASMA;
+			case GRAVITY_SPHERE -> ProjectileVisual.GRAVITY;
+			case DRILL_CHARGE -> ProjectileVisual.DRILL;
+			case PROXIMITY_MINE -> ProjectileVisual.MINE;
+			case ROCKET -> ProjectileVisual.DEFAULT;
+		};
 		cfg.colorR = (kind.colorRgb >> 16) & 0xFF;
 		cfg.colorG = (kind.colorRgb >> 8) & 0xFF;
 		cfg.colorB = kind.colorRgb & 0xFF;

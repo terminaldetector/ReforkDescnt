@@ -15,7 +15,7 @@ public final class StructureCollapse {
     private StructureCollapse() {}
     /** Use the blast's original cut candidates and read only loaded material. */
     public static void explosion(ServerWorld world,List<BlockPos> affected,Vec3d centre,float power,Predicate<BlockPos> allowed) {
-        if(!Float.isFinite(power) || power<=0 || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world))return;
+        if(!Float.isFinite(power) || power<=0 || !BlastStructuralCollapse.enabled(world))return;
         var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
         var ordered=new ArrayList<>(affected.subList(0,Math.min(affected.size(),2048)));
         ordered.sort(Comparator.comparingInt(BlockPos::getY).thenComparingDouble(p->p.toCenterPos().squaredDistanceTo(centre)));
@@ -35,12 +35,13 @@ public final class StructureCollapse {
     }
 
     public static BlockBodyEntity rocketCut(ServerWorld world,BlockPos root,Vec3d direction,float damage,Predicate<BlockPos> allowed) {
-        if(!com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)||!allowed.test(root))return null;
+        if(!BlastStructuralCollapse.canDetach(world,root.toCenterPos())||!allowed.test(root))return null;
         var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
         var rootState=access.readIfLoaded(root);if(rootState.isEmpty())return null;
         var base=rootState.orElseThrow();
         boolean tree=base.isIn(BlockTags.LOGS);
-        if(!BlastStructuralCollapse.canBreak(world,root,base,damage)
+        if(base.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock
+            || !BlastStructuralCollapse.canBreak(world,root,base,damage)
             || !BlockBodyEntity.supports(base) || base.isIn(BlockTags.LEAVES) || world.getBlockEntity(root)!=null)return null;
         Map<BlockPos,BlockState> selected=new LinkedHashMap<>();
         int top=root.getY();
@@ -76,15 +77,14 @@ public final class StructureCollapse {
             addCanopy(world,root,selected);
         }
         if(selected.keySet().stream().anyMatch(p->!allowed.test(p)))return null;
-        try {
-            var body=BlockBodyEntity.assembleSelection(world,selected);
-            if(!world.breakBlock(root,true)){body.disassemble();return null;}
-            body.setPhysicsGravity(true);
-            // Blast loads the lowest surviving section; offset force creates the tipping torque.
-            Vec3d forcePoint=Vec3d.ofCenter(root.up());
-            body.weaponImpulse(forcePoint,direction,damage);
-            return body;
-        } catch(IllegalArgumentException|IllegalStateException rejected) {return null;}
+        var body=BlastStructuralCollapse.detach(world,selected);
+        if(body==null)return null;
+        if(!world.breakBlock(root,true)){body.disassemble();return null;}
+        body.setPhysicsGravity(true);
+        // Blast loads the lowest surviving section; offset force creates the tipping torque.
+        Vec3d forcePoint=Vec3d.ofCenter(root.up());
+        body.weaponImpulse(forcePoint,direction,damage);
+        return body;
     }
 
     private record CanopyStep(BlockPos pos,int distance) {}

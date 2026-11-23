@@ -2,7 +2,12 @@ package com.terminaldetector.drmd.physics;
 
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
+import com.terminaldetector.drmd.world.contraption.TerrainExtraction;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import com.terminaldetector.drmd.world.gravity.TransientGravityFields;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -10,7 +15,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -81,39 +88,68 @@ public final class GravyPhysics {
 		}
 	}
 
-	private static final Map<UUID, Grab> GRABS = new ConcurrentHashMap<>();
+	private record ActiveGrab(ServerWorld world, Grab grab) {}
+	private record TargetKey(ServerWorld world, UUID target) {}
+	private static final Map<UUID, ActiveGrab> GRABS = new ConcurrentHashMap<>();
+	private static final Map<TargetKey, UUID> CAPTORS = new ConcurrentHashMap<>();
 	private static final double MAX_TETHER_DISTANCE = 34;
 
 	private GravyPhysics() {}
 
 	public static boolean isHolding(ServerPlayerEntity player) {
-		return player != null && GRABS.containsKey(player.getUuid());
+		return currentGrab(player) != null;
 	}
 
 	public static Optional<Mode> activeMode(ServerPlayerEntity player) {
-		Grab grab = player == null ? null : GRABS.get(player.getUuid());
+		Grab grab = currentGrab(player);
 		return grab == null ? Optional.empty() : Optional.of(grab.mode());
 	}
 
 	public static int heldCount(ServerPlayerEntity player) {
-		Grab grab = player == null ? null : GRABS.get(player.getUuid());
+		Grab grab = currentGrab(player);
 		return grab == null ? 0 : grab.targets().size();
 	}
 
 	public static double heldMass(ServerPlayerEntity player) {
-		Grab grab = player == null ? null : GRABS.get(player.getUuid());
+		Grab grab = currentGrab(player);
 		return grab == null ? 0 : grab.totalMass();
 	}
 
 	public static void release(ServerPlayerEntity player) {
 		if (player == null) return;
-		GRABS.remove(player.getUuid());
+		removeGrab(player);
         com.terminaldetector.drmd.network.ModNetworking.weaponLoad(player,0);
 		DescentPlayerData.get(player).setGravyGrabbing(false);
 	}
 
 	public static void clear() {
 		GRABS.clear();
+		CAPTORS.clear();
+	}
+
+	private static Grab currentGrab(ServerPlayerEntity player) {
+		ActiveGrab active = player == null ? null : GRABS.get(player.getUuid());
+		return active != null && active.world() == player.getWorld() ? active.grab() : null;
+	}
+
+	private static void removeGrab(ServerPlayerEntity player) {
+		UUID owner = player.getUuid();
+		ActiveGrab old = GRABS.remove(owner);
+		if (old != null) for (Held held : old.grab().targets())
+			CAPTORS.remove(new TargetKey(old.world(), held.targetId()), owner);
+	}
+
+	private static void setGrab(ServerPlayerEntity player, Grab grab) {
+		removeGrab(player);
+		ServerWorld world = player.getServerWorld();
+		UUID owner = player.getUuid();
+		GRABS.put(owner, new ActiveGrab(world, grab));
+		for (Held held : grab.targets()) CAPTORS.put(new TargetKey(world, held.targetId()), owner);
+	}
+
+	public static boolean isCaptured(Entity target) {
+		return target != null && target.getWorld() instanceof ServerWorld world && target.isAlive()
+				&& CAPTORS.containsKey(new TargetKey(world, target.getUuid()));
 	}
 
 	/** Vanilla entities admitted by the one light-body adapter. Players remain opt-out. */
@@ -132,12 +168,15 @@ public final class GravyPhysics {
 
 	/** Begin a bounded capture from nearest-first candidates. */
 	public static int tryGrab(ServerPlayerEntity player, Mode mode, List<? extends Entity> candidates) {
-		if (player == null || mode == null || candidates == null || candidates.isEmpty()) return 0;
+		if (player == null || mode == null || candidates == null || candidates.isEmpty()
+				|| !player.getServerWorld().getServer().isOnThread() || !player.isAlive() || player.isSpectator()) return 0;
 		List<Held> accepted = new ArrayList<>();
 		Set<UUID> seen = new HashSet<>();
 		double totalMass = 0;
 		for (Entity target : candidates) {
 			if (!canGrab(target) || target.getWorld() != player.getWorld() || !seen.add(target.getUuid())) continue;
+			UUID captor = CAPTORS.get(new TargetKey(player.getServerWorld(), target.getUuid()));
+			if (captor != null && !captor.equals(player.getUuid())) continue;
 			double mass = massOf(target);
 			if (!mode.accepts(accepted.size(), totalMass, mass)) continue;
 			accepted.add(new Held(target.getUuid(), mass));
@@ -145,10 +184,33 @@ public final class GravyPhysics {
 			if (accepted.size() >= mode.maxTargets()) break;
 		}
 		if (accepted.isEmpty()) return 0;
-		GRABS.put(player.getUuid(), new Grab(mode, accepted));
-		DescentPlayerData.get(player).setGravyGrabbing(true);
-        com.terminaldetector.drmd.network.ModNetworking.weaponLoad(player,(float)Math.min(1,totalMass/mode.maxMass()));
+		beginGrab(player, new Grab(mode, accepted));
 		return accepted.size();
+	}
+
+	/** Normal funded item fallback after its target query misses. SHIFT retains its field action. */
+	public static int tryGrabTerrain(ServerPlayerEntity player, Mode mode, double range) {
+		ServerWorld world = player.getServerWorld();
+		if ((mode != Mode.RAIL && mode != Mode.SWARM) || isHolding(player) || !WorldProfile.isUngravity(world)
+				|| !world.getServer().isOnThread() || !player.isAlive() || player.isSpectator()) return 0;
+		Vec3d eye = player.getEyePos();
+		Vec3d end = WorldEditSafety.loadedEnd(world, eye, eye.add(safeAim(player).multiply(range)));
+		if (eye.squaredDistanceTo(end) < 1e-10) return 0;
+		var hit = world.raycast(new RaycastContext(eye, end,
+				RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, player));
+		if (hit.getType() != HitResult.Type.BLOCK) return 0;
+		var body = TerrainExtraction.extract(world, player, hit, mode == Mode.RAIL ? 3 : 1,
+				mode.maxMass(), mode == Mode.RAIL ? 8 : 1.5);
+		if (body == null) return 0;
+		beginGrab(player, new Grab(mode, List.of(new Held(body.getUuid(), massOf(body)))));
+		return 1;
+	}
+
+	private static void beginGrab(ServerPlayerEntity player, Grab grab) {
+		setGrab(player, grab);
+		DescentPlayerData.get(player).setGravyGrabbing(true);
+		com.terminaldetector.drmd.network.ModNetworking.weaponLoad(player,
+				(float)Math.min(1, grab.totalMass() / grab.mode().maxMass()));
 	}
 
 	/** Legacy single-target entry point kept for old commands/addons. */
@@ -159,13 +221,16 @@ public final class GravyPhysics {
 
 	/** Spring-hold targets in a 6DoF-local formation in front of the player's eyes. */
 	public static void tick(ServerPlayerEntity player) {
-		Grab grab = GRABS.get(player.getUuid());
-		if (grab == null) return;
+		Grab grab = currentGrab(player);
+		if (grab == null || !player.isAlive() || player.isSpectator()) {
+			if (GRABS.containsKey(player.getUuid())) release(player);
+			return;
+		}
 		ServerWorld world = player.getServerWorld();
 		Vec3d aim = safeAim(player);
 		List<Held> active = new ArrayList<>(grab.targets().size());
 		for (Held held : grab.targets()) {
-			Entity target = world.getEntity(held.targetId());
+			Entity target = heldEntity(world, held);
 			if (!canGrab(target) || target.squaredDistanceTo(player) > MAX_TETHER_DISTANCE * MAX_TETHER_DISTANCE)
 				continue;
 			active.add(held);
@@ -176,12 +241,12 @@ public final class GravyPhysics {
 		}
 		if (active.size() != grab.targets().size()) {
 			grab = new Grab(grab.mode(), active);
-			GRABS.put(player.getUuid(), grab);
+			beginGrab(player, grab);
 		}
 
 		for (int index = 0; index < active.size(); index++) {
 			Held held = active.get(index);
-			Entity target = world.getEntity(held.targetId());
+			Entity target = heldEntity(world, held);
 			if (target == null) continue;
 			Vec3d formation = formationOffset(grab.mode(), index, active.size(), aim);
 			double radius = Math.max(target.getBoundingBox().getLengthX(),
@@ -199,16 +264,15 @@ public final class GravyPhysics {
 
 	/** Release the current formation as one volley. Returns the number of bodies actually launched. */
 	public static int fling(ServerPlayerEntity player) {
-		Grab grab = GRABS.remove(player.getUuid());
-        com.terminaldetector.drmd.network.ModNetworking.weaponLoad(player,0);
-		DescentPlayerData.get(player).setGravyGrabbing(false);
+		Grab grab = currentGrab(player);
+		release(player);
 		if (grab == null) return 0;
 		ServerWorld world = player.getServerWorld();
 		Vec3d aim = safeAim(player);
 		int launched = 0;
 		for (int index = 0; index < grab.targets().size(); index++) {
 			Held held = grab.targets().get(index);
-			Entity target = world.getEntity(held.targetId());
+			Entity target = heldEntity(world, held);
 			if (!canGrab(target)) continue;
 			Vec3d spread = formationOffset(grab.mode(), index, grab.targets().size(), aim).multiply(.12);
 			Vec3d direction = aim.add(spread).normalize();
@@ -216,6 +280,7 @@ public final class GravyPhysics {
 			Vec3d impulse = desiredVelocity.subtract(velocityOf(target)).multiply(held.mass());
 			impulse = clampVector(impulse, held.mass() * grab.mode().launchSpeed() * 1.5);
 			applyImpulse(target, centreOf(target), impulse, held.mass());
+			if (grab.mode() == Mode.RAIL && target instanceof BlockBodyEntity body) body.armRailImpact(player);
 			if (grab.mode() == Mode.SHIFT) {
 				if (target instanceof PhysicsTarget physics) physics.enablePhysicsGravity();
 				TransientGravityFields.attach(world, target, direction, grab.mode().fieldRadius,
@@ -226,6 +291,11 @@ public final class GravyPhysics {
 			launched++;
 		}
 		return launched;
+	}
+
+	private static Entity heldEntity(ServerWorld world, Held held) {
+		Entity entity = world.getEntity(held.targetId());
+		return entity == null ? BodySpatialIndex.find(world, held.targetId()).orElse(null) : entity;
 	}
 
 	/** Legacy power argument is deliberately ignored: launch tuning now belongs to the mode profile. */

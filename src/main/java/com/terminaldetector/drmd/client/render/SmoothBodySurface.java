@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.render;
 
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.geometry.OrganicBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -13,15 +14,16 @@ final class SmoothBodySurface {
     static void render(BlockBodyEntity body,BlockBodyEntity.Cell cell,MatrixStack matrices,
             VertexConsumerProvider consumers,int light) {
         var client=MinecraftClient.getInstance();
-        var model=client.getBlockRenderManager().getModel(cell.state());
-        var out=consumers.getBuffer(RenderLayers.getEntityBlockLayer(cell.state(),false));
+        var material=cell.state().getBlock() instanceof OrganicBlock organic?organic.source():cell.state();
+        var model=client.getBlockRenderManager().getModel(material);
+        var out=consumers.getBuffer(RenderLayers.getEntityBlockLayer(material,false));
         var entry=matrices.peek();
         for(var face:body.surface(cell).faces()) {
             var direction=Direction.values()[face.direction()];
-            var templates=model.getQuads(cell.state(),direction,Random.create(0));
+            var templates=model.getQuads(material,direction,Random.create(0));
             var template=templates.isEmpty()?null:templates.getFirst();
             int colour=template!=null && template.hasColor()
-                ? client.getBlockColors().getColor(cell.state(),client.world,body.getBlockPos(),template.getColorIndex()):0xffffff;
+                ? client.getBlockColors().getColor(material,client.world,body.getBlockPos(),template.getColorIndex()):0xffffff;
             for(var order:TRIANGLES) {
                 var a=face.vertices().get(order[0]).position();var b=face.vertices().get(order[1]).position();var c=face.vertices().get(order[2]).position();
                 var normal=new org.joml.Vector3f((float)(b.x()-a.x()),(float)(b.y()-a.y()),(float)(b.z()-a.z()))

@@ -12,6 +12,9 @@ import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
 import com.terminaldetector.drmd.workshop.ClusterModule;
 import com.terminaldetector.drmd.workshop.ConstructionRegistry;
+import com.terminaldetector.drmd.weapon.projectile.GuidedMissileControl;
+import com.terminaldetector.drmd.world.profile.WorldProfile;
+import com.terminaldetector.drmd.world.profile.WorldProfiles;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -60,6 +63,7 @@ public class DescentMod implements ModInitializer {
         com.terminaldetector.drmd.world.DrmdServerConfig.load();
 		com.terminaldetector.drmd.world.DrmdBuiltinPacks.register();
 		ModNetworking.register();
+		GuidedMissileControl.register();
         com.terminaldetector.drmd.world.contraption.BodyContactSystem.register();
         com.terminaldetector.drmd.world.contraption.boarding.LooseItemBodySystem.register();
         com.terminaldetector.drmd.world.contraption.boarding.LivingBodyContactSystem.register();
@@ -89,6 +93,7 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.world.level.LevelBuilder.register();
 		com.terminaldetector.drmd.world.portal.PortalComplexity.register();
 		com.terminaldetector.drmd.aeris.AerisMirai.register();
+		WorldProfiles.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
 		com.terminaldetector.drmd.world.enclave.EnclaveMissionSystem.register();
@@ -140,8 +145,10 @@ public class DescentMod implements ModInitializer {
 			// config-time guess (e.g. loading an existing Advanced save after the config was flipped
 			// to Vanilla for the *next* world, or vice versa).
 			if (server.getOverworld() != null) {
+				var profile = WorldProfile.get(server.getOverworld());
 				com.terminaldetector.drmd.world.DrmdServerConfig.forceFeaturesFor(
-						com.terminaldetector.drmd.world.level.WorldLevels.isAdvancedColumn(server.getOverworld()));
+						profile == null ? com.terminaldetector.drmd.world.level.WorldLevels.isAdvancedColumn(server.getOverworld())
+								: WorldProfile.isUngravity(server.getOverworld()));
 			}
 			DescentPlayerData.clear();
             com.terminaldetector.drmd.inventory.DroneArsenal.clear();
@@ -160,7 +167,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.base.DescentSession.clearSeedQueue();
 			// Queue is RAM-only; persisted "seeded" marks must reset or distant plates stay empty.
 			ServerWorld ow = server.getOverworld();
-			if (ow != null) {
+			if (ow != null && WorldProfile.get(ow) == null) {
 				com.terminaldetector.drmd.world.DescentWorldState.get(ow).clearLandmarkSeedMarks();
 			}
 			com.terminaldetector.drmd.world.build.ConstructScaffold.clearAll();
@@ -168,14 +175,16 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
 			com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.clear();
-			com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
 			com.terminaldetector.drmd.world.planet.PlanetSync.reset();
-			com.terminaldetector.drmd.world.store.SurfaceIngest.onServerStarted(server);
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.clear();
+			if (ow != null && WorldProfile.allowsWorldSystems(ow)) {
+				com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
+				com.terminaldetector.drmd.world.store.SurfaceIngest.onServerStarted(server);
+			}
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is
 			// done, so nothing of the mod's runs while the server is still preparing spawn.
-			server.execute(() -> {
+			if (ow != null && WorldProfile.get(ow) == null) server.execute(() -> {
 				try {
 					com.terminaldetector.drmd.world.base.DescentSession.seedWorld(server);
 				} catch (Exception e) {
@@ -195,26 +204,28 @@ public class DescentMod implements ModInitializer {
 			// single figure for "the mod" could not say which to look at. See DiagServerTick.
 			long worldStart = com.terminaldetector.drmd.diag.DiagServerTick.begin();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
-			com.terminaldetector.drmd.world.gravity.TransientGravityFields.tick(server);
-			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
-			com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.tick(server);
-			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
-			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
-			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
-			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
-			com.terminaldetector.drmd.world.planet.PlanetSync.tick(server);
-			com.terminaldetector.drmd.world.store.SurfaceIngest.tick(server);
-			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.tick(server);
-			com.terminaldetector.drmd.world.compat.NativeCubicSkylight.tick(server);
-			com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
-			if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
-			if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);
-			if (tick % 40 == 0) {
-				if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
+			if (WorldProfile.allowsWorldSystems(server.getOverworld())) {
+				com.terminaldetector.drmd.world.gravity.TransientGravityFields.tick(server);
+				com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
+				com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.tick(server);
+				com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
+				com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
+				com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
+				com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
+				com.terminaldetector.drmd.world.planet.PlanetSync.tick(server);
+				com.terminaldetector.drmd.world.store.SurfaceIngest.tick(server);
+				com.terminaldetector.drmd.world.cubic.CubicWorldSystem.tick(server);
+				com.terminaldetector.drmd.world.compat.NativeCubicSkylight.tick(server);
+				com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
+				if (!com.terminaldetector.drmd.world.LegacyGeneration.retired()) {
+					com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
+					com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);
+					if (tick % 40 == 0) com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
+					com.terminaldetector.drmd.world.end.OblivionSeekerSpawner.onServerTick(server);
+				}
 			}
-			if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.end.OblivionSeekerSpawner.onServerTick(server);
 			server.getWorlds().forEach(world -> {
-				if (tick % 5 == 0) {
+				if (tick % 5 == 0 && WorldProfile.allowsWorldSystems(world)) {
 					com.terminaldetector.drmd.world.fire.FireSystem.tick(world);
 				}
 			});
@@ -223,9 +234,10 @@ public class DescentMod implements ModInitializer {
 			long playerStart = com.terminaldetector.drmd.diag.DiagServerTick.begin();
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
-				com.terminaldetector.drmd.world.layer.LayerBridge.tick(player);
+				boolean worldSystems = WorldProfile.allowsWorldSystems(player.getServerWorld());
+				if (worldSystems) com.terminaldetector.drmd.world.layer.LayerBridge.tick(player);
 				// Background Nether/End warm before ±10 of the parallelepiped faces.
-				if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.layer.SeamWarmup.tick(player);
+				if (worldSystems && !com.terminaldetector.drmd.world.LegacyGeneration.retired()) com.terminaldetector.drmd.world.layer.SeamWarmup.tick(player);
 				if (data.isEnabled()) {
 					if (!com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.usesCommandClock(player)) {
 						FlightSystem.tick(player, data);
@@ -233,14 +245,14 @@ public class DescentMod implements ModInitializer {
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
 					com.terminaldetector.drmd.pickup.LootField.tick(player, data);
-				} else {
+				} else if (worldSystems) {
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 				}
 				// Gravity tools are hand-held physical manipulators, not a 6DoF-flight subsystem.
 				// Keeping this outside the flight branch makes a landed pilot retain the captured body.
 				EnergySystem.regenGravityTick(data);
 				com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
-				if (tick % 20 == player.getId() % 20) {
+				if (worldSystems && tick % 20 == player.getId() % 20) {
 					var pos = player.getBlockPos();
 					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickWaterSuppression(
 							player.getServerWorld(), pos, 2);
@@ -253,6 +265,7 @@ public class DescentMod implements ModInitializer {
 
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
 				(world, chunk) -> {
+					if (!WorldProfile.allowsWorldSystems(world)) return;
 					com.terminaldetector.drmd.world.scar.ScarApplier.onChunkLoad(world, chunk);
 					com.terminaldetector.drmd.world.compat.NativeCubicSkylight.loaded(chunk);
 					com.terminaldetector.drmd.world.store.SurfaceIngest.queueChunkLoad(world, chunk);
@@ -268,9 +281,11 @@ public class DescentMod implements ModInitializer {
 			server.execute(() -> {
 				com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(handler.player);
 				ModNetworking.syncPlayer(handler.player, DescentPlayerData.get(handler.player));
-				com.terminaldetector.drmd.world.sync.DimensionSync.pushTo(handler.player);
-				com.terminaldetector.drmd.world.fate.WorldEndings.pushTo(handler.player);
-				com.terminaldetector.drmd.world.planet.PlanetSync.pushTo(handler.player);
+				if (WorldProfile.allowsWorldSystems(handler.player.getServerWorld())) {
+					com.terminaldetector.drmd.world.sync.DimensionSync.pushTo(handler.player);
+					com.terminaldetector.drmd.world.fate.WorldEndings.pushTo(handler.player);
+					com.terminaldetector.drmd.world.planet.PlanetSync.pushTo(handler.player);
+				}
 				com.terminaldetector.drmd.physics.PhysicsProfileState.sync(handler.player);
 				com.terminaldetector.drmd.world.build.ConstructScaffold.sync(handler.player);
 				unlockDrmdRecipes(handler.player);

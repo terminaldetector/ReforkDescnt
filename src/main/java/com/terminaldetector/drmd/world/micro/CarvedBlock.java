@@ -18,6 +18,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.explosion.Explosion;
 import com.mojang.serialization.MapCodec;
+import com.terminaldetector.drmd.world.geometry.NaturalGeometry;
+import com.terminaldetector.drmd.world.geometry.OrganicMaterials;
 
 import java.util.List;
 import java.util.Map;
@@ -221,11 +223,12 @@ public class CarvedBlock extends BlockWithEntity implements net.minecraft.block.
 				&& !BlockDamage.isDamageable(world,pos,source)) return null;
 		boolean organic = source.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock;
         BlockState trueSource = organic ? ((com.terminaldetector.drmd.world.geometry.OrganicBlock)source.getBlock()).source() : source;
-        organic |= com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(trueSource);
+		organic |= NaturalGeometry.applies(trueSource) && NaturalGeometry.usesImplicitTerrain(world);
 		long combinedMask = mask;
 		if (world.getBlockEntity(pos) instanceof CarvedBlockEntity existing) {
 			trueSource = existing.source();
 			combinedMask = mask & existing.mask();
+			organic = existing.authoredOrganic();
 		}
 		// Belt and suspenders against a save that already carries the self-reference this guards
 		// against above: unwrapping it here too means fixed data, not just no more of it.
@@ -259,6 +262,10 @@ public class CarvedBlock extends BlockWithEntity implements net.minecraft.block.
 		BlockEntity be = world.getBlockEntity(pos);
 		BlockState source = be instanceof CarvedBlockEntity carved ? carved.source() : Blocks.STONE.getDefaultState();
 		if (source.getBlock() instanceof CarvedBlock) source = Blocks.STONE.getDefaultState();
+		if (be instanceof CarvedBlockEntity carved && carved.authoredOrganic() && !NaturalGeometry.usesImplicitTerrain(world)) {
+			BlockState authored = OrganicMaterials.intact(source);
+			if (authored != null) source = authored;
+		}
 		world.setBlockState(pos, source, Block.NOTIFY_ALL);
 	}
 
